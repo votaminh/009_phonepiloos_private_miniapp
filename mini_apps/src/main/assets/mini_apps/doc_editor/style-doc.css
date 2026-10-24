@@ -1,0 +1,64 @@
+/* The reading and editing page: top bar, the stage, the paper and the blocks on it. */
+.dc-top{gap:var(--px-2);padding-left:var(--px-4);padding-right:var(--px-8);background:var(--bg);border-bottom:1px solid var(--line);min-height:calc(var(--px-60) + env(safe-area-inset-top))}
+.dc-ttl{flex:1;min-width:0;display:flex;flex-direction:column;padding:0 var(--px-4)}
+.dc-ttl b{font:600 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-sub,.dc-st{display:flex;align-items:center;gap:var(--px-5);font:400 12px var(--body);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-st.ok{color:var(--ok)}.dc-st.warn{color:var(--warn)}.dc-st.busy{color:var(--muted)}
+.dc-dot{flex:none;width:6px;height:6px;border-radius:3px;background:currentColor}
+.dc-spin{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent-soft);border-top-color:var(--accent);animation:dcspin .9s linear infinite}
+@keyframes dcspin{to{transform:rotate(360deg)}}
+.dc-body{background:var(--stage);padding:var(--px-12) var(--px-12) 0;position:relative}
+.dc-body.wide{overflow:auto}
+.pw{position:relative}
+.dc-load,.dc-err{text-align:center;color:var(--paper-muted);padding:var(--px-48) var(--px-8);font:400 15px var(--body)}
+.dc-err{color:var(--danger)}.dc-err small{display:block;margin-top:var(--px-8);color:var(--paper-muted)}
+
+/* the paper: always white while editing (it is the person's document) */
+.paper{background:var(--paper);color:var(--paper-ink);border-radius:6px;box-shadow:0 2px 12px var(--shadow);padding:var(--px-26) var(--px-22) var(--px-40);min-height:60vh;font:400 15px/1.55 'Roboto',sans-serif;overflow-wrap:anywhere;word-break:normal}
+.paper.sheetpg{width:794px;padding:60px 72px;font-size:14.67px;min-height:1123px;margin:0 auto}
+[data-th="sepia"] .dc-body{background:var(--sepia-bg)}[data-th="sepia"] .paper{background:var(--sepia-bg);color:var(--sepia-ink);box-shadow:none}
+[data-th="dark"] .dc-body{background:var(--night-bg)}[data-th="dark"] .paper{background:var(--night-bg);color:var(--night-ink);box-shadow:none}
+[data-th="dark"] .paper .eq,[data-th="dark"] .paper .pt{color:var(--night-muted)}
+[data-th="dark"] .dc-top{background:var(--night-bg);border-color:var(--night-line)}[data-th="dark"] .dc-ttl b,[data-th="dark"] .ib{color:var(--night-ink)}[data-th="dark"] .dc-sub{color:var(--night-muted)}
+[data-th="dark"] .pill:not(.solid){color:var(--night-accent);border-color:var(--night-accent)}
+.b{margin:0 0 .6em;outline:0;min-height:1.2em;position:relative}
+.b.ed{-webkit-user-select:text;user-select:text}
+h1.b,h2.b,h3.b{font-family:var(--head);line-height:1.25;letter-spacing:-.01em}
+h1.b{font-size:1.6em;font-weight:700}h2.b{font-size:1.3em;font-weight:600}h3.b{font-size:1.12em;font-weight:600}
+[data-th="dark"] h1.b,[data-th="dark"] h2.b,[data-th="dark"] h3.b{color:var(--night-head)}
+.b[data-al="center"]{text-align:center}.b[data-al="right"]{text-align:right}.b[data-al="justify"]{text-align:justify}
+.b b,.b strong{font-weight:700}
+.li{padding-left:1.6em}
+.li.bul::before{content:'•';position:absolute;left:.55em}
+.paper{counter-reset:ord}
+.b:not(.ord)+.ord,.ord:first-child{counter-reset:ord}
+.ord{counter-increment:ord}.ord::before{content:counter(ord) '.';position:absolute;left:0;width:1.4em;text-align:right}
+.li[data-il="1"]{margin-left:1.6em}.li[data-il="2"]{margin-left:3.2em}.li[data-il="3"]{margin-left:4.8em}
+a.lnk{color:var(--accent-text);text-decoration:underline}
+[data-th="dark"] a.lnk{color:var(--night-accent)}
+.b.tbl{overflow-x:auto}.tbl table{border-collapse:collapse;min-width:60%}.tbl td{border:1px solid var(--paper-line);padding:var(--px-6) var(--px-8);vertical-align:top;min-width:48px;white-space:pre-wrap}
+.imgp img{max-width:100%;height:auto;display:block}
+.hr hr{border:0;border-top:1px solid var(--paper-line);margin:.4em 0}
+.pb{display:flex;align-items:center;gap:var(--px-8);color:var(--paper-muted);font:500 11px var(--body);text-transform:uppercase;letter-spacing:.08em}
+.pb::before,.pb::after{content:'';flex:1;border-top:1px dashed var(--paper-line)}
+.eq{font-family:'Noto Serif',serif;font-style:italic}.pt{color:var(--paper-muted);font-size:12px;border:1px dashed var(--paper-line);padding:2px 6px;display:inline-block}
+::highlight(find){background-color:var(--find-hit);color:inherit}::highlight(findcur){background-color:var(--find-cur);color:inherit}
+
+/* while editing */
+.paper.editing .b.ed{border-radius:3px;outline:1px dashed var(--sel);outline-offset:2px;caret-color:var(--accent)}
+.paper.editing .b.ed:focus{outline:2px solid var(--accent)}
+.paper.editing .b.lk{cursor:pointer}.paper.editing .b.lk.sel{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.paper.editing .tbl td{outline:1px dashed var(--sel);outline-offset:-2px}.paper.editing .tbl td:focus{outline:2px solid var(--accent);background:var(--accent-soft)}
+.paper.editing .b.ed[data-m="1"]{outline-color:var(--ok)}.paper.editing .b.ed[data-m="1"]:focus{outline-color:var(--accent)}
+.grip{position:absolute;z-index:3;width:22px;height:30px;padding:0;border:0;border-radius:11px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--shadow-hi);animation:rise .24s var(--out) both}
+.quick{position:absolute;z-index:4;height:46px;padding:0 6px;border-radius:23px;background:var(--tip);color:var(--white);display:flex;align-items:center;white-space:nowrap;box-shadow:0 8px 22px var(--shadow-hi);animation:rise .24s var(--out) both}
+.quick button{height:40px;padding:0 12px;border:0;background:transparent;color:var(--white);font:600 13px var(--body);border-radius:12px}
+.quick .sq{width:36px;height:36px;padding:0;border-radius:10px;font-size:15px}.quick .sq.on{background:var(--accent)}
+.quick i{width:1px;height:22px;background:var(--ink-soft);margin:0 4px}
+
+/* print / Save as PDF: only the page */
+@media print{
+  html.printing .shell-top,html.printing .shell-actions,html.printing .sheet,html.printing .toast,html.printing #pgHome,html.printing .grip,html.printing .quick{display:none!important}
+  html.printing #pgDoc,html.printing .dc-body{display:block!important;height:auto!important;overflow:visible!important;background:var(--paper)!important;padding:0!important}
+  html.printing .paper{box-shadow:none!important;border-radius:0!important;width:auto!important;zoom:1!important;padding:0!important;min-height:0!important;font-size:12pt!important;color:var(--paper-ink)!important;background:var(--paper)!important}
+}

@@ -1,0 +1,35 @@
+/* The tools above the keyboard, the popovers they open, and the tiles of the Insert tab. */
+.shell-actions.tbar{display:block;gap:0;padding:0 0 env(safe-area-inset-bottom);background:var(--surface);border-top:1px solid var(--line);animation:rise .24s var(--out) both}
+.tl-tabs{position:relative;display:grid;grid-template-columns:repeat(var(--n,3),1fr);height:50px;padding:6px 12px 0}
+.tl-pill{position:absolute;top:6px;left:12px;height:38px;width:calc((100% - 24px) / var(--n,3));border-radius:19px;background:var(--accent-soft);transform:translateX(calc(var(--i,0) * 100%));transition:transform .35s cubic-bezier(.34,1.3,.64,1)}
+.tl-tab{position:relative;z-index:1;height:38px;border:0;border-radius:19px;background:transparent;color:var(--muted);font:500 14px var(--body)}
+.tl-tab.on{color:var(--accent-text);font-weight:700}
+.tl-row{display:flex;align-items:center;gap:2px;padding:4px 8px 8px;overflow-x:auto;scrollbar-width:none;min-height:54px}
+.tl-row::-webkit-scrollbar{display:none}
+.tl{flex:none;min-width:44px;height:42px;padding:0 6px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:600 16px var(--body);display:flex;align-items:center;justify-content:center}
+.tl.on{background:var(--accent-soft);color:var(--accent-text)}
+.tl:active{transform:scale(.94)}
+.tl-chip{flex:none;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:19px;background:var(--card);color:var(--ink);display:flex;align-items:center;gap:6px;font:600 14px var(--body);white-space:nowrap}
+.tl-chip.on{border:1.5px solid var(--accent);color:var(--accent-text)}
+.tl-sep{flex:none;width:1px;height:24px;background:var(--line);margin:0 4px}
+.tl-a{display:flex;flex-direction:column;align-items:center;gap:2px;font:700 16px var(--body)}.tl-a i{width:18px;height:4px;border-radius:2px;display:block}
+.tl-hint{padding:0 12px;font:400 13px var(--body);color:var(--muted)}
+.tl-panel{padding:12px 16px 4px;min-height:200px}
+.tl-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tl-tile{height:84px;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:600 13px var(--body);animation:rise .34s var(--out) both;animation-delay:var(--d,0ms)}
+.tl-tile:first-child{border:1.5px solid var(--accent);background:var(--accent-soft);color:var(--accent-text)}
+.tl-pics{margin:12px 0 4px;text-align:center;font:400 12px var(--body);color:var(--muted)}
+html.still .tl-tile{animation:none}
+
+/* popovers: the style list, the colour swatches, the paragraph actions, the table size */
+.pop{position:fixed;z-index:12;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 28px var(--shadow-hi);animation:rise .24s var(--out) both}
+.pop.menu{width:236px;padding:6px}.pop.sw{display:flex;gap:10px;padding:10px 12px}
+.pop-it{width:100%;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;text-align:left;font:500 14px var(--body);color:var(--ink)}
+.pop-it span{flex:1}.pop-it svg:last-child{opacity:0}.pop-it.on{background:var(--accent-soft);color:var(--accent-text);font-weight:600}.pop-it.on svg:last-child{opacity:1}
+.pop-it.danger{color:var(--danger)}.pop-it.s0{font-size:15px}.pop-it.s1{font:600 18px var(--head)}.pop-it.s2{font:600 16px var(--head)}.pop-it.s3{font:600 14.5px var(--head)}
+.pop-hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
+.pop-sw{flex:none;width:32px;height:32px;border-radius:16px;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);padding:0;display:flex;align-items:center;justify-content:center}
+.pop-sw.none{background:var(--card);color:var(--muted)}
+.pop.tp{width:224px;padding:12px}.tp-h{font:600 13px var(--body);margin-bottom:8px}
+.tp-g{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.tp-c{aspect-ratio:1;border:0;padding:0;border-radius:4px;background:var(--chip)}.tp-c.on{background:var(--accent)}
+.tp-f{margin-top:10px;display:flex;align-items:center;justify-content:space-between;font:500 13px var(--body);color:var(--muted)}

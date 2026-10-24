@@ -1,0 +1,53 @@
+/* Base — reset, pages, round buttons, sheet, dialog, toast, buttons, fields. Colours: var(--name) from res/colors.js; sizes: var(--px-N) from res/dimens.js. Each app sets --head and --body fonts and its own look on top. */
+:root{--out:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-text-size-adjust:100%}
+button{font-family:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit;color:inherit}
+.hidden{display:none!important}
+html.wait-launch body{visibility:hidden}
+.page{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes slide{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}}
+.round{width:var(--px-44);height:var(--px-44);border-radius:50%;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;padding:0;flex:none;transition:transform .15s var(--spring),background .2s}
+.round:active{transform:scale(.88)}
+.btn{height:var(--px-52);padding:0 var(--px-22);border:0;border-radius:var(--px-18);background:var(--accent);color:var(--white);font:700 15.5px var(--body);display:inline-flex;align-items:center;justify-content:center;gap:var(--px-8);transition:transform .15s var(--spring),opacity .2s;box-shadow:0 8px 20px var(--glow)}
+.btn:active{transform:scale(.95)}.btn:disabled{opacity:.4;box-shadow:none}
+.btn.light{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}.btn.red{background:var(--danger);box-shadow:none}
+.btns{display:flex;gap:var(--px-10);margin-top:var(--px-18)}.btns .btn{flex:1}
+.scrim{position:fixed;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .25s;z-index:8}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;padding:var(--px-12) var(--px-20) calc(var(--px-28) + env(safe-area-inset-bottom));border-radius:var(--px-30) var(--px-30) 0 0;background:var(--bg);box-shadow:0 -14px 48px var(--shadow-hi);transform:translateY(105%);transition:transform .38s var(--out);z-index:9}
+.sheet.on{transform:none}
+.sheet::before{content:'';display:block;width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto var(--px-16)}
+.sheet h2{margin:0 0 var(--px-14);font:700 24px var(--head);letter-spacing:-.01em}
+.opt{display:flex;align-items:center;gap:var(--px-12);width:100%;padding:var(--px-15,15px) var(--px-4);border:0;border-top:1px solid var(--line);background:transparent;text-align:left;font:600 16.5px var(--body)}
+.opt:first-of-type{border-top:0}
+.opt .tick{margin-left:auto;color:var(--accent);opacity:0}.opt.on .tick{opacity:1}.opt.danger{color:var(--danger)}
+.opt svg{flex:none;color:var(--muted)}
+.dlg{position:fixed;left:var(--px-24);right:var(--px-24);top:50%;transform:translateY(-46%) scale(.92);padding:var(--px-24);border-radius:var(--px-28);background:var(--bg);box-shadow:0 22px 64px var(--shadow-hi);opacity:0;pointer-events:none;transition:opacity .2s,transform .3s var(--spring);z-index:10}
+.dlg.on{opacity:1;pointer-events:auto;transform:translateY(-50%)}
+.dlg h2{margin:0;font:700 22px var(--head)}.dlg p{margin:var(--px-8) 0 0;font:400 15px/1.5 var(--body);color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(var(--px-96) + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:88%;padding:var(--px-12) var(--px-18);border-radius:var(--px-20);background:var(--ink);color:var(--white);font:600 14px var(--body);display:flex;align-items:center;gap:var(--px-14);opacity:0;pointer-events:none;transition:opacity .25s,transform .3s var(--spring);z-index:11}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{border:0;background:transparent;color:var(--accent-soft);font:700 14px var(--body);padding:0}
+.field{display:block;width:100%;height:var(--px-52);padding:0 var(--px-16);border-radius:var(--px-16);border:1.5px solid var(--line);background:var(--card);font:500 16px var(--body);outline:0;transition:border-color .2s,box-shadow .2s}
+.field:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--px-48) var(--px-32) var(--px-96)}
+.empty h2{margin:var(--px-24) 0 0;font:700 26px/1.15 var(--head);letter-spacing:-.015em}
+.empty p{margin:var(--px-12) 0 0;max-width:290px;font:400 15.5px/1.5 var(--body);color:var(--muted)}
+@keyframes pgslide{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+@keyframes pgbackslide{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+@keyframes pgback{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.pg-slide{animation:pgslide 340ms var(--out) both}.pg-backslide{animation:pgbackslide 260ms var(--out) both}
+.ghost{position:fixed;z-index:30;pointer-events:none;overflow:hidden;box-sizing:border-box}
+button{position:relative;transition:transform .15s var(--spring)}
+button:active{transform:scale(.96)}
+.rpl{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.rpl i{position:absolute;border-radius:50%;background:currentColor;opacity:.16;transform:scale(0);animation:rpl 520ms ease-out forwards}
+@keyframes rpl{to{transform:scale(1);opacity:0}}
+/* Entrance animations play once when the app opens. After that main.js puts class 'still' on <html>, so redrawing a list or coming back to a page never flashes. */

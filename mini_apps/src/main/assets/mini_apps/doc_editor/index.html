@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" class="wait-launch">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title data-i18n="app.title">Doc Editor</title>
+  <link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="controls.css">
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-doc.css">
+  <link rel="stylesheet" href="style-edit.css">
+  <link rel="stylesheet" href="style-sheets.css">
+</head>
+<body>
+<section class="page shell" data-page="home" id="pgHome">
+  <header class="shell-top" id="homeTop"></header>
+  <div class="shell-body" id="homeBody"><div class="vl" id="homeList"></div></div>
+  <div class="shell-actions" id="homeActions"></div>
+</section>
+<section class="page shell" data-page="doc" id="pgDoc" style="display:none">
+  <header class="shell-top dc-top" id="docTop"></header>
+  <div class="shell-body dc-body" id="docBody"><div class="pw" id="pw"><article class="paper fit" id="paper"></article></div><div class="pad"></div></div>
+  <div class="shell-actions tbar hidden" id="docTools"></div>
+</section>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="res/colors.js"></script>
+<script src="res/dimens.js"></script>
+<script src="res/strings.js"></script>
+<script src="sdk.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/views/ui.js"></script>
+<script src="js/views/icons.js"></script>
+<script src="js/views/controls.js"></script>
+<script src="js/models/store.js"></script>
+<script src="js/models/docsvc.js"></script>
+<script src="js/models/render.js"></script>
+<script src="js/models/plan.js"></script>
+<script src="js/views/home-view.js"></script>
+<script src="js/views/doc-view.js"></script>
+<script src="js/views/sheets-view.js"></script>
+<script src="js/viewmodels/app-vm.js"></script>
+<script src="js/viewmodels/doc-vm.js"></script>
+<script src="js/viewmodels/edit-vm.js"></script>
+<script src="js/viewmodels/struct-vm.js"></script>
+<script src="js/viewmodels/read-vm.js"></script>
+<script src="js/viewmodels/find-vm.js"></script>
+<script src="js/viewmodels/menu-vm.js"></script>
+<script src="js/viewmodels/insert-vm.js"></script>
+<script src="js/viewmodels/table-vm.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

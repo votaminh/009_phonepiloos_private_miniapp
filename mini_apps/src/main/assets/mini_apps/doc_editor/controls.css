@@ -1,0 +1,6 @@
+/* Controls — the drawn slider. */
+.sld{position:relative;height:var(--px-32);touch-action:none;cursor:pointer;display:flex;align-items:center}
+.sld::before{content:'';position:absolute;left:0;right:0;height:8px;border-radius:4px;background:var(--chip)}
+.sld .sf{position:absolute;left:0;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent-hi,var(--accent)))}
+.sld .sk{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--card);box-shadow:0 3px 10px var(--shadow-hi),0 0 0 3px var(--accent);outline:0;transition:transform .15s var(--spring)}
+.sld.drag .sk,.sld .sk:focus{transform:scale(1.2)}
