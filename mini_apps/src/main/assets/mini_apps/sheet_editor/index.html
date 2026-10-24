@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" class="wait-launch">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title data-i18n="app.title">Sheet Editor</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-grid.css">
+  <link rel="stylesheet" href="style-sheets.css">
+</head>
+<body>
+<section class="page shell" data-page="home" id="pgHome">
+  <header class="shell-top" id="homeTop"></header>
+  <div class="shell-body" id="homeBody"><div class="vl" id="homeList"></div></div>
+  <div class="shell-actions" id="homeActions"></div>
+</section>
+<section class="page shell" data-page="book" id="pgBook" style="display:none">
+  <header class="shell-top bk-top" id="bookTop"></header>
+  <div class="bk-ro hidden" id="bookBanner"></div>
+  <div class="fb" id="bookBar"></div>
+  <div class="gwrap" id="gWrap">
+    <div class="gcolh" id="gColH"><div class="gcolh-in" id="gColIn"></div></div>
+    <div class="gfz" id="gFz" style="display:none"><div class="gfz-in" id="gFzIn"></div></div>
+    <div class="gscroll" id="gScroll"><div class="vl" id="gHost"></div></div>
+    <div class="bk-stats" id="bookStats" aria-live="polite"></div>
+  </div>
+  <div class="bk-tabs" id="bookTabs"></div>
+  <div class="bk-tools" id="bookTools"></div>
+  <div class="fd-panel hidden" id="fdPanel"></div>
+</section>
+<div class="print-area" id="printArea"></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="res/colors.js"></script>
+<script src="res/dimens.js"></script>
+<script src="res/strings.js"></script>
+<script src="sdk.js"></script>
+<script src="js/engine/numfmt.min.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/views/ui.js"></script>
+<script src="js/views/icons.js"></script>
+<script src="js/models/store.js"></script>
+<script src="js/models/sheetsvc.js"></script>
+<script src="js/models/calc-parse.js"></script>
+<script src="js/models/calc.js"></script>
+<script src="js/models/calc-fn.js"></script>
+<script src="js/models/wb.js"></script>
+<script src="js/models/fmt.js"></script>
+<script src="js/models/fonts.js"></script>
+<script src="js/views/home-view.js"></script>
+<script src="js/views/grid-view.js"></script>
+<script src="js/views/sheets-view.js"></script>
+<script src="js/views/sheets-view2.js"></script>
+<script src="js/viewmodels/app-vm.js"></script>
+<script src="js/viewmodels/motion-vm.js"></script>
+<script src="js/viewmodels/grid-vm.js"></script>
+<script src="js/viewmodels/clip-vm.js"></script>
+<script src="js/viewmodels/resize-vm.js"></script>
+<script src="js/viewmodels/format-vm.js"></script>
+<script src="js/viewmodels/rows-vm.js"></script>
+<script src="js/viewmodels/struct-vm.js"></script>
+<script src="js/viewmodels/data-vm.js"></script>
+<script src="js/viewmodels/find-vm.js"></script>
+<script src="js/viewmodels/book-vm.js"></script>
+<script src="js/viewmodels/menu-vm.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
