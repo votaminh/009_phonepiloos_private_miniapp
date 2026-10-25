@@ -6,13 +6,13 @@
 
   Q.render = async function () {
     var el = $('quick'), id = Deck.sel, s = Deck.slide(); if (!s) return;
-    if (!id) { el.innerHTML = EditView.quick({ sel: false, hidden: s.hidden }); return; }
+    if (!id) { Q.last = null; if (Insp.open()) Insp.render(null); if (Wide.pc) Insp.render(null); else el.innerHTML = EditView.quick({ sel: false, hidden: s.hidden }); if (window.Desk) Desk.sync(); return; }
     var n = Stage.node(id), g = Deck.gen, r = null;
     try { r = await Deck.read(id); } catch (e) { /* a box the engine cannot describe still moves */ }
     if (g !== Deck.gen || Deck.sel !== id) return;
     var hasText = !!r && (r.type === 'text' || r.type === 'shape') && !(n && n.line), isTable = !!r && r.type === 'table', tab = Q.tab || (hasText ? 'text' : isTable ? 'tbl' : 'box');
     if (tab === 'text' && !hasText) tab = isTable ? 'tbl' : 'box'; if (tab === 'tbl' && !isTable) tab = 'box';
-    Q.last = r; el.innerHTML = EditView.quick({ sel: true, tab: tab, read: r, hasText: hasText, isTable: isTable, hidden: s.hidden });
+    Q.last = r; if (Insp.open()) Insp.render(r); if (Wide.pc) { Insp.render(r); if (window.Desk) Desk.sync(); return; } el.innerHTML = EditView.quick({ sel: true, tab: tab, read: r, hasText: hasText, isTable: isTable, hidden: s.hidden }); if (window.Desk) Desk.sync();
   };
   function el() { return Deck.sel; }
   function run(op, key) { return Viewer.run([op], key); }

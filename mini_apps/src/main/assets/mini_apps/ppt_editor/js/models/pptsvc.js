@@ -39,6 +39,7 @@
     undo: function () { return call('undo', {}); },
     redo: function () { return call('redo', {}); },
     save: function () { return call('save', {}).then(function (r) { return r.bytes; }); },
+    comments: function (slide) { return call('comments', { slide: slide }).then(function (r) { return r.items; }); },
     notes: function (slide) { return call('notes', { slide: slide }).then(function (r) { return r.text; }); },
     animations: function (slide) { return call('animations', { slide: slide }).then(function (r) { return r.items; }); },
     elements: function (slide) { return call('elements', { slide: slide }).then(function (r) { return r.items; }); },

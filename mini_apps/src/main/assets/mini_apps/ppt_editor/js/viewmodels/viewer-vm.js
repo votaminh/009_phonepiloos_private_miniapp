@@ -16,7 +16,8 @@
     if (Find.open) return;
     var i = Deck.info || { canUndo: false, canRedo: false };
     $('deckTop').classList.toggle('saving', V.saving || V.drafting);
-    $('deckTop').innerHTML = EditView.top(V.rec ? V.rec.name : '', status(), { undo: i.canUndo, redo: i.canRedo, dirty: V.dirty, outline: window.Outline && Outline.on });
+    var o = { undo: i.canUndo, redo: i.canRedo, dirty: V.dirty, outline: window.Outline && Outline.on };
+    $('deckTop').innerHTML = Wide.pc ? DeskView.top(V.rec ? V.rec.name : '', status(), o) : EditView.top(V.rec ? V.rec.name : '', status(), o);
   };
   V.relabel = function () { if (V.rec) { V.chrome(); $('deckTools').innerHTML = EditView.tools(); Quick.render(); } };
 
@@ -37,6 +38,8 @@
     if (head[0] === 0xD0 && head[1] === 0xCF) throw new Error(t('err.protected'));
     var info = await PptSvc.open(buf);
     Deck.reset(info); Stage.layout(); $('deckTools').innerHTML = EditView.tools(); Stage.select(null); Film.build(); V.chrome(); await Stage.show(); if (window.Outline) Outline.sync();
+    // a deck picked from elsewhere has no picture of its first slide yet: draw it now (it is also redrawn after every save)
+    var rec = V.rec; if (rec && !rec.thumb) V.thumb(rec).then(function () { if (rec.thumb) Store.put(rec); });
   };
 
   // ---- drafts ------------------------------------------------------------------------------------------------------------------
@@ -133,7 +136,7 @@
     $('dlg').innerHTML = SheetsView.choice(t('lv.title'), t('lv.body'), [{ act: 'lv-discard', label: t('lv.discard'), kind: 'danger' }, { act: 'lv-save', label: t('lv.save'), kind: 'solid' }]);
     return true;
   };
-  function leave() { V.dirty = false; V.rec = null; Ui.hint('slide'); Router.navigate('home'); }
+  function leave() { V.dirty = false; Router.back(); }   // the page folds back into its row (UiNav.hookBack)
   A['lv-save'] = async function () { Ui.closeDialog(); if (await V.save()) leave(); };
   A['lv-discard'] = async function () { Ui.closeDialog(); stopTimer(); await V.dropDraft(); leave(); };
   A['v-back'] = function () { if (V.backInPage()) return; if (!V.guardLeave()) leave(); };

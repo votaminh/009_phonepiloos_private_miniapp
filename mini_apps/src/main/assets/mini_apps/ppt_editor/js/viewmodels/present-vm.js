@@ -36,8 +36,10 @@
     $('prEnd').classList.add('hidden'); $('prN').textContent = (P.at + 1) + ' / ' + P.list.length; $('prBar').style.width = ((P.at + 1) / P.list.length * 100) + '%';
     PptSvc.notes(i).then(function (x) { var n = $('prNoteText'); if (n) { n.textContent = x || t('pr.nonotes'); $('prNotes').classList.toggle('empty', !x); } }).catch(function () {});
     var kind = dir === 0 || (calm && calm.matches) ? 'none' : (s.transition || 'none');
+    // a finished transition keeps its last frame (fill: both): drop it, or the canvas stays where the last push or zoom left it
+    back.getAnimations().concat(front.getAnimations()).forEach(function (a) { a.cancel(); });
     back.className = 'pr-cv'; front.className = 'pr-cv'; back.style.zIndex = 2; front.style.zIndex = 1; back.style.display = 'block';
-    var done = function () { front.style.display = 'none'; back.style.zIndex = 1; P.front = back.id; P.busy = false; PresentAnim.bind(made.st, back, made.f); };
+    var done = function () { front.style.display = 'none'; back.style.zIndex = 1; P.front = back.id; P.busy = false; PresentAnim.bind(made.st, back, made.f); if (window.PresX) PresX.changed(); };
     var A1 = anim(kind, back, front, dir || 1); if (A1) A1.finished.then(done, done); else done();
     clearTimeout(P.auto); if (s.advance && P.at < P.list.length - 1) P.auto = setTimeout(function () { if (P.isOpen) next(); }, s.advance);
   }
@@ -55,6 +57,10 @@
   }
   function next() { if (!P.busy && PresentAnim.click()) { wake(); return; } if (P.at >= P.list.length - 1) { clearTimeout(P.auto); $('prEnd').classList.remove('hidden'); wake(); return; } P.at++; show(1); wake(); }
   function prev() { if (P.at <= 0) return; $('prEnd').classList.add('hidden'); P.at--; show(-1); wake(); }
+  P.fit = fit; P.wake = wake;
+  // to the n-th slide of the show (0-based); the one the show is on does nothing
+  P.goto = function (n) { if (P.busy || n === P.at || n < 0 || n >= P.list.length) return; var d = n > P.at ? 1 : -1; $('prEnd').classList.add('hidden'); P.at = n; show(d); wake(); };
+  P.next = function () { next(); }; P.prev = function () { prev(); };
   A['p-open'] = function () { P.open(Deck.cur); };
   A['p-close'] = function () { P.close(); };
   A['p-next'] = next; A['p-prev'] = prev;
@@ -65,7 +71,7 @@
   document.addEventListener('click', function (e) {
     if (!P.isOpen || e.target.closest('button')) return; var x = e.clientX / window.innerWidth;
     if ($('presPanel').classList.contains('quiet')) { wake(); return; }
-    if (P.laser) return; if (x < 0.3) prev(); else next();
+    if (P.laser || (window.PresX && PresX.tool)) return; if (x < 0.3) prev(); else next();
   });
   function dot(e) { if (!P.isOpen || !P.laser) return; var l = $('prLaser'), r = $('prStage').getBoundingClientRect(); l.style.left = (e.clientX - r.left) + 'px'; l.style.top = (e.clientY - r.top) + 'px'; l.classList.remove('hidden'); }
   document.addEventListener('pointerdown', function (e) { if (P.isOpen && P.laser && !e.target.closest('button')) dot(e); });

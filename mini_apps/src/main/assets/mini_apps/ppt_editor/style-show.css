@@ -4,7 +4,7 @@
 .pr-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .pr-ov{position:absolute;pointer-events:none;z-index:4}
 .pr-ov canvas{position:absolute;display:block}
-.pr-cv{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;background:var(--white)}
+.pr-cv{position:absolute;inset:0;margin:auto;display:none;background:var(--white)}
 #prA{display:block}
 .pr-prog{position:absolute;left:0;right:0;top:0;height:3px;background:var(--pill-bg);z-index:5}.pr-prog i{display:block;height:100%;width:0;background:var(--accent-hi);transition:width .3s var(--out)}
 .pr-top,.pr-bar,.pr-notes{position:absolute;z-index:5;transition:opacity .25s linear}
@@ -22,3 +22,18 @@
 .pr-end{position:absolute;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:3}.pr-end b{font:700 24px var(--head)}.pr-end span{font:400 14px var(--body);opacity:.7}
 .presenting .toast{z-index:12}
 
+
+/* a computer: the bar of tools, ink, the black and white screens */
+.pr-tools,.pr-ink,.pr-scr{display:none}
+html.pc .pr-bar{display:none}
+html.pc .pr-tools{display:flex;position:absolute;z-index:7;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);align-items:center;gap:var(--px-2);padding:var(--px-6) var(--px-10);border-radius:var(--px-24);background:var(--tip);box-shadow:0 10px 30px var(--shadow-hi);transition:opacity .25s linear}
+.pres.quiet .pr-tools{opacity:0;pointer-events:none}
+html.pc .pr-ink{display:block;position:absolute;inset:0;margin:auto;z-index:4;pointer-events:none}
+.pr-t{flex:none;width:34px;height:34px;padding:0;border:0;border-radius:var(--px-10);background:transparent;color:var(--on-accent);display:flex;align-items:center;justify-content:center}
+.pr-t:hover{background:var(--pill-bg)}.pr-t.on{background:var(--accent)}.pr-t.exit:hover{background:var(--danger)}
+.pr-t.col i{display:block;width:18px;height:18px;border-radius:50%;border:2px solid var(--on-accent)}
+.pr-pg{min-width:58px;text-align:center;font:600 12.5px var(--body);color:var(--white-soft);font-variant-numeric:tabular-nums}
+.pr-sp{flex:none;width:1px;height:20px;margin:0 var(--px-4);background:var(--pill-bg)}
+html.pc .pr-scr{display:block;position:absolute;inset:0;z-index:6}.pr-scr.off{display:none!important}.pr-scr.black{background:var(--dark)}.pr-scr.white{background:var(--white)}
+.pres.inking{cursor:crosshair}
+html.pc .pr-top .pr-i{width:40px;height:40px}

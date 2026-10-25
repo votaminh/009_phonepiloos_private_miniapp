@@ -15,7 +15,7 @@
     size: size, ago: ago,
     top: function (s) {
       if (s.search) return '<div class="hm-find"><span>' + Ui.ic('search', 20) + '</span><input class="hm-in" id="homeQ" type="text" value="' + esc(s.q) + '" placeholder="' + esc(t('h.search.ph')) + '" aria-label="' + esc(t('h.search')) + '" autocomplete="off"><button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('a.close')) + '">' + Ui.ic('close', 22) + '</button></div>';
-      return '<div class="hm-ttl"><h1 class="shell-title">' + esc(t('app.title')) + '</h1><p class="hm-sub">' + esc(t('app.sub')) + '</p></div>' + (s.count ? '<button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('h.search')) + '">' + Ui.ic('search', 24, 1.8) + '</button>' : '');
+      return '<div class="hm-ttl"><h1 class="shell-title">' + esc(t('app.title')) + '</h1><p class="hm-sub">' + esc(t('app.sub')) + '</p></div>' + (s.count ? '<button type="button" class="ib" data-act="h-view" aria-label="' + esc(t(s.grid ? 'h.list' : 'h.grid')) + '">' + Ui.ic(s.grid ? 'viewlist' : 'viewgrid', 24, 1.8) + '</button><button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('h.search')) + '">' + Ui.ic('search', 24, 1.8) + '</button>' : '');
     },
     head: function (label) { return '<span class="hm-hd">' + esc(label) + '</span>'; },
     row: function (d) {
@@ -24,6 +24,14 @@
         + '<span class="hm-txt"><b>' + esc(d.name) + '</b><small>' + size(d.size) + ' · ' + sub + '</small></span>'
         + '<button type="button" class="ib hm-more" data-act="h-more" data-id="' + esc(d.key) + '" aria-label="' + esc(t('r.menu')) + '">' + Ui.ic('more', 20) + '</button></div>';
     },
+    // the same deck as a tile (grid view): the real first slide over the name; two tiles make one row of the list
+    tile: function (d) {
+      var sub = d.draft ? '<span class="hm-dot warn"></span>' + esc(t('m.draft')) : '<span class="hm-dot ok"></span>' + esc(t(d.editedAt && d.editedAt >= (d.openedAt || 0) - 1000 ? 'm.edited' : 'm.opened', { t: ago(d.openedAt || 0) }));
+      return '<div class="hm-card hm-tile" data-act="h-open" data-id="' + esc(d.key) + '" role="button" tabindex="0">' + (d.thumb ? '<span class="hm-th pic"><img alt="" src="' + esc(d.thumb) + '"></span>' : grid('hm-th'))
+        + '<span class="hm-txt"><b>' + esc(d.name) + '</b><small>' + size(d.size) + ' · ' + sub + '</small></span>'
+        + '<button type="button" class="ib hm-more" data-act="h-more" data-id="' + esc(d.key) + '" aria-label="' + esc(t('r.menu')) + '">' + Ui.ic('more', 20) + '</button></div>';
+    },
+    pair: function (ds) { return '<div class="hm-pair" style="grid-template-columns:repeat(' + (ds.cols || ds.length) + ',minmax(0,1fr))">' + ds.map(HomeView.tile).join('') + '</div>'; },
     // a new deck: the look, the first slide, the page shape
     newDeck: function (nd) {
       var looks = ['tide', 'paper', 'night', 'fresh'].map(function (id) { return [id, AppLooks[id].bg, AppLooks[id].ac]; });

@@ -13,18 +13,22 @@
       var c = cv.getContext('2d'); c.setTransform(w / tree.widthPx, 0, 0, w / tree.widthPx, 0, 0); SlideDraw.draw(c, tree); btn.classList.add('rdy');
     }).catch(function () { cv.dataset.g = ''; });
   }
+  // the width a small slide is drawn at: the strip on a phone, the column on a computer
+  function fw() { return Wide.pc ? 132 : 96; }
   Film.build = function () {
     var info = Deck.info, el = $('film'); if (io) io.disconnect(); seen = {};
     el.innerHTML = EditView.film(info.slides.length, Deck.cur, info.slides.map(function (s) { return s.hidden; }));
-    io = new IntersectionObserver(function (es) { es.forEach(function (e) { var b = e.target; if (e.isIntersecting) { seen[b.dataset.i] = b; thumb(b, 96); } else delete seen[b.dataset.i]; }); }, { root: el, rootMargin: '160px' });
+    io = new IntersectionObserver(function (es) { es.forEach(function (e) { var b = e.target; if (e.isIntersecting) { seen[b.dataset.i] = b; thumb(b, fw()); } else delete seen[b.dataset.i]; }); }, { root: el, rootMargin: '160px' });
     Array.prototype.forEach.call(el.querySelectorAll('.th[data-i]'), function (b) { var c = b.querySelector('canvas'); c.style.aspectRatio = '1 / ' + Deck.ratio(); io.observe(b); });
   };
   // the current slide is marked and kept in view; the small slides in view are drawn again after a change
   Film.update = function () {
     var el = $('film'), cur = null;
     Array.prototype.forEach.call(el.querySelectorAll('.th[data-i]'), function (b) { var on = +b.dataset.i === Deck.cur; b.classList.toggle('on', on); if (on) cur = b; });
-    if (cur) { var l = cur.offsetLeft - (el.clientWidth - cur.offsetWidth) / 2; el.scrollTo({ left: Math.max(0, l), behavior: 'smooth' }); }
-    Object.keys(seen).forEach(function (k) { thumb(seen[k], 96); });
+    if (cur && Wide.pc) el.scrollTo({ top: Math.max(0, cur.offsetTop - (el.clientHeight - cur.offsetHeight) / 2), behavior: 'smooth' });
+    else if (cur) { var l = cur.offsetLeft - (el.clientWidth - cur.offsetWidth) / 2; el.scrollTo({ left: Math.max(0, l), behavior: 'smooth' }); }
+    Object.keys(seen).forEach(function (k) { thumb(seen[k], fw()); });
+    if (Wide.pc && Slides.sel.indexOf(Deck.cur) < 0) Slides.sel = [Deck.cur]; if (window.FilmPc) FilmPc.paint();
     if (Slides.isOpen) Slides.paint();
   };
   Slides.go = function (i) {

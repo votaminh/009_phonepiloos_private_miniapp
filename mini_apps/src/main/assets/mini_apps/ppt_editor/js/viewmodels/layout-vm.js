@@ -11,8 +11,10 @@
     Ui.sheet('layout', SheetsView.layout({ add: add, layouts: cur, looks: LOOKS }));
   };
   A['m-layout'] = function () { Layout.open('slide'); };
-  A['l-pick'] = function (b) {
-    Ui.closeSheet(); var name = b.dataset.k;
+  A['l-pick'] = function (b) { Layout.pick(b.dataset.k); };
+  // addMode: true adds a slide with the layout, false sets it on this slide; left out, the sheet that is open decides
+  Layout.pick = function (name, addMode) {
+    Ui.closeSheet(); if (addMode !== undefined) add = addMode;
     if (add || !Deck.count()) Viewer.run([Deck.op('addSlideWithLayout', null, { layout: name }, Deck.cur)], 'busy.slides', { go: Deck.cur + 1, rebuild: true });
     else Viewer.run([Deck.op('setSlideLayout', null, { layout: name })], 'busy.slides');
   };

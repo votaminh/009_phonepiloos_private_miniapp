@@ -8,10 +8,15 @@
   // ---- size and drawing --------------------------------------------------------------------------------------------------
   S.layout = function () {
     S.zoom.k = 1; S.zoom.x = 0; S.zoom.y = 0; S.res = 1; $('slideBox').style.transform = '';
-    var st = $('stage'), w = Math.max(160, Math.floor(st.clientWidth - 32)), box = $('slideBox');
+    var st = $('stage'), box = $('slideBox'), w;
+    if (Wide.pc) {
+      // a computer: the slide fits the room (S.pcz = 0) or is a percent of its real size, and the room scrolls
+      var sc = $('stScroll'), room = Math.max(160, sc.clientWidth - 56), tall = Math.max(120, sc.clientHeight - 56), fit = Math.min(room, Math.floor(tall / Deck.ratio()));
+      w = S.pcz ? Math.round(Deck.info.size.cx / 9525 * S.pcz / 100) : fit; w = Math.max(120, Math.min(3600, w)); S.pcw = w;
+    } else w = Math.max(160, Math.floor(st.clientWidth - 32));
     if (w !== Deck.w) { Deck.w = w; Deck.gen++; Deck.trees = {}; Deck.reads = {}; }
-    var h = Math.round(w * Deck.ratio()); S.dpr = Math.min(2, window.devicePixelRatio || 1);
-    box.style.width = w + 'px'; box.style.height = h + 'px'; st.style.height = (h + 76) + 'px';
+    var h = Math.round(w * Deck.ratio()); S.dpr = Math.min(2, window.devicePixelRatio || 1, Math.max(1, 3200 / w));
+    box.style.width = w + 'px'; box.style.height = h + 'px'; if (!Wide.pc) st.style.height = (h + 76) + 'px'; else st.style.height = '';
     S.cv = $('slideCv'); S.cv.width = Math.round(w * S.dpr * S.res); S.cv.height = Math.round(h * S.dpr * S.res); S.ctx = S.cv.getContext('2d');
   };
   S.draw = function (skip) { if (!S.tree) return; var m = S.dpr * S.res; S.ctx.setTransform(m, 0, 0, m, 0, 0); SlideDraw.draw(S.ctx, S.tree, skip, true); };
@@ -21,7 +26,10 @@
     if (g !== Deck.gen || i !== Deck.cur) return;
     S.tree = tree; S.endLift(); S.draw();
     if (Deck.sel && !S.node(Deck.sel)) Deck.sel = S.successor();
+    if (window.Sel) { Sel.prune(); if (!Deck.sel) Deck.more = []; }
+    if (window.Extras) Extras.paintGrid();
     S.frame(); $('stPill').textContent = (i + 1) + ' / ' + Deck.count(); Quick.render(); Film.update();
+    if (window.Desk) { Desk.sync(); Desk.loadNotes(); }
   };
   SlideDraw.onImage(function () { if (!S.g) S.draw(); });
   // an edit can give a box a new id (a table that got a row): the box of the same kind that sits where it sat is still the selection
@@ -35,11 +43,13 @@
   // ---- the frame over the selected box -----------------------------------------------------------------------------------------
   S.frame = function () {
     var fr = $('frame'), n = Deck.sel && S.node(Deck.sel);
-    if (!n) { fr.classList.remove('on'); $('stFloat').classList.remove('on'); return; }
+    if (!n) { fr.classList.remove('on'); $('stFloat').classList.remove('on'); if (window.Sel) Sel.paint(); if (window.Cells) Cells.draw(); return; }
+    if (window.Sel && Sel.count() > 1) return Sel.frame();
+    if (window.Sel) Sel.paint();
     var b = n.box, rot = n.type !== 'group' && !n.decoration; S.last = { type: n.type, x: b.x, y: b.y };
     fr.style.cssText = 'left:' + b.x + 'px;top:' + b.y + 'px;width:' + b.w + 'px;height:' + b.h + 'px;transform:rotate(' + (b.rotationDeg || 0) + 'deg)';
     fr.dataset.k = n.type; if (fr.dataset.s !== n.sourceId + ':' + rot) { fr.innerHTML = EditView.frame(rot); fr.dataset.s = n.sourceId + ':' + rot; }
-    fr.classList.add('on'); S.floatAt();
+    fr.classList.add('on'); S.floatAt(); if (window.Cells) Cells.draw();
   };
   S.floatAt = function () {
     var f = $('stFloat'), fr = $('frame'), n = Deck.sel && S.node(Deck.sel);
@@ -49,7 +59,7 @@
     f.style.left = Math.max(8, Math.min(sb.width - fw - 8, r.left - sb.left + r.width / 2 - fw / 2)) + 'px'; f.style.top = Math.max(6, Math.min(sb.height - 50, top)) + 'px'; f.classList.add('on');
   };
   S.select = function (id) {
-    Deck.sel = id; Quick.tab = null; S.frame();
+    Deck.sel = id; Deck.more = []; Quick.tab = null; S.frame();
     var n = id && S.node(id); $('stFloat').innerHTML = n ? EditView.floatBar({ text: !!(n.text && n.text.lines) || n.type === 'text' }) : ''; if (n) S.floatAt(); Quick.render();
   };
 
@@ -100,6 +110,7 @@
   var wheelT = 0;
   function onWheel(e) {
     if (!(e.ctrlKey || e.metaKey) || !S.tree) return; e.preventDefault();
+    if (Wide.pc) return Desk.wheel(e);
     var z = S.zoom, r = $('slideBox').getBoundingClientRect(), ox = r.left - z.x, oy = r.top - z.y, cx = (e.clientX - ox - z.x) / z.k, cy = (e.clientY - oy - z.y) / z.k;
     z.k = Math.max(1, Math.min(4, z.k * Math.exp(-Math.max(-20, Math.min(20, e.deltaY * (e.deltaMode ? 5 : 1))) * 0.01))); z.x = e.clientX - ox - cx * z.k; z.y = e.clientY - oy - cy * z.k; applyZoom();
     clearTimeout(wheelT); wheelT = setTimeout(function () { sharp(); S.floatAt(); }, 160);
@@ -121,6 +132,7 @@
     for (var i = ns.length - 1; i >= 0; i--) { var n = ns[i]; if (n.decoration || n.background) continue; if (inside(n, p)) return n; }
     return null;
   }
+  S.hit = hit; S.local = local;
   function down(e) {
     if (track(e, true)) { try { $('slideBox').setPointerCapture(e.pointerId); } catch (x) { /* lifted */ } if (Object.keys(pts).length === 2) { pinchStart(); e.preventDefault(); return; } }
     if (pinch) return;

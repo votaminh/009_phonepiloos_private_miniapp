@@ -1,0 +1,102 @@
+/* The computer's look of the deck page (html.pc: 1000px or more and a mouse): menu bar, tool bar, slides on the left, the slide, the options of the selection on the right, notes and the status bar. A phone and a touch tablet never see it. */
+.dk-menu,.dk-tools,.dk-notes,.dk-status{display:none}
+.st-scroll{display:contents}
+.dk-fill{flex:1;min-width:0}
+
+html.pc #pgDeck.shell{display:grid;height:100%;grid-template-columns:188px minmax(0,1fr) 312px;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid-template-areas:"top top top" "menu menu menu" "tools tools tools" "film stage insp" "film notes insp" "status status status";background:var(--bg)}
+html.pc #deckTop{grid-area:top;min-height:0;padding:var(--px-4) var(--px-12) var(--px-4) var(--px-8);gap:var(--px-4);align-items:center}
+html.pc #deckTop .ib{width:36px;height:36px}
+html.pc #deckTop .bk-ttl{flex:0 1 auto;max-width:46%}
+html.pc #deckTop .pill{height:34px;padding:0 var(--px-14);font-size:13.5px}
+html.pc #deckTop .pill:disabled{opacity:.5}
+html.pc .dk-play{margin-left:var(--px-4)}
+html.pc .dk-menu{display:flex;grid-area:menu;align-items:center;gap:var(--px-2);height:34px;padding:0 var(--px-12);background:var(--bg);border-bottom:1px solid var(--line)}
+.dk-m{height:28px;padding:0 var(--px-10);border:0;border-radius:var(--px-6);background:transparent;color:var(--ink);font:500 13.5px var(--body)}.dk-m:hover,.dk-m.open{background:var(--chip)}
+html.pc .dk-tools{display:flex;grid-area:tools;align-items:center;gap:var(--px-2);min-height:44px;padding:var(--px-4) var(--px-12);background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.dk-b{flex:none;position:relative;min-width:34px;height:34px;padding:0 var(--px-6);border:0;border-radius:var(--px-8);background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:var(--px-4);font:600 14px var(--body)}
+.dk-b:hover{background:var(--chip)}.dk-b.on{background:var(--accent-soft);color:var(--accent-text)}.dk-b.off{opacity:.35;pointer-events:none}
+.dk-b.wd{padding:0 var(--px-8)}.dk-b.wd span{font:600 13px var(--body)}
+.dk-b.dk-font{min-width:120px;max-width:150px;justify-content:space-between;padding:0 var(--px-8)}.dk-b.dk-font span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 13.5px var(--body)}
+.dk-b.col .dk-bar{position:absolute;left:8px;right:8px;bottom:3px;height:3px;border-radius:2px;background:var(--line)}.dk-b.col{padding:0 var(--px-8)}
+.dk-b.sm{min-width:24px;height:28px;padding:0}
+.dk-sep{flex:none;width:1px;height:22px;margin:0 var(--px-6);background:var(--line)}
+.dk-size{display:flex;align-items:center;margin:0 var(--px-2)}.dk-size input{width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:var(--px-6);text-align:center;font:600 13px var(--body);background:var(--card);color:var(--ink);outline:0}.dk-size input:focus{border-color:var(--accent)}
+
+html.pc #stage{grid-area:stage;position:relative;height:auto!important;min-height:0;min-width:0;overflow:hidden}
+html.pc .st-scroll{display:flex;position:absolute;inset:0;overflow:auto;padding:28px;box-sizing:border-box;scrollbar-width:thin}
+html.pc .slidebox{position:relative;left:auto;top:auto;margin:auto;flex:none}
+html.pc .st-pill,html.pc .rd-float{display:none}
+html.pc #quick{grid-area:insp;border-top:0;border-left:1px solid var(--line);overflow-y:auto;overflow-x:hidden;min-height:0;padding:var(--px-12) var(--px-14);scrollbar-width:thin}
+html.pc #film{grid-area:film;height:auto;flex-direction:column;overflow-x:hidden;overflow-y:auto;border-top:0;border-right:1px solid var(--line);padding:var(--px-12) var(--px-12) var(--px-12) var(--px-8);gap:var(--px-10);scrollbar-width:thin;background:var(--surface)}
+html.pc .th{width:100%;display:flex;gap:var(--px-6);align-items:flex-start;text-align:right}
+html.pc .th b{order:-1;flex:none;width:18px;margin:2px 0 0;text-align:right}
+html.pc .th .tc{flex:1;min-width:0;width:auto}
+html.pc .th.add .tc{height:44px}
+html.pc .th.sel .tc{outline:2.5px solid var(--accent-soft);outline-offset:1px}
+html.pc #deckTools{display:none}
+html.pc .dk-notes{display:flex;grid-area:notes;flex-direction:column;height:104px;background:var(--surface);border-top:1px solid var(--line);padding:var(--px-6) var(--px-12)}
+html.pc .dk-notes.shut{display:none}
+.dk-nh{display:flex;align-items:center;justify-content:space-between;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#dkNote{flex:1;min-height:0;resize:none;border:0;outline:0;background:transparent;font:400 14px/1.45 var(--body);color:var(--ink)}
+html.pc .dk-status{display:flex;grid-area:status;align-items:center;gap:var(--px-6);height:32px;padding:0 var(--px-12);background:var(--bg);border-top:1px solid var(--line);font:500 12.5px var(--body);color:var(--ink-soft)}
+.dk-sl{font-variant-numeric:tabular-nums}.dk-sel{color:var(--muted)}
+.dk-s{flex:none;height:26px;min-width:26px;padding:0 var(--px-8);border:0;border-radius:var(--px-6);background:transparent;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;gap:var(--px-4);font:500 12.5px var(--body)}
+.dk-s:hover{background:var(--chip)}.dk-s.on{background:var(--accent-soft);color:var(--accent-text)}.dk-s.sq{padding:0}.dk-s.wd{min-width:48px;font-variant-numeric:tabular-nums}
+.dk-zr{flex:none;width:120px;height:20px}.dk-zr::before,.dk-zr .sf{height:4px}.dk-zr .sk{width:14px;height:14px;margin:-7px 0 0 -7px;box-shadow:0 1px 4px var(--shadow-hi),0 0 0 2px var(--accent)}
+html.pc .outline{grid-area:stage}
+html.pc #pgDeck.ol-on #film{display:flex}html.pc #pgDeck.ol-on #quick{display:block}
+html.pc .fd-panel{grid-area:insp;height:auto;border-top:0;border-left:1px solid var(--line);min-height:0}
+html.pc .finding #film{display:flex}html.pc .finding #quick{display:none}
+html.pc .pgs{z-index:7}
+
+/* the menus that open under the bar and at the pointer */
+.ctxm{position:fixed;z-index:80;min-width:210px;max-width:340px;padding:var(--px-6);border-radius:var(--px-14);background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px var(--shadow-hi);animation:rise .16s var(--out) both}
+.ctxm.sub{z-index:81}
+.ctx-i{display:flex;align-items:center;gap:var(--px-8);width:100%;min-height:34px;padding:0 var(--px-10) 0 var(--px-6);border:0;border-radius:var(--px-8);background:transparent;color:var(--ink);font:500 14px var(--body);text-align:left}
+.ctx-i.hot,.ctx-i:hover:not(:disabled){background:var(--accent-soft)}
+.ctx-i.danger{color:var(--danger)}.ctx-i.off,.ctx-i:disabled{opacity:.4}
+.ctx-ck{flex:none;width:18px;display:flex;justify-content:center;color:var(--accent)}.ctx-t{flex:1;min-width:0;white-space:nowrap}
+.ctx-i kbd{font:500 12px var(--body);color:var(--muted);margin-left:var(--px-16)}.ctx-sub{display:flex;color:var(--muted)}
+.ctx-sep{display:block;height:1px;margin:var(--px-4) var(--px-6);background:var(--line)}
+
+/* the box of colours */
+.cpop{position:fixed;z-index:80;width:224px;padding:var(--px-10);border-radius:var(--px-14);background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px var(--shadow-hi);display:flex;flex-direction:column;gap:var(--px-8);animation:rise .16s var(--out) both}
+.cp-g{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--px-6)}
+.cp-s{aspect-ratio:1;border-radius:50%;border:1px solid var(--line);padding:0}.cp-s:hover{transform:scale(1.12)}.cp-s.on{outline:2.5px solid var(--accent);outline-offset:1px}
+.cp-n{height:30px;border:1px dashed var(--line);border-radius:var(--px-8);background:transparent;color:var(--ink-soft);font:500 13px var(--body)}.cp-n:hover{background:var(--chip)}
+.cp-h{display:flex;align-items:center;gap:var(--px-4);height:32px;padding:0 var(--px-8);border:1px solid var(--line);border-radius:var(--px-8);color:var(--muted);font:600 13px var(--body)}
+.cp-h input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:500 13px var(--body);color:var(--ink);text-transform:uppercase}.cp-h input.bad{color:var(--danger)}
+
+/* many boxes selected: each one outlined, one dashed frame round all of them */
+#msel{position:absolute;inset:0;pointer-events:none;z-index:2}
+.mf{position:absolute;box-sizing:border-box;border:1.5px solid var(--accent-hi);transform-origin:50% 50%}
+.frame[data-k="multi"]{border-style:dashed}
+
+/* the mouse on the slide and in the column of slides */
+.mq{position:absolute;z-index:4;pointer-events:none;border:1px solid var(--accent-hi);background:var(--sel-fill)}
+html.pc .slidebox.hov{cursor:move}
+html.pc .st-scroll.hand .slidebox,html.pc .st-scroll.hand{cursor:grab}html.pc .st-scroll.grab,html.pc .st-scroll.grab .slidebox{cursor:grabbing}
+html.pc .hdl.nw,html.pc .hdl.se{cursor:nwse-resize}html.pc .hdl.ne,html.pc .hdl.sw{cursor:nesw-resize}html.pc .hdl.n,html.pc .hdl.s{cursor:ns-resize}html.pc .hdl.e,html.pc .hdl.w{cursor:ew-resize}html.pc .hdl.rot{cursor:grab}
+html.pc #film{position:relative}
+.th-drop{position:absolute;left:10px;right:10px;height:3px;margin-top:-1px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:2}
+html.pc .film.dnd{cursor:grabbing}
+html.pc .th{cursor:pointer;user-select:none}
+
+/* writing in a box on the slide */
+.inl{position:absolute;z-index:5;box-sizing:border-box;display:flex;flex-direction:column;outline:1.5px solid var(--accent-hi);outline-offset:0;cursor:text;transform-origin:50% 50%}
+.inl-t{outline:0;min-height:1em;word-break:break-word;caret-color:var(--accent);user-select:text;-webkit-user-select:text}
+.inl-t .pp{min-height:1em}
+.inl-t .pp[data-b="char"]::before{content:'•';display:inline-block;width:1em;margin-left:-1em}
+
+/* the list of decks on a computer: a centred column, as many tiles as the room holds */
+html.pc #homeTop,html.pc #homeBody>.vl,html.pc #homeActions{width:100%;max-width:1100px;margin-left:auto;margin-right:auto;box-sizing:border-box}
+html.pc #homeBody{padding:0 var(--px-16)}
+html.pc #homeActions{max-width:560px;justify-content:center}
+html.pc .hm-card{cursor:pointer}html.pc .hm-card:hover{border-color:var(--accent);box-shadow:0 4px 14px var(--shadow)}
+html.pc .pr-notes{bottom:84px}
+
+/* sheets and dialogs on a computer are boxes in the middle of the window */
+html.pc .sheet{left:50%;right:auto;bottom:auto;top:50%;width:min(560px,92vw);max-height:84vh;padding:var(--px-20) var(--px-24) var(--px-24);border-radius:var(--px-24);box-shadow:0 22px 64px var(--shadow-hi);transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:opacity .2s linear,transform .26s var(--out)}
+html.pc .sheet.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+html.pc .sheet::before{display:none}
+html.pc .dlg{left:50%;right:auto;width:min(440px,92vw);transform:translate(-50%,-46%) scale(.94)}html.pc .dlg.on{transform:translate(-50%,-50%)}

@@ -16,18 +16,25 @@
 
   // a picture from the phone, shrunk so the deck stays light; webp and the like are turned into PNG first
   function load(url) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { rej(new Error(t('in.picfail'))); }; i.src = url; }); }
-  A['i-pic'] = async function () {
-    Ui.closeSheet(); var r;
-    try { r = await NativeTools.call('pick_file', { type: 'image', multiple: false, reason: 'Add a picture' }); } catch (e) { if (String(e && e.message) !== 'cancelled') App.fail('err.generic', e); return; }
-    var f = ((r && r.data && r.data.files) || [])[0]; if (!f) return;
+  // asks for a picture and returns it shrunk and as bytes the deck keeps: { buf, jpeg, w, h }; null when nothing was picked
+  async function pickPicture() {
+    var r;
+    try { r = await NativeTools.call('pick_file', { type: 'image', multiple: false, reason: 'Add a picture' }); } catch (e) { if (String(e && e.message) !== 'cancelled') App.fail('err.generic', e); return null; }
+    var f = ((r && r.data && r.data.files) || [])[0]; if (!f) return null;
     try {
       var img = await load(f.url), w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, MAXPX / Math.max(w, h)), jpeg = /jpe?g/i.test(f.mimeType || f.fileName || '');
       var cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-      var blob = await new Promise(function (ok) { cv.toBlob(ok, jpeg ? 'image/jpeg' : 'image/png', 0.9); }), buf = await blob.arrayBuffer();
-      var s = Deck.info.size, fit = Math.min(s.cx * 0.7 / w, s.cy * 0.7 / h), bw = Math.round(w * fit), bh = Math.round(h * fit);
-      await add(Deck.op('addPicture', null, { bytes: App.b64(buf), ext: jpeg ? 'jpg' : 'png', offset: { x: Math.round((s.cx - bw) / 2), y: Math.round((s.cy - bh) / 2), cx: bw, cy: bh } }));
-    } catch (e) { App.fail('err.generic', e); }
+      var blob = await new Promise(function (ok) { cv.toBlob(ok, jpeg ? 'image/jpeg' : 'image/png', 0.9); });
+      return { buf: await blob.arrayBuffer(), jpeg: jpeg, w: w, h: h };
+    } catch (e) { App.fail('err.generic', e); return null; }
+  }
+  A['i-pic'] = async function () {
+    Ui.closeSheet(); var p = await pickPicture(); if (!p) return;
+    var s = Deck.info.size, fit = Math.min(s.cx * 0.7 / p.w, s.cy * 0.7 / p.h), bw = Math.round(p.w * fit), bh = Math.round(p.h * fit);
+    await add(Deck.op('addPicture', null, { bytes: App.b64(p.buf), ext: p.jpeg ? 'jpg' : 'png', offset: { x: Math.round((s.cx - bw) / 2), y: Math.round((s.cy - bh) / 2), cx: bw, cy: bh } }));
   };
+  // another picture in the same place and size
+  A['p-replace'] = async function () { if (!Deck.sel) return; var p = await pickPicture(); if (!p) return; Viewer.run([Deck.op('replacePicture', Deck.sel, { bytes: App.b64(p.buf), ext: p.jpeg ? 'jpg' : 'png', keepSrcRect: true })], 'busy.edit'); };
   // a link on the selected box (the web address a tap opens when the deck is shown)
   A['i-link'] = function () {
     if (!Deck.sel) return Ui.toast(t('in.pickfirst'));

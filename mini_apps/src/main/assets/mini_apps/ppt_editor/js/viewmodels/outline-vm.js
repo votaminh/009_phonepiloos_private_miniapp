@@ -38,7 +38,7 @@
     var pg = $('pgDeck'), out = on ? [$('stage'), $('quick'), $('film'), $('deckTools')] : [$('outline')], inc = on ? $('outline') : $('stage');
     function go() {
       O.on = on; pg.classList.toggle('ol-on', on); if (on) fill(); else { Stage.layout(); Stage.show(); }
-      V.chrome();
+      Viewer.chrome();
       if (!still() && !silent) (on ? [inc] : [$('stage'), $('quick'), $('film'), $('deckTools')]).forEach(function (el, k) { el.animate([{ opacity: 0, transform: 'translateY(14px) scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: k * 40, easing: 'cubic-bezier(.2,.9,.25,1.06)', fill: 'backwards' }); });
     }
     if (still() || silent || !Deck.info) return go();

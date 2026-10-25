@@ -59,7 +59,7 @@
     },
     menu: function (m) {
       return '<h2 class="sh-h">' + esc(m.name) + '</h2><p class="sx-meta">' + esc(m.info) + '</p>'
-        + row('p-open', 'play', t('mn.present'), t('mn.present.s', { n: m.cur })) + row('m-save', 'save', t('mn.save'), m.dirty ? t('mn.save.s') : '') + row('m-copy', 'download', t('mn.copy'), t('mn.copy.s')) + row('m-share', 'share', t('mn.share'))
+        + row('all-open', 'grid', t('all.title'), t('all.sub')) + row('p-open', 'play', t('mn.present'), t('mn.present.s', { n: m.cur })) + row('m-save', 'save', t('mn.save'), m.dirty ? t('mn.save.s') : '') + row('m-copy', 'download', t('mn.copy'), t('mn.copy.s')) + row('m-share', 'share', t('mn.share'))
         + row('m-pdf', 'pdf', t('mn.pdf'), t('mn.pdf.s')) + row('fd-open', 'search', t('fd.title')) + row('m-footer', 'hash', t('mn.footer'), t('mn.footer.s')) + row('m-size', 'layout', t('mn.size'), t('mn.size.s')) + row('m-rename', 'edit', t('mn.rename')) + row('m-remove', 'trash', t('r.remove'), t('r.remove.s'), true) + (m.dirty ? row('m-discard', 'close', t('mn.discard'), t('mn.discard.s'), true) : '');
     },
     rename: function (v) { return '<h2 class="sh-h">' + esc(t('rn.title')) + '</h2><label class="sx-find"><input id="rnName" type="text" value="' + esc(v) + '" placeholder="' + esc(t('rn.ph')) + '" aria-label="' + esc(t('rn.ph')) + '" autocomplete="off"></label><div class="btns"><button type="button" class="btn light" data-act="sheet-done">' + esc(t('a.cancel')) + '</button><button type="button" class="btn" data-act="rn-apply">' + esc(t('a.done')) + '</button></div>'; },

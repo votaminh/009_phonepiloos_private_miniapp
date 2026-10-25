@@ -10,6 +10,10 @@
   <link rel="stylesheet" href="style-edit.css">
   <link rel="stylesheet" href="style-show.css">
   <link rel="stylesheet" href="style-sheets.css">
+  <link rel="stylesheet" href="controls.css">
+  <link rel="stylesheet" href="style-desk.css">
+  <link rel="stylesheet" href="style-insp.css">
+  <link rel="stylesheet" href="nav.css">
 </head>
 <body>
 <section class="page shell" data-page="home" id="pgHome">
@@ -19,11 +23,15 @@
 </section>
 <section class="page shell" data-page="deck" id="pgDeck" style="display:none">
   <header class="shell-top bk-top" id="deckTop"></header>
+  <nav class="dk-menu" id="dkMenu" aria-label="Menu"></nav>
+  <div class="dk-tools" id="dkTools"></div>
   <div class="dstage" id="stage">
+    <div class="st-scroll" id="stScroll">
     <div class="slidebox" id="slideBox">
       <canvas id="slideCv"></canvas>
-      <div id="lifts"></div><div id="guides"></div>
+      <div id="lifts"></div><div id="guides"></div><div id="msel"></div>
       <div class="frame" id="frame"></div>
+    </div>
     </div>
     <div class="st-pill" id="stPill" aria-live="polite"></div>
     <div class="rd-float" id="stFloat"></div>
@@ -33,6 +41,8 @@
   <section class="quick" id="quick" aria-label="Options"></section>
   <section class="film" id="film" aria-label="Slides"></section>
   <nav class="dc-tools" id="deckTools"></nav>
+  <div class="dk-notes shut" id="dkNotes"></div>
+  <div class="dk-status" id="dkStatus"></div>
   <div class="fd-panel hidden" id="fdPanel"></div>
   <div class="pgs hidden" id="ovPanel"></div>
 </section>
@@ -46,8 +56,18 @@
 <script src="res/strings.js"></script>
 <script src="sdk.js"></script>
 <script src="js/i18n/i18n.js"></script>
+<script src="js/models/wide-mode.js"></script>
 <script src="js/views/ui.js"></script>
+<script src="js/views/ui-nav.js"></script>
+<script src="js/views/controls.js"></script>
 <script src="js/views/icons.js"></script>
+<script src="js/views/popmenu.js"></script>
+<script src="js/views/colorpop.js"></script>
+<script src="js/views/desk-view.js"></script>
+<script src="js/views/insp-view.js"></script>
+<script src="js/views/insp-view2.js"></script>
+<script src="js/views/insp-view3.js"></script>
+<script src="js/views/insp-tbl-view.js"></script>
 <script src="js/models/store.js"></script>
 <script src="js/models/fonts.js"></script>
 <script src="js/models/pptsvc.js"></script>
@@ -72,8 +92,24 @@
 <script src="js/viewmodels/present-anim.js"></script>
 <script src="js/viewmodels/outline-vm.js"></script>
 <script src="js/viewmodels/present-vm.js"></script>
+<script src="js/viewmodels/presx-vm.js"></script>
 <script src="js/viewmodels/viewer-vm.js"></script>
+<script src="js/viewmodels/sel-vm.js"></script>
+<script src="js/viewmodels/insp-vm.js"></script>
+<script src="js/viewmodels/insp-tbl-vm.js"></script>
+<script src="js/viewmodels/chart-vm.js"></script>
+<script src="js/viewmodels/anim-vm.js"></script>
+<script src="js/viewmodels/desk-vm.js"></script>
+<script src="js/viewmodels/desk-menu.js"></script>
+<script src="js/viewmodels/ctx-vm.js"></script>
+<script src="js/viewmodels/inline-vm.js"></script>
+<script src="js/viewmodels/cells-vm.js"></script>
+<script src="js/viewmodels/mouse-vm.js"></script>
+<script src="js/viewmodels/key-vm.js"></script>
+<script src="js/viewmodels/film-vm.js"></script>
 <script src="js/viewmodels/menu-vm.js"></script>
+<script src="js/viewmodels/extras-vm.js"></script>
+<script src="js/viewmodels/all-vm.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
