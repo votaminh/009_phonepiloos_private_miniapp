@@ -21,7 +21,7 @@
     if (!skipTabs) B.tabs(false);
     var ban = $('bookBanner'); ban.classList.toggle('hidden', !Wb.readOnly || !r);
     ban.innerHTML = Wb.readOnly && r ? '<b>' + Ui.esc(t(B.large ? 'b.large.s' : 'b.read.s')) + '</b>' + (B.large ? '' : '<button type="button" class="pill solid" data-act="b-edit">' + Ui.esc(t('a.edit')) + '</button>') : '';
-    var tab = $('bookTools'); if (tab && Grid.geo) Grid.tools();
+    var tab = $('bookTools'); if (tab && Grid.geo) Grid.tools(); if (window.Desk) Desk.sync();
   };
   // sheet tabs: rebuilt only when the sheets change; picking one slides the pill
   B.tabs = function (animate) {
@@ -49,10 +49,19 @@
     Wb.load(res); await Xrich.load(copy); var cells = 0; Wb.sheets.forEach(function (s) { cells += Object.keys(s.cells).length; });
     B.large = cells > LARGE; Wb.readOnly = !opts.edit || B.large;
     Wb.on = Math.max(0, Wb.sheets.findIndex(function (s) { return !s.hiddenSheet; })); B.dirty = false;
-    B.show(Wb.on); if (window.XPage) XPage.sync();
+    B.show(Wb.on); if (window.XPage) XPage.sync(); B.savePeek();
+  };
+  // the first cells of the first sheet, kept with the file's record: the picture of the file on the home page
+  B.savePeek = function () {
+    var rec = B.rec, sh = Wb.sheets[Wb.on]; if (!rec || !sh) return;
+    try {
+      var pk = [], r, c, row, v, st, tx;
+      for (r = 0; r < 7; r++) { row = []; for (c = 0; c < 4; c++) { v = Calc.value(sh, r, c); st = Wb.style(sh, r, c) || {}; tx = v === undefined || v === null ? '' : String(v); row.push([tx.length > 9 ? tx.slice(0, 9) : tx, st.bg || '', st.b ? 1 : 0]); } pk.push(row); }
+      if (JSON.stringify(pk) !== JSON.stringify(rec.peek)) { rec.peek = pk; Store.put(rec); }
+    } catch (e) { /* no picture; the plain grid stays */ }
   };
   B.open = async function (rec, opts) {
-    opts = opts || {}; B.rec = rec; Wb.sheets = []; Wb.readOnly = true; Grid.geo = null; B.dirty = false;
+    opts = opts || {}; B.rec = rec; Wb.sheets = []; Wb.readOnly = true; Grid.geo = null; Grid.z = 1; B.dirty = false;
     $('gHost').innerHTML = ''; $('bookBar').innerHTML = ''; $('bookTools').innerHTML = ''; $('bookStats').classList.remove('on'); $('gFz').style.display = 'none'; $('gColIn').innerHTML = '';
     Find.close(); B.chrome();
     if (Router.getCurrent() !== 'book') Router.navigate('book'); else App.state.page = 'book';
@@ -81,8 +90,8 @@
   // send everything not yet in the engine's copy; null when there is nothing to send
   B.flush = async function (extra) {
     var p = Wb.payload(); if (extra) Object.assign(p, extra);
-    if (!p.edits.length && !p.structural.length && !p.freeze.length && !(p.visuals && p.visuals.length) && !p.sheetPlan) return null;
-    var bytes = await SheetSvc.apply(p); Wb.clean(); return bytes;
+    if (!p.edits.length && !p.structural.length && !p.freeze.length && !p.dv.length && !p.links.length && !p.notes.length && !p.tabs.length && !p.cf.length && !p.cfDel.length && !p.filters.length && !p.protect.length && !p.tables.length && !p.tableEdits.length && !(p.pageSetup && p.pageSetup.length) && !(p.chartEdits && p.chartEdits.length) && !(p.pivots && p.pivots.length) && !(p.pivotUpdates && p.pivotUpdates.length) && !(p.visualEdits && p.visualEdits.length) && !p.names && !(p.visuals && p.visuals.length) && !p.sheetPlan) return null;
+    var bytes = await SheetSvc.apply(p); Wb.clean(); if ((p.cf.length || p.cfDel.length) && window.Xrich) await Xrich.load(bytes.slice(0)); return bytes;
   };
   B.bytes = async function () { await B.flush(); return SheetSvc.bytes(); };
   // the engine moved cells (rows / columns / sheets): read the workbook back from it
@@ -92,7 +101,7 @@
     if (keep) { var i = Wb.sheets.findIndex(function (s) { return s.name === keep; }); if (i >= 0) Wb.on = i; }
     Grid.sel = { r1: sel.r1, c1: sel.c1, r2: sel.r1, c2: sel.c1, whole: '' }; Grid.mount(); B.chrome();
   }
-  B.shift = async function (sheetName, ops) { await B.flush(); await SheetSvc.apply({ structural: [{ sheetName: sheetName, ops: ops }] }); await reread(); B.touch(); };
+  B.shift = async function (sheetName, ops) { var ps = Wb.byName(sheetName); if (ps && ps.prot && window.Prot && !Prot.allows(ps, ops)) return Prot.say('struct'); await B.flush(); await SheetSvc.apply({ structural: [{ sheetName: sheetName, ops: ops }] }); await reread(); B.touch(); };
   B.sheetPlan = async function (plan, focus) { await B.flush(); await SheetSvc.apply({ sheetPlan: plan }); await reread(focus); B.touch(); };
 
   // ---- draft and save ---------------------------------------------------------------------------------------------------------
@@ -140,7 +149,7 @@
     $('dlg').innerHTML = SheetsView.choice(t('lv.title'), t('lv.body'), [{ act: 'lv-discard', label: t('lv.discard'), kind: 'danger' }, { act: 'lv-save', label: t('lv.save'), kind: 'solid' }]);
     return true;
   };
-  function leave() { B.dirty = false; B.rec = null; Ui.hint('slide'); Router.navigate('home'); }
+  function leave() { B.dirty = false; Router.back(); }   // the page folds back into its row (UiNav.hookBack)
   A['lv-save'] = async function () { Ui.closeDialog(); if (await B.save()) leave(); };
   A['lv-discard'] = async function () { Ui.closeDialog(); stopDraft(); await B.dropDraft(); leave(); };
   A['b-back'] = function () { if (Find.close()) return; if (!B.guardLeave()) leave(); };

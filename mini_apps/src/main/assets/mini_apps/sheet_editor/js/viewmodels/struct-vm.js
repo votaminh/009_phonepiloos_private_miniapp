@@ -5,7 +5,9 @@
   var S = window.Struct = {};
 
   // the block sorted and filtered: the selection, or the used area when one cell is selected
+  var forced = null;
   function range() {
+    if (forced) return forced;
     var s = Grid.sel, sh = Grid.geo.sh;
     if (s.r1 === s.r2 && s.c1 === s.c2) return { r1: 0, c1: 0, r2: Math.max(0, sh.rows - 1), c2: Math.max(0, sh.cols - 1) };
     return { r1: s.r1, c1: s.c1, r2: s.whole === 'col' ? Math.max(0, sh.rows - 1) : s.r2, c2: s.whole === 'row' ? Math.max(0, sh.cols - 1) : s.c2 };
@@ -38,15 +40,17 @@
       var now = Wb.style(sh, rr, cc), patch = {}, same = true; Object.keys(cell.st).concat(Object.keys(now)).forEach(function (key) { if (JSON.stringify(cell.st[key]) !== JSON.stringify(now[key])) { patch[key] = cell.st[key] === undefined ? null : cell.st[key]; same = false; } });
       if (!same) Wb.setStyle(sh, { r1: rr, c1: cc, r2: rr, c2: cc }, patch);
     }); }); });
-    Grid.changed(); show(); Ui.toast(t(conv ? 'sf.sorted.f' : 'sf.sorted'));
+    Grid.changed(); if (!forced) { show(); Ui.toast(t(conv ? 'sf.sorted.f' : 'sf.sorted')); }
   }
+  // sort the given block by one column (the AutoFilter arrows use this); the first row is the header
+  S.sortRange = function (r, col, dir) { forced = r; SF.col = col; SF.header = true; try { sortRows(dir); } finally { forced = null; } };
   A['sf-asc'] = function () { sortRows('asc'); }; A['sf-desc'] = function () { sortRows('desc'); };
 
   // ---- filter: rows that do not match are hidden (the file stores them as hidden rows) -------------------------------------------
   function hideOps(sh, rows, on) {
     var i = 0; while (i < rows.length) { var j = i; while (j + 1 < rows.length && rows[j + 1] === rows[j] + 1) j++; sh.ops.push({ kind: 'set-rows-hidden', start: rows[i], end: rows[j], hidden: on }); i = j + 1; }
   }
-  function clear(sh) { if (sh.filter) { sh.filter.rows.forEach(function (r) { delete sh.hidR[r]; }); hideOps(sh, sh.filter.rows, false); sh.filter = null; } }
+  function clear(sh) { if (sh.sfilter) { sh.sfilter.rows.forEach(function (r) { delete sh.hidR[r]; }); hideOps(sh, sh.sfilter.rows, false); sh.sfilter = null; } }
   function matches(v, st) {
     var q = SF.val, blank = v === null || v === '', s = Fmt.text(v, st.nf);
     if (SF.op === 'blank') return blank;
@@ -64,7 +68,7 @@
     clear(sh);
     if (SF.op === 'blank' || SF.val !== '') for (i = first; i <= r.r2; i++) if (!matches(Calc.value(sh, i, SF.col), Wb.style(sh, i, SF.col))) hidden.push(i);
     hidden.forEach(function (x) { sh.hidR[x] = 1; }); hideOps(sh, hidden, true);
-    if (hidden.length) sh.filter = { col: SF.col, rows: hidden };
+    if (hidden.length) sh.sfilter = { col: SF.col, rows: hidden };
     Ui.closeSheet(); Grid.mount(); Book.touch(); Ui.toast(t('sf.hidden', { n: hidden.length }));
   };
   A['sf-clear'] = function () { var sh = Grid.geo.sh; clear(sh); SF.val = ''; Grid.mount(); Book.touch(); show(); };

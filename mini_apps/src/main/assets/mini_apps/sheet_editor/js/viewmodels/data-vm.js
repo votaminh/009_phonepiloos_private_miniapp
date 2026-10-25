@@ -62,7 +62,7 @@
     var rng = function (c, a, b) { return q + '$' + SheetSvc.col(c) + '$' + (a + 1) + ':$' + SheetSvc.col(c) + '$' + (b + 1); };
     var chart = { chartType: CH.type, title: d.series.length === 1 ? d.series[0].name : t('ch.default'), legend: CH.legend ? 'bottom' : 'none', series: d.series.map(function (s, j) { return { name: s.name, categories: d.cats, values: s.values, valuesRef: rng(s.col, d.first, d.r2), categoriesRef: rng(d.c1, d.first, d.r2), color: C(COLORS[j % COLORS.length]) }; }) };
     Ui.closeSheet();
-    try { await Book.flush({ visuals: [{ sheetName: sh.name, anchor: { fromRow: top, fromColumn: col, fromRowOffset: 0, fromColumnOffset: 0, toRow: top + 15, toColumn: col + 7, toRowOffset: 0, toColumnOffset: 0 }, chart: chart }] }); Book.touch(); Ui.toast(t('ch.added', { r: SheetSvc.ref(top, col) })); }
+    try { var out = await Book.flush({ visuals: [{ sheetName: sh.name, anchor: { fromRow: top, fromColumn: col, fromRowOffset: 0, fromColumnOffset: 0, toRow: top + 15, toColumn: col + 7, toRowOffset: 0, toColumnOffset: 0 }, chart: chart }] }); if (out) { await Xrich.load(out.slice(0)); Grid.mount(); } Book.touch(); Ui.toast(t('ch.added', { r: SheetSvc.ref(top, col) })); }
     catch (e) { App.fail('err.generic', e); }
   };
 })();

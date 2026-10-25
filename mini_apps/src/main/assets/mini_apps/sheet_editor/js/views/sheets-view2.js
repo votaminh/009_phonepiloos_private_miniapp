@@ -22,7 +22,7 @@
     },
     sheetMenu: function (s, i, last) {
       return '<h2 class="sh-h">' + esc(s.name) + '</h2>' + row('sh-rename', 'edit', t('sh.rename'), '', false, ' data-i="' + i + '"') + row('sh-dup', 'dup', t('sh.dup'), '', false, ' data-i="' + i + '"')
-        + row('sh-hide', 'hide', t(s.hiddenSheet ? 'sh.unhide' : 'sh.hide'), '', false, ' data-i="' + i + '"') + (i > 0 ? row('sh-left', 'back', t('sh.left'), '', false, ' data-i="' + i + '"') : '') + (!last ? row('sh-right', 'chev', t('sh.right'), '', false, ' data-i="' + i + '"') : '')
+        + row('sh-tabc', 'paint', t('tc.title'), '', false, ' data-i="' + i + '"') + row('sh-hide', 'hide', t(s.hiddenSheet ? 'sh.unhide' : 'sh.hide'), '', false, ' data-i="' + i + '"') + (i > 0 ? row('sh-left', 'back', t('sh.left'), '', false, ' data-i="' + i + '"') : '') + (!last ? row('sh-right', 'chev', t('sh.right'), '', false, ' data-i="' + i + '"') : '')
         + (last && i === 0 ? '' : row('sh-del', 'trash', t('sh.del'), '', true, ' data-i="' + i + '"'));
     },
     chart: function (c) {

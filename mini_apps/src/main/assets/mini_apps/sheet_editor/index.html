@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style-grid.css">
   <link rel="stylesheet" href="style-sheets.css">
+  <link rel="stylesheet" href="nav.css">
 </head>
 <body>
 <section class="page shell" data-page="home" id="pgHome">
@@ -19,6 +20,8 @@
 <section class="page shell" data-page="book" id="pgBook" style="display:none">
   <header class="shell-top bk-top" id="bookTop"></header>
   <div class="bk-ro hidden" id="bookBanner"></div>
+  <div class="dk-menu" id="dkMenu"></div>
+  <div class="dk-tools" id="dkTools"></div>
   <div class="fb" id="bookBar"></div>
   <div class="gwrap" id="gWrap">
     <div class="gcolh" id="gColH"><div class="gcolh-in" id="gColIn"></div></div>
@@ -43,17 +46,25 @@
 <script src="js/engine/numfmt.min.js"></script>
 <script src="js/i18n/i18n.js"></script>
 <script src="js/views/ui.js"></script>
+<script src="js/views/ui-nav.js"></script>
+<script src="js/views/popmenu.js"></script>
 <script src="js/views/icons.js"></script>
+<script src="js/models/wide-mode.js"></script>
 <script src="js/models/store.js"></script>
 <script src="js/models/sheetsvc.js"></script>
 <script src="js/models/calc-parse.js"></script>
 <script src="js/models/calc.js"></script>
 <script src="js/models/calc-fn.js"></script>
+<script src="js/models/calc-fn2.js"></script>
+<script src="js/models/calc-fn3.js"></script>
+<script src="js/models/spillio.js"></script>
+<script src="js/models/pwhash.js"></script>
 <script src="js/models/wb.js"></script>
 <script src="js/models/fmt.js"></script>
 <script src="js/models/zipx.js"></script>
 <script src="js/models/chart-svg.js"></script>
 <script src="js/models/xrich.js"></script>
+<script src="js/models/marks.js"></script>
 <script src="js/models/fonts.js"></script>
 <script src="js/views/home-view.js"></script>
 <script src="js/views/grid-view.js"></script>
@@ -69,8 +80,36 @@
 <script src="js/viewmodels/struct-vm.js"></script>
 <script src="js/viewmodels/data-vm.js"></script>
 <script src="js/viewmodels/find-vm.js"></script>
+<script src="js/viewmodels/cedit-vm.js"></script>
+<script src="js/viewmodels/key-vm.js"></script>
+<script src="js/viewmodels/mouse-vm.js"></script>
+<script src="js/viewmodels/fill-vm.js"></script>
+<script src="js/viewmodels/format2-vm.js"></script>
+<script src="js/viewmodels/ctx-vm.js"></script>
+<script src="js/viewmodels/desk-vm.js"></script>
+<script src="js/viewmodels/desk-menu.js"></script>
+<script src="js/viewmodels/dlg-vm.js"></script>
+<script src="js/viewmodels/valid-vm.js"></script>
+<script src="js/viewmodels/link-vm.js"></script>
+<script src="js/viewmodels/note-vm.js"></script>
+<script src="js/viewmodels/name-vm.js"></script>
+<script src="js/viewmodels/cf-vm.js"></script>
+<script src="js/viewmodels/tabcolor-vm.js"></script>
+<script src="js/viewmodels/numfmt-vm.js"></script>
+<script src="js/viewmodels/datatools-vm.js"></script>
+<script src="js/viewmodels/af-vm.js"></script>
+<script src="js/viewmodels/table-vm.js"></script>
+<script src="js/viewmodels/prot-vm.js"></script>
+<script src="js/viewmodels/group-vm.js"></script>
+<script src="js/viewmodels/img-vm.js"></script>
+<script src="js/viewmodels/page-vm.js"></script>
+<script src="js/viewmodels/chartedit-vm.js"></script>
+<script src="js/viewmodels/obj-vm.js"></script>
+<script src="js/viewmodels/shape-vm.js"></script>
+<script src="js/viewmodels/pivot-vm.js"></script>
 <script src="js/viewmodels/book-vm.js"></script>
 <script src="js/viewmodels/xpage-vm.js"></script>
+<script src="js/viewmodels/zoom-vm.js"></script>
 <script src="js/viewmodels/menu-vm.js"></script>
 <script src="main.js"></script>
 </body>

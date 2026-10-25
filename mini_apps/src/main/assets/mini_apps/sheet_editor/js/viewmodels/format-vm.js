@@ -21,6 +21,7 @@
     else if (n === 'numfmt') SheetsView.show('numfmt', SheetsView.numfmt(nfState()));
     else if (n === 'fonts') SheetsView.show('fonts', SheetsView.fonts(cur().f || Fonts.def));
   };
+  F.apply = apply; F.cur = cur;
   function toggle(k) { var on = !cur()[k]; apply((function () { var p = {}; p[k] = on; return p; })()); }
   A['f-bold'] = function () { toggle('b'); }; A['f-italic'] = function () { toggle('i'); }; A['f-under'] = function () { toggle('u'); }; A['f-strike'] = function () { toggle('s'); };
   A['f-wrap'] = function () { toggle('wrap'); };

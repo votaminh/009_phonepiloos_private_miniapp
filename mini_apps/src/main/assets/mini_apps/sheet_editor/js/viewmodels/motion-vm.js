@@ -2,7 +2,7 @@
 // sliding pills under tabs and cross-fades. Only the one frame element, the pills and the quick bar move; rows redrawn by the list never replay anything.
 (function () {
   'use strict';
-  var $ = Ui.$, HW = 40, RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), fr = {}, qk = null;
+  var $ = Ui.$, RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), fr = {}, qk = null;
   var M = window.Motion = { drag: false, rm: RM };
   var OUT = 'cubic-bezier(.2,.8,.2,1)', SPRING = 'cubic-bezier(.34,1.45,.5,1)', BOUNCE = 'cubic-bezier(.34,1.56,.64,1)';
   M.anim = function (el, kf, o) { return RM || !el || !el.animate ? null : el.animate(kf, Object.assign({ easing: OUT }, o)); };
@@ -28,11 +28,11 @@
 
   // the tapped cell's CONTENT hops: up 3 px and 8% larger, then settles. The cell box, its borders and the green frame do not move; the text stays inside the cell.
   M.bounce = function (cell) {
-    if (RM || !cell || !cell.firstChild) return;
-    var sp = document.createElement('span'); sp.style.cssText = 'display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;will-change:transform';
+    if (RM || !cell || !cell.firstChild || (cell.firstChild.classList && cell.firstChild.classList.contains('bn'))) return;   // one hop at a time
+    var sp = document.createElement('span'); sp.className = 'bn'; sp.style.cssText = 'display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;will-change:transform';
     while (cell.firstChild) sp.appendChild(cell.firstChild);
     cell.appendChild(sp);
-    function done() { while (sp.firstChild) cell.insertBefore(sp.firstChild, sp); if (sp.parentNode === cell) cell.removeChild(sp); }
+    function done() { if (sp.parentNode !== cell) return; while (sp.firstChild) cell.insertBefore(sp.firstChild, sp); if (sp.parentNode === cell) cell.removeChild(sp); }
     var a = M.anim(sp, [{ transform: 'none' }, { transform: 'translateY(-3px) scale(1.08)', offset: 0.4 }, { transform: 'none' }], { duration: 280, easing: BOUNCE });
     if (a) a.onfinish = a.oncancel = done; else done();
   };
@@ -44,7 +44,7 @@
     if (!o) { d.classList.remove('on'); return; }
     var was = d.classList.contains('on'), sc = $('gScroll');
     if (!was) { d.innerHTML = o.html; d.setAttribute('role', 'toolbar'); d.setAttribute('aria-label', o.label); }
-    var lo = sc.scrollLeft + HW + 4, hi = sc.scrollLeft + sc.clientWidth - d.offsetWidth - 6;
+    var lo = sc.scrollLeft + GridView.hw() + 4, hi = sc.scrollLeft + sc.clientWidth - d.offsetWidth - 6;
     d.style.left = Math.max(lo, Math.min(o.x, hi)) + 'px'; d.style.top = o.y + 'px';
     if (!was) { void d.offsetWidth; d.classList.add('on'); }
   };

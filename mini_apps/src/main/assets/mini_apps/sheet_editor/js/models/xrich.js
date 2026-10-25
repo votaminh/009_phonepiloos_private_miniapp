@@ -25,11 +25,11 @@
   }
   function cfvo(el) { return kids(el, 'cfvo').map(function (v) { return { t: v.getAttribute('type'), v: v.getAttribute('val') }; }); }
   function rules(doc, dx) {
-    var out = [];
+    var out = [], di = 0;
     all(doc, 'conditionalFormatting').forEach(function (cf) {
       var rs = (cf.getAttribute('sqref') || '').split(/\s+/).map(range).filter(Boolean);
       kids(cf, 'cfRule').forEach(function (r) {
-        var o = { rs: rs, type: r.getAttribute('type'), op: r.getAttribute('operator'), prio: +r.getAttribute('priority') || 0, dxf: dx[+r.getAttribute('dxfId')] || null, text: r.getAttribute('text'), rank: +r.getAttribute('rank') || 10, pct: r.getAttribute('percent') === '1', bottom: r.getAttribute('bottom') === '1', above: r.getAttribute('aboveAverage') !== '0', f: kids(r, 'formula').map(function (f) { return f.textContent; }), stat: null };
+        var o = { rs: rs, di: di++, stop: r.getAttribute('stopIfTrue') === '1', type: r.getAttribute('type'), op: r.getAttribute('operator'), prio: +r.getAttribute('priority') || 0, dxf: dx[+r.getAttribute('dxfId')] || null, text: r.getAttribute('text'), rank: +r.getAttribute('rank') || 10, pct: r.getAttribute('percent') === '1', bottom: r.getAttribute('bottom') === '1', above: r.getAttribute('aboveAverage') !== '0', f: kids(r, 'formula').map(function (f) { return f.textContent; }), stat: null };
         var cs = kid(r, 'colorScale'), db = kid(r, 'dataBar'), is = kid(r, 'iconSet');
         if (cs) o.scale = { v: cfvo(cs), c: kids(cs, 'color').map(argb) };
         if (db) o.bar = { v: cfvo(db), c: argb(kid(db, 'color')) || window.ChartLook.bar };
@@ -48,14 +48,20 @@
     function pos(a) { var g = function (n) { var k = kid(a, n); return k ? +k.textContent : 0; }; return a ? { c: g('col'), co: g('colOff'), r: g('row'), ro: g('rowOff') } : null; }
     var anchors = kids(dd.documentElement).filter(function (a) { return /Anchor$/.test(a.localName); });
     for (var i = 0; i < anchors.length; i++) {
-      var a = anchors[i], o = { a: pos(kid(a, 'from')), b: pos(kid(a, 'to')), w: 0, h: 0, html: '', img: '' }, ext = kid(a, 'ext');
+      var a = anchors[i], o = { a: pos(kid(a, 'from')), b: pos(kid(a, 'to')), w: 0, h: 0, html: '', img: '', dpath: path, dix: i }, ext = kid(a, 'ext');
       if (!ext) ext = all(a, 'ext').filter(function (e) { return +e.getAttribute('cx') > 0; })[0];
       if (ext) { o.w = +ext.getAttribute('cx') / 9525; o.h = +ext.getAttribute('cy') / 9525; }
       if (!o.a) continue;
       var ch = all(a, 'chart')[0], bl = all(a, 'blip')[0];
-      if (ch) { var cx = await z.text(norm(path, drels[rid(ch)] || '')); o.chart = cx || ''; }
+      if (ch) { o.cpath = norm(path, drels[rid(ch)] || ''); var cx = await z.text(o.cpath); o.chart = cx || ''; }
       else if (bl) { var mp = norm(path, drels[rid(bl)] || ''), bytes = await z.bytes(mp); if (bytes) o.img = URL.createObjectURL(new Blob([bytes], { type: MIME[(mp.split('.').pop() || '').toLowerCase()] || 'image/png' })); }
-      if (o.chart || o.img) out.push(o);
+      var sp = !ch && !bl && all(a, 'sp')[0];
+      if (sp) {
+        var geom = all(sp, 'prstGeom')[0], spPr = all(sp, 'spPr')[0], fill = spPr && kid(spPr, 'solidFill'), nofill = spPr && kid(spPr, 'noFill'), ln = spPr && kid(spPr, 'ln'), lnf = ln && kid(ln, 'solidFill'), col = function (f, d) { var c = f && f.firstElementChild; return c && c.localName === 'srgbClr' ? '#' + c.getAttribute('val') : d; };
+        o.shape = { prst: geom ? geom.getAttribute('prst') : 'rect', fill: nofill ? null : col(fill, window.C('shape_fill')), line: ln && kid(ln, 'noFill') ? null : col(lnf, window.C('shape_line')), text: all(sp, 't').map(function (x) { return x.textContent; }).join('') };
+        o.spid = '';
+      }
+      if (o.chart || o.img || o.shape) out.push(o);
     }
     return out;
   }
@@ -72,7 +78,7 @@
       var wd = xml(wb), list = all(wd, 'sheet'), defs = {};
       all(wd, 'definedName').forEach(function (d) { var k = d.getAttribute('name'), id = d.getAttribute('localSheetId'); if (id !== null && /^_xlnm\.Print_(Area|Titles)$/.test(k)) defs[id + k.slice(6)] = d.textContent; });
       for (var i = 0; i < list.length; i++) {
-        var file = norm('xl/workbook.xml', rels[rid(list[i])] || ''), t = await z.text(file), s = { rules: [], objs: [] }; X.sheets.push(s); if (!t) continue;
+        var file = norm('xl/workbook.xml', rels[rid(list[i])] || ''), t = await z.text(file), s = { rules: [], objs: [], file: file }; X.sheets.push(s); if (!t) continue;
         var doc = xml(t); s.rules = rules(doc, dx); s.objs = await drawings(z, file, doc); s.setup = setup(doc, i, defs);
       }
     } catch (e) { X.sheets = []; }
@@ -120,7 +126,7 @@
     return '#' + x.map(function (q, i) { return ('0' + Math.round(q + (y[i] - q) * t).toString(16)).slice(-2); }).join('');
   }
   function lit(f) { f = (f || '').trim(); if (/^"(.*)"$/.test(f)) return f.slice(1, -1); var n = parseFloat(f); return isNaN(n) || !/^[-+0-9.eE]+$/.test(f) ? null : n; }
-  function test(rule, v, st, sh) {
+  function test(rule, v, st, sh, r, c) {
     var num = typeof v === 'number', s = v === null || v === undefined ? '' : String(v), tx = (rule.text || '').toLowerCase();
     switch (rule.type) {
       case 'cellIs': {
@@ -132,12 +138,25 @@
       case 'beginsWith': return s.toLowerCase().indexOf(tx) === 0; case 'endsWith': return tx !== '' && s.toLowerCase().slice(-tx.length) === tx;
       case 'containsBlanks': return s === ''; case 'notContainsBlanks': return s !== ''; case 'containsErrors': return v && typeof v === 'object';
       case 'duplicateValues': return s !== '' && !!st.dup[s]; case 'uniqueValues': return s !== '' && !st.dup[s];
+      case 'expression': { var q = rule.rs[0], f = rule.f[0]; if (!q || !f) return false; var out = Calc.evalText(sh, Clip.shift(f, r - q.r1, c - q.c1)); return out === true || (typeof out === 'number' && out !== 0); }
       case 'aboveAverage': return num && (rule.above ? v > st.avg : v < st.avg);
       case 'top10': { if (!num) return false; var n = rule.pct ? Math.max(1, Math.round(st.sorted.length * rule.rank / 100)) : rule.rank, sd = st.sorted; return rule.bottom ? v <= sd[Math.min(n, sd.length) - 1] : v >= sd[Math.max(0, sd.length - n)]; }
     }
     return false;
   }
   var GLYPH = { arrows: ['↓', '→', '↑'], traffic: ['●', '●', '●'], symbols: ['×', '!', '√'], flags: ['●', '●', '●'], stars: ['○', '◐', '●'], dots: ['●', '●', '●'] };
+  // rules made in this session draw at once, before the engine has written them to the file
+  X.range = range;
+  X.add = function (sh, o) { var i = Wb.sheets.indexOf(sh); X.sheets[i] = X.sheets[i] || { rules: [], objs: [] }; X.sheets[i].rules.push(o); };
+  X.drop = function (sh, o) { var s = X.sheets[Wb.sheets.indexOf(sh)]; if (s) s.rules = s.rules.filter(function (x) { return x !== o; }); };
+  X.rulesOf = function (sh) { var s = X.sheets[Wb.sheets.indexOf(sh)]; return s ? s.rules : []; };
+  // a shape drawn as a small SVG that stretches to its frame, its text centred on top
+  var SHAPES = { rect: '<rect x="0" y="0" width="100" height="100"/>', roundRect: '<rect x="0" y="0" width="100" height="100" rx="16"/>', ellipse: '<ellipse cx="50" cy="50" rx="50" ry="50"/>', triangle: '<polygon points="50,0 100,100 0,100"/>', rtTriangle: '<polygon points="0,0 0,100 100,100"/>', diamond: '<polygon points="50,0 100,50 50,100 0,50"/>', rightArrow: '<polygon points="0,30 60,30 60,0 100,50 60,100 60,70 0,70"/>', leftArrow: '<polygon points="100,30 40,30 40,0 0,50 40,100 40,70 100,70"/>', pentagon: '<polygon points="50,0 100,38 82,100 18,100 0,38"/>', star5: '<polygon points="50,0 61,35 98,35 68,57 79,91 50,70 21,91 32,57 2,35 39,35"/>' };
+  X.shapeHtml = function (sh) {
+    var body = (SHAPES[sh.prst] || SHAPES.rect).replace('/>', ' fill="' + (sh.fill || 'none') + '" stroke="' + (sh.line || 'none') + '" stroke-width="2" vector-effect="non-scaling-stroke"/>');
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" width="100%" height="100%">' + body + '</svg>' + (sh.text ? '<span class="shtx">' + Ui.esc(sh.text) + '</span>' : '');
+  };
+  X.rels = relMap; X.norm = norm;
   X.has = function (sh) { var s = X.sheets[Wb.sheets.indexOf(sh)]; return !!s && s.rules.length > 0; };
   // { css, icon: {g, c}, bar } for one cell, or null
   X.cf = function (sh, r, c, v) {
@@ -156,7 +175,7 @@
         th.forEach(function (x) { if (v >= x) idx++; }); if (rule.icon.rev) idx = n - 1 - idx;
         var key = /Arrow/.test(set) ? 'arrows' : /Traffic|Rating|Quarters|Boxes/.test(set) ? 'traffic' : /Symbol/.test(set) ? 'symbols' : /Flag/.test(set) ? 'flags' : /Star/.test(set) ? 'stars' : 'dots', g = GLYPH[key], pick = n === 3 ? idx : Math.min(2, Math.round(idx * 2 / (n - 1)));
         o.icon = { g: g[pick], c: pick === 2 ? C('sw_green') : pick === 1 ? C('fl_yellow') : C('sw_red') };
-      } else if (rule.dxf && test(rule, v, st, sh)) {
+      } else if (rule.dxf && test(rule, v, st, sh, r, c)) {
         var d = rule.dxf; if (d.bg && !/background:/.test(o.css)) o.css += 'background:' + d.bg + ';'; if (d.color && !/color:[^;]*;/.test(o.css.replace(/background[^;]*;/g, ''))) o.css += 'color:' + d.color + ';'; if (d.b) o.css += 'font-weight:700;'; if (d.i) o.css += 'font-style:italic;';
       }
     }
@@ -170,11 +189,12 @@
   X.place = function (host, g) {
     var layer = host.querySelector('.gobj'); if (!layer) { layer = document.createElement('div'); layer.className = 'gobj'; host.appendChild(layer); } layer.innerHTML = '';
     var s = X.sheets[Wb.sheets.indexOf(g.sh)]; if (!s || !s.objs.length) return;
-    function pt(p) { var c = Math.min(p.c, g.cols), r = Math.min(p.r, g.rows); return { x: GridView.HW + g.colX[c] + p.co / 9525, y: g.tops[r] + p.ro / 9525 - g.tops[g.fy] }; }
+    var z = Grid.z || 1;
+    function pt(p) { var c = Math.min(p.c, g.cols), r = Math.min(p.r, g.rows); return { x: GridView.hw() + g.colX[c] + p.co / 9525 * z, y: g.tops[r] + p.ro / 9525 * z - g.tops[g.fy] }; }
     s.objs.forEach(function (o) {
-      var a = pt(o.a), b = o.b ? pt(o.b) : { x: a.x + o.w, y: a.y + o.h }, w = Math.max(20, b.x - a.x), h = Math.max(20, o.b && ew(o) > 0 ? w * eh(o) / ew(o) : b.y - a.y), el = document.createElement('div');
-      el.className = 'gobj-i' + (o.chart ? ' ch' : ''); el.style.cssText = 'left:' + a.x + 'px;top:' + a.y + 'px;width:' + w + 'px;height:' + h + 'px';
-      el.innerHTML = o.chart ? ChartSvg.svg(o.chart, Math.round(w), Math.round(h)).replace('width="100%"', 'width="100%" height="100%"') : '<img src="' + o.img + '" alt="">'; layer.appendChild(el);
+      var a = pt(o.a), b = o.b ? pt(o.b) : { x: a.x + o.w * z, y: a.y + o.h * z }, w = Math.max(20, b.x - a.x), h = Math.max(20, o.b && ew(o) > 0 ? w * eh(o) / ew(o) : b.y - a.y), el = document.createElement('div');
+      el.className = 'gobj-i' + (o.chart ? ' ch' : '') + (o.shape ? ' shp' : ''); el.dataset.k = s.objs.indexOf(o); el.style.cssText = 'left:' + a.x + 'px;top:' + a.y + 'px;width:' + w + 'px;height:' + h + 'px';
+      el.innerHTML = o.chart ? ChartSvg.svg(o.chart, Math.round(w), Math.round(h)).replace('width="100%"', 'width="100%" height="100%"') : o.shape ? X.shapeHtml(o.shape) : '<img src="' + o.img + '" alt="">'; if (o.dpath) el.insertAdjacentHTML('beforeend', '<i class="oh"></i>'); layer.appendChild(el);
     });
   };
 })();

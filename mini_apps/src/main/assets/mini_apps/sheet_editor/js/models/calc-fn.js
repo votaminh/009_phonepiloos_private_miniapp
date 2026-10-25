@@ -32,6 +32,8 @@
     return function (v) { return v !== null && cmp(v, crit) === 0; };
   }
 
+  Calc.crit = test; Calc.flat = flat; Calc.nums = nums;
+
   F.SUM = function (a) { return sum(nums(a)); };
   F.AVERAGE = function (a) { var n = nums(a); if (!n.length) throw err('#DIV/0!'); return sum(n) / n.length; };
   F.MIN = function (a) { var n = nums(a); return n.length ? Math.min.apply(null, n) : 0; };

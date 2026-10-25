@@ -69,3 +69,16 @@ html:not(.still) .hm-btns{animation:rise .45s var(--out) both .12s}html:not(.sti
 .er{display:flex;gap:14px;align-items:flex-start}.er h2{margin:0;font:700 18px var(--head)}.er p{margin:4px 0 0;font:400 13px/1.45 var(--body);color:var(--muted)}
 .er-i{flex:none;width:44px;height:44px;border-radius:22px;background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;justify-content:center}
 .er+.btn{margin-top:var(--px-16)}
+
+/* the first cells of the file as its picture (list: small; grid: big) */
+.hm-th.pk{grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;font:400 3.2px var(--body);color:var(--ink)}
+.hm-th.pk u{text-decoration:none;display:block;padding:1px 1.5px;overflow:hidden;white-space:nowrap;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.hm-th.pk u.bd{font-weight:700}
+/* grid view of the list: two tiles to a row, a big picture over the name */
+.hm-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--px-12);height:100%}
+.hm-tile{flex-direction:column;align-items:stretch;gap:0;height:196px;padding:0}
+.hm-tile .hm-th{width:100%;height:118px;border:0;border-bottom:1px solid var(--line);border-radius:0}
+.hm-tile .hm-th.pk{font-size:8px}
+.hm-tile .hm-th.pk u{padding:3px 4px}
+.hm-tile .hm-txt{flex:none;padding:var(--px-10) var(--px-12) var(--px-12)}
+.hm-tile .hm-more{position:absolute;right:var(--px-6);top:var(--px-6);width:36px;height:36px;border-radius:18px;background:var(--card);box-shadow:0 1px 4px var(--shadow)}

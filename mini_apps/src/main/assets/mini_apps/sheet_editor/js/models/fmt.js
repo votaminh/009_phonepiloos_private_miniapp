@@ -26,6 +26,7 @@
     },
     // { t: text, n: right aligned (number), x: error } of one cell
     cell: function (sh, r, c) {
+      if (window.Grid && Grid.showF) { var fc = sh.cells[SheetSvc.ref(r, c)]; if (fc && fc.f) return { t: fc.f, n: false, x: false, v: fc.f }; }
       var v = Calc.value(sh, r, c), st = Wb.style(sh, r, c), err = !!v && typeof v === 'object';
       return { t: show(v, st.nf), n: typeof v === 'number' && !err, x: err, v: v };
     },

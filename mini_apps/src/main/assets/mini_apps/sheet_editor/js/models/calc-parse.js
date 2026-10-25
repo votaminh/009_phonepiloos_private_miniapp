@@ -15,12 +15,13 @@
       m = REF.exec(src.slice(i));
       if (m && !/^[A-Za-z0-9_(]/.test(src.slice(i + m[0].length, i + m[0].length + 1))) {
         var sh = m[1] ? (m[1][0] === "'" ? m[1].slice(1, -1).replace(/''/g, "'") : m[1]) : null;
-        t.push({ k: 'ref', sheet: sh, r1: +m[3] - 1, c1: colNum(m[2]), r2: m[5] ? +m[5] - 1 : +m[3] - 1, c2: m[4] ? colNum(m[4]) : colNum(m[2]), range: !!m[4] });
-        i += m[0].length; continue;
+        var spill = !m[4] && src[i + m[0].length] === '#';
+        t.push({ k: 'ref', sheet: sh, r1: +m[3] - 1, c1: colNum(m[2]), r2: m[5] ? +m[5] - 1 : +m[3] - 1, c2: m[4] ? colNum(m[4]) : colNum(m[2]), range: !!m[4], spill: spill });
+        i += m[0].length + (spill ? 1 : 0); continue;
       }
       m = /^[A-Za-z_][A-Za-z0-9_.]*/.exec(src.slice(i));
       if (m) { t.push({ k: 'id', v: m[0].toUpperCase() }); i += m[0].length; continue; }
-      m = /^(<>|<=|>=|[-+*\/^&=<>(),%;])/.exec(src.slice(i));
+      m = /^(<>|<=|>=|[-+*\/^&=<>(),%;{}])/.exec(src.slice(i));
       if (m) { t.push({ k: 'op', v: m[0] }); i += m[0].length; continue; }
       throw new Error('char ' + ch);
     }
@@ -47,7 +48,7 @@
       var x = tk[p++]; if (!x) throw new Error('end');
       if (x.k === 'num') return { t: 'num', v: x.v };
       if (x.k === 'str') return { t: 'str', v: x.v };
-      if (x.k === 'ref') return { t: 'ref', sheet: x.sheet, r1: Math.min(x.r1, x.r2), r2: Math.max(x.r1, x.r2), c1: Math.min(x.c1, x.c2), c2: Math.max(x.c1, x.c2), range: x.range };
+      if (x.k === 'ref') return { t: 'ref', sheet: x.sheet, r1: Math.min(x.r1, x.r2), r2: Math.max(x.r1, x.r2), c1: Math.min(x.c1, x.c2), c2: Math.max(x.c1, x.c2), range: x.range, spill: x.spill };
       if (x.k === 'id') {
         if (isOp('(')) {
           p++; var args = [];
@@ -56,7 +57,11 @@
           return { t: 'fn', name: x.v, args: args };
         }
         if (x.v === 'TRUE' || x.v === 'FALSE') return { t: 'bool', v: x.v === 'TRUE' };
-        throw new Error('name ' + x.v);
+        return { t: 'name', v: x.v };   // a defined name (named range or constant); the evaluator looks it up
+      }
+      if (x.v === '{') {   // an array typed in: {1,2;3,4} (a comma next to the next column, a semicolon starts a row)
+        var rows = [[]]; for (;;) { rows[rows.length - 1].push(expr(1)); if (isOp(',')) { p++; continue; } if (isOp(';')) { p++; rows.push([]); continue; } break; }
+        if (!isOp('}')) throw new Error('}'); p++; return { t: 'arr', rows: rows };
       }
       if (x.v === '(') { var e = expr(1); if (!isOp(')')) throw new Error(')'); p++; return e; }
       throw new Error('token ' + x.v);

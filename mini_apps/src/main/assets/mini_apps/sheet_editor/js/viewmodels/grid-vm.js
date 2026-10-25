@@ -1,29 +1,32 @@
 // Grid — the grid on screen: its sizes, scrolling, the selection and its handles, and editing a cell in the formula bar. The VList draws only the rows in view.
 (function () {
   'use strict';
-  var t = Ui.t, $ = Ui.$, A = App.acts, RH = GridView.RH, HW = GridView.HW, DEFW = 88, MAXR = 1048576;
-  var G = window.Grid = { sel: { r1: 0, c1: 0, r2: 0, c2: 0 }, list: null, geo: null, editing: false, tab: 'format', raw: '' };
+  var t = Ui.t, $ = Ui.$, A = App.acts, RH = GridView.RH, hw = GridView.hw, DEFW = 88, MAXR = 1048576;
+  var G = window.Grid = { z: 1, sel: { r1: 0, c1: 0, r2: 0, c2: 0 }, list: null, geo: null, editing: false, tab: 'format', raw: '' };
 
   // ---- geometry ---------------------------------------------------------------------------------------------------------------
+  // the zoom: sizes of the sheet are multiplied by Grid.z (the file keeps its own sizes); the CSS variables carry it to the headers and the font
+  G.vars = function () { var w = $('gWrap'); w.style.setProperty('--gz', G.z); w.style.setProperty('--ghw', hw() + 'px'); w.style.setProperty('--gch', Math.round(28 * G.z) + 'px'); };
   G.layout = function () {
+    G.vars();
     var sh = Wb.sh(), ext = Wb.extent(sh), rows = Math.max(ext.rows, sh.viewRows || 0), cols = ext.cols, g = { sh: sh, rows: rows, cols: cols, fx: sh.frozen.x, fy: sh.frozen.y, colX: [0], tops: [0] }, i;
-    g.colW = function (c) { return sh.hidC[c] ? 0 : (sh.colW[c] || DEFW); };
-    g.rowH = function (r) { return sh.hidR[r] ? 0 : (sh.rowH[r] || RH); };
+    g.colW = function (c) { return sh.hidC[c] ? 0 : Math.round((sh.colW[c] || DEFW) * G.z); };
+    g.rowH = function (r) { return sh.hidR[r] ? 0 : Math.round((sh.rowH[r] || RH) * G.z); };
     for (i = 0; i < cols; i++) g.colX.push(g.colX[i] + g.colW(i));
     for (i = 0; i < rows; i++) g.tops.push(g.tops[i] + g.rowH(i));
-    g.width = HW + g.colX[cols];
+    g.width = hw() + g.colX[cols];
     sh.viewRows = rows; G.geo = g; return g;
   };
   function find(arr, v) { var lo = 0, hi = arr.length - 2; while (lo < hi) { var m = (lo + hi + 1) >> 1; if (arr[m] <= v) lo = m; else hi = m - 1; } return lo; }
   // the cell under a point of the grid (x from the left edge of the first column, y from the top of row 0)
   G.at = function (x, y) { var g = G.geo; return { r: find(g.tops, Math.max(0, y)), c: find(g.colX, Math.max(0, x)) }; };
-  G.rect = function (r1, c1, r2, c2) { var g = G.geo; return { x: HW + g.colX[c1], y: g.tops[r1], w: g.colX[c2 + 1] - g.colX[c1], h: g.tops[r2 + 1] - g.tops[r1] }; };
+  G.rect = function (r1, c1, r2, c2) { var g = G.geo; return { x: hw() + g.colX[c1], y: g.tops[r1], w: g.colX[c2 + 1] - g.colX[c1], h: g.tops[r2 + 1] - g.tops[r1] }; };
 
   // ---- drawing ----------------------------------------------------------------------------------------------------------------
   G.mount = function () {
     var g = G.layout(), sc = $('gScroll'), host = $('gHost');
     if (G.list) { G.list.destroy(); G.list = null; }
-    host.innerHTML = ''; host.style.width = g.width + 'px';
+    host.innerHTML = ''; host.style.width = g.width + 'px'; $('gWrap').classList.toggle('nogrid', !!g.sh.noGrid);
     var fz = $('gFz'), fzH = g.tops[g.fy];
     fz.style.height = fzH ? fzH + 2 + 'px' : '0'; fz.style.display = fzH ? '' : 'none';
     G.list = VList.mount(sc, host, {
@@ -44,7 +47,7 @@
       if (G.list) G.list.refresh();
       Xrich.place($('gHost'), g);
     }
-    Motion.heads(s); G.place(); G.bar(); G.tools(); Clip.stats();
+    Motion.heads(s); G.place(); G.bar(); G.tools(); Clip.stats(); if (window.Desk) Desk.sync();
   };
   // selection frame (one element that glides), its handles and the quick bar
   G.place = function () {
@@ -56,7 +59,7 @@
     q = inMain ? G.rect(Math.max(r1, g.fy), c1, r2, c2) : null; if (q) q.y -= g.tops[g.fy];
     Motion.frame('main', $('gHost'), q || { x: 0, y: 0, w: 0, h: 0 }, { show: inMain, one: one, tl: !one && r1 >= g.fy, br: hb, pop: pop });
     if (pop && one) { var row = document.querySelector('.gr[data-r="' + r1 + '"]'), cell = row && row.querySelector('.gc[data-c="' + c1 + '"]'); Motion.bounce(cell); }
-    G.quick();
+    G.quick(); if (window.CellEdit && CellEdit.on) CellEdit.place(); if (window.Valid) Valid.paint(); if (window.Link) Link.paint(); if (window.Af) Af.paint();
   };
   G.quick = function () {
     var s = G.sel, g = G.geo, multi = s.r1 !== s.r2 || s.c1 !== s.c2;
@@ -67,10 +70,10 @@
   // the formula bar is kept and updated in place (so its underline can grow and the keyboard stays up)
   G.bar = function () {
     var s = G.sel, sh = G.geo.sh, ref = SheetSvc.ref(s.r1, s.c1) + (s.r1 !== s.r2 || s.c1 !== s.c2 ? ':' + SheetSvc.ref(s.r2, s.c2) : ''), bar = $('bookBar'), inp = bar.querySelector('#fbIn');
-    G.raw = Fmt.raw(sh, s.r1, s.c1);
-    if (inp && bar.dataset.ro === String(!!Wb.readOnly)) { bar.querySelector('.fb-ref').textContent = ref; if (!G.editing) inp.value = G.raw; }
+    var ac = G.act(); G.raw = Fmt.raw(sh, ac.r, ac.c);
+    if (inp && bar.dataset.ro === String(!!Wb.readOnly)) { var rf = bar.querySelector('.fb-ref'); if (document.activeElement !== rf) rf.value = ref; if (!G.editing) inp.value = G.raw; }
     else { bar.innerHTML = GridView.bar(ref, G.raw, Wb.readOnly); bar.dataset.ro = String(!!Wb.readOnly); }
-    bar.classList.toggle('edit', G.editing);
+    bar.classList.toggle('edit', G.editing); var rr = $('fbRef'); if (rr) rr.readOnly = !(window.Wide && Wide.mode !== 'phone');
   };
   // tool bar: built once, then updated in place; the tab pill slides and the row of tools fades when the tab changes
   G.tools = function () {
@@ -98,14 +101,17 @@
     Motion.flash(snap); Book.touch();
   };
 
+  // the active cell: where typing goes (the corner the selection started from)
+  G.act = function () { var s = G.sel, a = G.anc || { r: s.r1, c: s.c1 }; return { r: Math.max(s.r1, Math.min(s.r2, a.r)), c: Math.max(s.c1, Math.min(s.c2, a.c)) }; };
   // ---- selection --------------------------------------------------------------------------------------------------------------
   G.select = function (r1, c1, r2, c2, whole) {
     var g = G.geo; r2 = r2 === undefined ? r1 : r2; c2 = c2 === undefined ? c1 : c2;
+    G.anc = { r: Math.max(0, r1), c: Math.max(0, c1) }; G.cur = { r: Math.max(0, r2), c: Math.max(0, c2) };
     G.sel = { r1: Math.max(0, Math.min(r1, r2)), c1: Math.max(0, Math.min(c1, c2)), r2: Math.min(g.rows - 1, Math.max(r1, r2)), c2: Math.min(g.cols - 1, Math.max(c1, c2)), whole: whole || '' };
     G.qk = false; G.pop = true; G.paint(true);
     var sc = $('gScroll'), q = G.rect(Math.max(G.sel.r1, g.fy), G.sel.c1, Math.max(G.sel.r1, g.fy), G.sel.c1), y = q.y - g.tops[g.fy], top = sc.scrollTop, left = sc.scrollLeft;
     if (y < top) top = y; else if (y + q.h > top + sc.clientHeight) top = y + q.h - sc.clientHeight + 6;
-    if (q.x - HW < left) left = q.x - HW; else if (q.x + q.w > left + sc.clientWidth) left = q.x + q.w - sc.clientWidth + 6;
+    if (q.x - hw() < left) left = q.x - hw(); else if (q.x + q.w > left + sc.clientWidth) left = q.x + q.w - sc.clientWidth + 6;
     if (top !== sc.scrollTop || left !== sc.scrollLeft) sc.scrollTo({ top: top, left: left, behavior: Motion.rm || Math.abs(top - sc.scrollTop) > 900 ? 'auto' : 'smooth' });
   };
   A['g-col'] = function (el) { if (Date.now() < (G.noHead || 0)) return; var c = +el.dataset.c; G.select(0, c, G.geo.rows - 1, c, 'col'); };
@@ -115,7 +121,7 @@
     if (e.target.closest('[data-act],.gquick,.gsel i')) return;
     if (G.lp) { G.lp = false; return; }
     if (Date.now() < (G.noTap || 0)) return;   // the click that ends a handle drag is not a tap
-    var sc = $('gScroll'), g = G.geo, box = (inFz ? $('gFz') : sc).getBoundingClientRect(), x = e.clientX - box.left + sc.scrollLeft - HW, y = e.clientY - box.top + (inFz ? 0 : sc.scrollTop + g.tops[g.fy]);
+    var sc = $('gScroll'), g = G.geo, box = (inFz ? $('gFz') : sc).getBoundingClientRect(), x = e.clientX - box.left + sc.scrollLeft - hw(), y = e.clientY - box.top + (inFz ? 0 : sc.scrollTop + g.tops[g.fy]);
     if (x < 0) return;
     var p = G.at(x, y), s = G.sel, same = s.r1 === s.r2 && s.c1 === s.c2 && s.r1 === p.r && s.c1 === p.c;
     if (G.editing) { var i = $('fbIn'); if (i) i.blur(); }
@@ -125,10 +131,11 @@
   // pull the frame's handle to grow the selection; the cell under the finger is the new corner
   function handle(e) {
     var h = e.target.closest('.gsel i'); if (!h) return;
+    if (h.dataset.h === 'br' && window.Fill && Fill.desktop() && !Wb.readOnly) { Fill.begin(e); return; }
     e.preventDefault(); var sc = $('gScroll'), g = G.geo, s0 = Object.assign({}, G.sel), corner = h.dataset.h, anchor = corner === 'br' ? { r: s0.r1, c: s0.c1 } : { r: s0.r2, c: s0.c2 };
     h.setPointerCapture(e.pointerId); Motion.drag = true; h.classList.add('grab'); G.place();
     function move(ev) {
-      var box = sc.getBoundingClientRect(), p = G.at(ev.clientX - box.left + sc.scrollLeft - HW, ev.clientY - box.top + sc.scrollTop + g.tops[g.fy]);
+      var box = sc.getBoundingClientRect(), p = G.at(ev.clientX - box.left + sc.scrollLeft - hw(), ev.clientY - box.top + sc.scrollTop + g.tops[g.fy]);
       var n = { r1: Math.min(anchor.r, p.r), c1: Math.min(anchor.c, p.c), r2: Math.max(anchor.r, p.r), c2: Math.max(anchor.c, p.c) };
       if (n.r1 !== G.sel.r1 || n.c1 !== G.sel.c1 || n.r2 !== G.sel.r2 || n.c2 !== G.sel.c2) { G.sel = Object.assign(n, { whole: '' }); G.paintLight(); }
       if (ev.clientY > box.bottom - 30) sc.scrollTop += 14; else if (ev.clientY < box.top + 30) sc.scrollTop -= 14;
@@ -141,20 +148,44 @@
   G.paintLight = function () { Motion.heads(G.sel); G.place(); G.bar(); Clip.stats(); };
 
   // ---- editing ----------------------------------------------------------------------------------------------------------------
-  G.edit = function () { var i = $('fbIn'); if (!i || Wb.readOnly) return; i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) { /* not a text input */ } };
-  G.commit = function (move) {
-    var i = $('fbIn'); if (!i || !G.editing) return; G.editing = false; $('bookBar').classList.remove('edit');
+  G.edit = function (text) { var i = $('fbIn'); if (!i || Wb.readOnly) return; if (window.CellEdit && CellEdit.wanted()) { CellEdit.begin(text === undefined ? G.raw : text, text === undefined ? 'end' : 'fresh'); return; } i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) { /* not a text input */ } };
+  // move: true (down), { dr, dc } (a step after Enter / Tab), or nothing
+  G.commit = function (move, lose) {
+    var i = $('fbIn'); if (!i || !G.editing) return;
+    if (!Wb.readOnly && window.Valid && i.value !== G.raw) {   // a rule of the cell may refuse what was typed
+      var q = G.act(), p0 = Clip.parse(i.value, Wb.style(G.geo.sh, q.r, q.c)), bad = Valid.check(G.geo.sh, q.r, q.c, i.value, p0);
+      if (bad && bad.stop) { Ui.toast(bad.msg); if (!lose) { if (window.CellEdit && CellEdit.on) CellEdit.focus(); else i.focus(); return; } i.value = G.raw; }
+      else if (bad) Ui.toast(bad.msg);
+    }
+    G.editing = false; $('bookBar').classList.remove('edit'); if (window.CellEdit) CellEdit.hide();
     if (Wb.readOnly) { G.paint(true); return; }
-    var sh = G.geo.sh, s = G.sel, text = i.value;
+    var sh = G.geo.sh, s = G.sel, a = G.act(), text = i.value;
     if (text !== G.raw) {
       Wb.batch(function () {
-        var p = Clip.parse(text, Wb.style(sh, s.r1, s.c1));
-        Wb.setCell(sh, s.r1, s.c1, p.v === undefined ? null : p.v, p.f || '');
-        if (p.nf) Wb.setStyle(sh, { r1: s.r1, c1: s.c1, r2: s.r1, c2: s.c1 }, { nf: p.nf });
+        var p = Clip.parse(text, Wb.style(sh, a.r, a.c));
+        Wb.setCell(sh, a.r, a.c, p.v === undefined ? null : p.v, p.f || '');
+        if (p.nf) Wb.setStyle(sh, { r1: a.r, c1: a.c, r2: a.r, c2: a.c }, { nf: p.nf });
       });
       G.changed();
     }
-    if (move) G.select(s.r1 + 1, s.c1); else G.paint(true);
+    if (move) { var d = move === true ? { dr: 1, dc: 0 } : move; G.step(d.dr, d.dc); } else G.paint(true);
+  };
+  // one cell on from the active one; inside a selection of several cells the step cycles within it (like Excel)
+  G.step = function (dr, dc) {
+    var s = G.sel, a = G.act(), g = G.geo, multi = s.r1 !== s.r2 || s.c1 !== s.c2, r = a.r + dr, c = a.c + dc;
+    if (multi) {
+      if (c > s.c2) { c = s.c1; r = a.r + 1; } else if (c < s.c1) { c = s.c2; r = a.r - 1; }
+      if (r > s.r2) { r = s.r1; c = c + 1 > s.c2 ? s.c1 : c + 1; } else if (r < s.r1) { r = s.r2; c = c - 1 < s.c1 ? s.c2 : c - 1; }
+      G.anc = { r: r, c: c }; G.paintLight(); G.reveal(r, c); return;
+    }
+    G.select(Math.max(0, Math.min(g.rows - 1, r)), Math.max(0, Math.min(g.cols - 1, c)));
+  };
+  // scroll so that the cell can be seen (only when it is not)
+  G.reveal = function (r, c) {
+    var g = G.geo, sc = $('gScroll'); if (!g || r < g.fy) return; var q = G.rect(r, c, r, c), y = q.y - g.tops[g.fy], top = sc.scrollTop, left = sc.scrollLeft;
+    if (y < top) top = y; else if (y + q.h > top + sc.clientHeight) top = y + q.h - sc.clientHeight + 6;
+    if (q.x - hw() < left) left = q.x - hw(); else if (q.x + q.w > left + sc.clientWidth) left = q.x + q.w - sc.clientWidth + 6;
+    if (top !== sc.scrollTop || left !== sc.scrollLeft) sc.scrollTo({ top: top, left: left });
   };
   A['tl-tab'] = function (el) { G.tab = el.dataset.k; G.tools(); };
   A['fb-ok'] = function () { $('fbIn').blur(); };
@@ -162,7 +193,7 @@
 
   G.init = function () {
     var sc = $('gScroll');
-    Resize.init();
+    Resize.init(); if (window.Mouse) Mouse.init(); if (window.Ctx) Ctx.init(); if (window.Desk) Desk.init(); if (window.Menus) Menus.init();
     sc.addEventListener('click', function (e) { tap(e, false); });
     $('gFz').addEventListener('click', function (e) { tap(e, true); });
     ['gScroll', 'gFz'].forEach(function (id) { $(id).addEventListener('pointerdown', handle); });
@@ -181,7 +212,7 @@
     }, { passive: false });
     var bar = $('bookBar');
     bar.addEventListener('focusin', function (e) { if (e.target.id !== 'fbIn' || Wb.readOnly) return; G.editing = true; bar.classList.add('edit'); G.place(); });
-    bar.addEventListener('focusout', function (e) { if (e.target.id === 'fbIn' && G.editing) setTimeout(function () { if (document.activeElement !== e.target) G.commit(false); }, 0); });
-    bar.addEventListener('keydown', function (e) { if (e.target.id !== 'fbIn') return; if (e.key === 'Enter') { e.preventDefault(); G.commit(true); e.target.blur(); } else if (e.key === 'Escape') A['fb-cancel'](); });
+    bar.addEventListener('focusout', function (e) { if (e.target.id === 'fbIn' && G.editing) setTimeout(function () { if (document.activeElement !== e.target) G.commit(false, true); }, 0); });
+    bar.addEventListener('keydown', function (e) { if (e.target.id !== 'fbIn') return; if (e.key === 'Enter') { e.preventDefault(); G.commit(e.shiftKey ? { dr: -1, dc: 0 } : true); e.target.blur(); } else if (e.key === 'Tab') { e.preventDefault(); G.commit({ dr: 0, dc: e.shiftKey ? -1 : 1 }); e.target.blur(); } else if (e.key === 'Escape') A['fb-cancel'](); });
   };
 })();

@@ -95,7 +95,7 @@
   // on a computer: Ctrl / Cmd + wheel (and a trackpad pinch), about the point under the pointer
   $('xpages').addEventListener('wheel', function (e) {
     if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault();
-    var sc = $('xpages'), r = sc.getBoundingClientRect(), old = X.pz || X.fit(), z = Math.max(0.2, Math.min(3, old * Math.exp(-Math.max(-20, Math.min(20, e.deltaY * (e.deltaMode ? 5 : 1))) * 0.01))), k = z / old, mx = e.clientX - r.left, my = e.clientY - r.top, cx = sc.scrollLeft + mx, cy = sc.scrollTop + my;
+    var sc = $('xpages'), r = sc.getBoundingClientRect(), old = X.pz || X.fit(), z = Math.max(0.2, Math.min(3, old * Math.exp(-Math.max(-20, Math.min(20, e.deltaY * (e.deltaMode ? 5 : 1))) * 0.0035))), k = z / old, mx = e.clientX - r.left, my = e.clientY - r.top, cx = sc.scrollLeft + mx, cy = sc.scrollTop + my;
     X.pz = z; sc.style.zoom = z; sc.scrollLeft = cx * k - mx; sc.scrollTop = cy * k - my;
   }, { passive: false });
 })();

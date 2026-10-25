@@ -5,7 +5,7 @@
   function info() {
     var s = Grid.sel, g = Grid.geo, sh = g.sh;
     return { label: Format.label(), rowLabel: t(s.r1 === s.r2 ? 'rc.row' : 'rc.rows', { a: s.r1 + 1, b: s.r2 + 1 }), colLabel: t(s.c1 === s.c2 ? 'rc.col' : 'rc.cols', { a: SheetSvc.col(s.c1), b: SheetSvc.col(s.c2) }),
-      rowHidden: !!sh.hidR[s.r1], colHidden: !!sh.hidC[s.c1], rh: Math.round(g.rowH(s.r1) || (sh.rowH[s.r1] || RH)), cw: Math.round(g.colW(s.c1) || (sh.colW[s.c1] || 88)), fx: sh.frozen.x ? 1 : 0, fy: sh.frozen.y ? 1 : 0 };
+      rowHidden: !!sh.hidR[s.r1], colHidden: !!sh.hidC[s.c1], rh: Math.round(g.rowH(s.r1) / Grid.z || (sh.rowH[s.r1] || RH)), cw: Math.round(g.colW(s.c1) / Grid.z || (sh.colW[s.c1] || 88)), fx: sh.frozen.x ? 1 : 0, fy: sh.frozen.y ? 1 : 0 };
   }
   function show() { SheetsView.show('rows', SheetsView.rows(info())); }
   A['rc-open'] = function () { Ui.closeSheet(); show(); };
