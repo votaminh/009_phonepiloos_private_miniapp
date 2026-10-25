@@ -9,6 +9,8 @@
     return new Date(ms).toLocaleDateString(I18n.locale(), { day: 'numeric', month: 'short' });
   }
   function size(n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', I18n.locale() === 'vi-VN' ? ',' : '.') + ' MB' : Math.max(1, Math.round((n || 0) / 1024)) + ' KB'; }
+  // the picture of page 1 when there is one, otherwise a plain page of lines
+  function pic(d, i) { var src = d.thumb || Thumb.mem[d.key]; return src ? '<span class="hm-th pic" aria-hidden="true"><img src="' + esc(src) + '" alt=""></span>' : thumb(i); }
   function thumb(seed) {
     var w = [60, 50, 70, 55, 65][seed % 5], x = [100, 80, 100, 85, 100][(seed >> 1) % 5];
     return '<span class="hm-th" aria-hidden="true"><i style="width:' + w + '%"></i><b></b><b style="width:' + x + '%"></b><b></b><b style="width:' + (40 + (seed % 4) * 12) + '%"></b></span>';
@@ -17,15 +19,22 @@
     size: size, ago: ago,
     top: function (s) {
       if (s.search) return '<div class="hm-find"><span>' + Ui.ic('search', 20) + '</span><input class="hm-in" id="homeQ" type="text" value="' + esc(s.q) + '" placeholder="' + esc(t('h.search.ph')) + '" aria-label="' + esc(t('h.search')) + '" autocomplete="off"><button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('a.close')) + '">' + Ui.ic('close', 22) + '</button></div>';
-      return '<div class="hm-ttl"><h1 class="shell-title">' + esc(t('app.title')) + '</h1><p class="hm-sub">' + esc(t('app.sub')) + '</p></div>' + (s.count ? '<button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('h.search')) + '">' + Ui.ic('search', 24, 1.8) + '</button>' : '');
+      return '<div class="hm-ttl"><h1 class="shell-title">' + esc(t('app.title')) + '</h1><p class="hm-sub">' + esc(t('app.sub')) + '</p></div>' + (s.count ? '<button type="button" class="ib" data-act="h-view" aria-label="' + esc(t(s.grid ? 'h.list' : 'h.grid')) + '">' + Ui.ic(s.grid ? 'viewlist' : 'viewgrid', 24, 1.8) + '</button><button type="button" class="ib" data-act="h-search" aria-label="' + esc(t('h.search')) + '">' + Ui.ic('search', 24, 1.8) + '</button>' : '');
     },
     head: function (label) { return '<span class="hm-hd">' + esc(label) + '</span>'; },
     row: function (d, i) {
       var sub = d.draft ? '<span class="hm-dot warn"></span>' + esc(t('m.draft')) : '<span class="hm-dot ok"></span>' + esc(t(d.editedAt && d.editedAt >= (d.openedAt || 0) - 1000 ? 'm.edited' : 'm.opened', { t: ago(d.openedAt || 0) }));
-      return '<div class="hm-card" data-act="h-open" data-id="' + esc(d.key) + '" role="button" tabindex="0">' + thumb(i)
+      return '<div class="hm-card" data-act="h-open" data-id="' + esc(d.key) + '" role="button" tabindex="0">' + pic(d, i)
         + '<span class="hm-txt"><b>' + esc(d.name) + '</b><small>' + size(d.size) + ' · ' + sub + '</small></span>'
         + '<button type="button" class="ib hm-more" data-act="h-more" data-id="' + esc(d.key) + '" aria-label="' + esc(t('r.menu')) + '">' + Ui.ic('more', 20) + '</button></div>';
     },
+    // the same file as a tile (grid view): a big page preview over the name; two tiles make one row of the list
+    tile: function (d, i) {
+      var sub = d.draft ? '<span class="hm-dot warn"></span>' + esc(t('m.draft')) : '<span class="hm-dot ok"></span>' + esc(t(d.editedAt && d.editedAt >= (d.openedAt || 0) - 1000 ? 'm.edited' : 'm.opened', { t: ago(d.openedAt || 0) }));
+      return '<div class="hm-card hm-tile" data-act="h-open" data-id="' + esc(d.key) + '" role="button" tabindex="0">' + pic(d, i) + '<span class="hm-txt"><b>' + esc(d.name) + '</b><small>' + size(d.size) + ' · ' + sub + '</small></span>'
+        + '<button type="button" class="ib hm-more" data-act="h-more" data-id="' + esc(d.key) + '" aria-label="' + esc(t('r.menu')) + '">' + Ui.ic('more', 20) + '</button></div>';
+    },
+    pair: function (ds, i) { return '<div class="hm-pair">' + HomeView.tile(ds[0], i) + (ds[1] ? HomeView.tile(ds[1], i + 1) : '<span></span>') + '</div>'; },
     none: function () { return '<p class="hm-none">' + esc(t('h.none')) + '</p>'; },
     empty: function () {
       return '<div class="hm-empty"><div class="hm-art" aria-hidden="true"><span class="p1"></span><span class="p2"></span><span class="p3"><i></i><b></b><b></b><b></b></span><span class="pen">' + Ui.ic('edit', 22, 2.1) + '</span></div>'

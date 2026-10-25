@@ -55,9 +55,9 @@
     styles: function (cur) {
       return ['st.normal', 'st.h1', 'st.h2', 'st.h3'].map(function (k, i) { return '<button type="button" class="pop-it s' + i + (cur === k ? ' on' : '') + '" data-act="e-setstyle" data-k="' + i + '"><span>' + esc(t(k)) + '</span>' + Ui.ic('check', 18, 2.6) + '</button>'; }).join('');
     },
-    grip: function () {
+    grip: function (locked) {
       function it(a, ic, l, c) { return '<button type="button" class="pop-it' + (c ? ' ' + c : '') + '" data-act="' + a + '">' + Ui.ic(ic, 20, 1.8) + '<span>' + esc(t(l)) + '</span></button>'; }
-      return it('g-above', 'addabove', 'g.above') + it('g-below', 'addbelow', 'g.below', 'on') + it('g-dup', 'dup', 'g.dup') + '<hr class="pop-hr">' + it('g-del', 'trash', 'g.del', 'danger');
+      return it('g-above', 'addabove', 'g.above') + it('g-below', 'addbelow', 'g.below', 'on') + (locked ? '' : it('g-dup', 'dup', 'g.dup')) + '<hr class="pop-hr">' + it('g-del', 'trash', 'g.del', 'danger');
     },
     quick: function (b) {
       return '<button type="button" data-act="q-cut">' + esc(t('q.cut')) + '</button><button type="button" data-act="q-copy">' + esc(t('q.copy')) + '</button><button type="button" data-act="q-paste">' + esc(t('q.paste')) + '</button><i></i>'

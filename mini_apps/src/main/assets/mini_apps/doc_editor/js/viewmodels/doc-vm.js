@@ -1,24 +1,26 @@
 // Doc — the reading and editing page: opens a file, draws it, switches between reading and editing, keeps the history, the draft and the save.
 (function () {
   'use strict';
-  var t = Ui.t, $ = Ui.$, A = App.acts, DRAFT_MS = 2500, SNAP_MS = 500, HIST_MAX = 40;
-  var Doc = window.Doc = { rec: null, mode: 'read', tab: 'text', dirty: false, xmls: {}, pics: {}, nextN: 1, hist: [], histAt: 0, baseAt: 0, tone: 'ok', drafting: false, range: null, error: '' };
+  var t = Ui.t, $ = Ui.$, A = App.acts, DRAFT_MS = 30000, MIN_SHOW = 700, SNAP_MS = 500, HIST_MAX = 40;
+  var Doc = window.Doc = { rec: null, mode: 'read', tab: 'text', dirty: false, xmls: {}, pics: {}, nextN: 1, hist: [], histAt: 0, baseAt: 0, tone: 'ok', drafting: false, saving: false, flash: '', range: null, error: '' };
   var timers = { snap: 0, draft: 0 };
   Doc.paper = function () { return $('paper'); };
   Doc.nid = function () { return 'n' + (Doc.nextN++); };
 
   // ---- the bars ------------------------------------------------------------------------------------------------------------
   Doc.statusText = function () {
-    if (!Doc.dirty) return { tone: 'ok', text: t('s.saved') };
+    if (Doc.saving) return { tone: 'busy', text: t('s.savingfile') };
     if (Doc.drafting) return { tone: 'busy', text: t('s.saving') };
+    if (Doc.flash) return { tone: 'ok pop', text: t(Doc.flash) };
+    if (!Doc.dirty) return { tone: 'ok', text: t('s.saved') };
     var d = Doc.rec && Doc.rec.draft;
     if (d && d.at >= Doc.lastEdit) return { tone: 'ok', text: t('s.draft', { t: new Date(d.at).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit' }) }) };
     return { tone: 'warn', text: t('s.unsaved') };
   };
   Doc.chrome = function () {
     var r = Doc.rec; if (!r) return;
-    var st = Doc.statusText();
-    $('docTop').innerHTML = DocView.top({ mode: Doc.mode, name: r.name, meta: t('d.reading') + ' · ' + HomeView.size(r.size || 0), status: st.text, tone: st.tone, dirty: Doc.dirty, canUndo: Doc.histAt > 0, canRedo: Doc.histAt < Doc.hist.length - 1 });
+    var st = Doc.statusText(); $('docTop').classList.toggle('saving', Doc.saving || Doc.drafting);
+    $('docTop').innerHTML = DocView.top({ mode: Doc.mode, name: r.name, meta: t('d.reading') + ' · ' + HomeView.size(r.size || 0), pages: Store.prefs().layout === 'page', status: st.text, tone: st.tone, dirty: Doc.dirty, canUndo: Doc.histAt > 0, canRedo: Doc.histAt < Doc.hist.length - 1 });
   };
   Doc.relabel = function () { if (Doc.rec && App.state.page === 'doc') { Doc.chrome(); if (Doc.mode === 'edit') Edit.buildTools(); } };
 
@@ -28,7 +30,7 @@
     var p = Doc.paper(), pg = $('pgDoc');
     pg.dataset.mode = m; p.classList.toggle('editing', m === 'edit');
     Array.prototype.forEach.call(p.querySelectorAll('.b.ed'), function (el) { el.contentEditable = m === 'edit' ? 'true' : 'false'; });
-    Table.arm(m === 'edit');
+    Table.arm(m === 'edit'); if (m !== 'edit' && window.Struct) Struct.hide();
     $('docTools').classList.toggle('hidden', m !== 'edit');
     Read.apply();
     if (m === 'edit') Edit.buildTools(); else { Edit.hidePops(); }
@@ -52,21 +54,24 @@
 
   // ---- opening -------------------------------------------------------------------------------------------------------------
   Doc.render = async function (buf, keepScroll) {
-    var r = await DocSvc.open(buf), p = Doc.paper(), body = $('docBody'), y = keepScroll ? body.scrollTop : 0;
+    var copy = buf.slice(0), r = await DocSvc.open(buf), p = Doc.paper(), body = $('docBody'), y = keepScroll ? body.scrollTop : 0;
+    await DocRich.load(copy, r.blocks);
     p.innerHTML = Render.all(r.blocks) || '<p class="dc-load">' + Ui.esc(t('d.empty')) + '</p>';
     Doc.blocks = r.blocks; Doc.words = (p.textContent.trim().match(/\S+/g) || []).length; Doc.ms = r.ms;
     Doc.xmls = {}; Doc.pics = {}; Doc.nextN = 1; Doc.dirty = false; Doc.lastEdit = 0;
-    Doc.hist = [p.innerHTML]; Doc.histAt = 0; Doc.baseAt = 0;
+    Doc.hist = [p.innerHTML]; Doc.histAt = 0; Doc.baseAt = 0; Doc.rid = (Doc.rid || 0) + 1;
     body.scrollTop = y;
     Doc.setMode(Doc.mode);
+    Thumb.refresh(Doc.rec, !!keepScroll);   // the picture of page 1 in the list: made once, and again after a save
   };
   Doc.open = async function (rec, opts) {
     opts = opts || {};
-    Doc.rec = rec; Doc.mode = opts.edit ? 'edit' : 'read'; Doc.tab = 'text'; Doc.error = '';
+    Doc.rec = rec; Doc.mode = opts.edit ? 'edit' : 'read'; Doc.tab = 'text'; Doc.error = ''; Doc.blocks = null; Read.pz = 0;
     var p = Doc.paper(); p.innerHTML = '<p class="dc-load">' + Ui.esc(t('d.loading')) + '</p>'; p.className = 'paper';
     if (Router.getCurrent() !== 'doc') Router.navigate('doc'); else App.state.page = 'doc';
     Doc.setMode('read'); $('docBody').scrollTop = 0;
     try {
+      rec.path = rec.path || rec.url;   // a record read back from storage has the address as `url` only
       await Files.request(rec.path);
       var res = await fetch(rec.path); if (!res.ok) throw new Error(t('err.missing'));
       await Doc.render(await res.arrayBuffer());
@@ -102,7 +107,7 @@
   Doc.touch = function (quiet) {
     Doc.dirty = Doc.histAt !== Doc.baseAt; Doc.lastEdit = Date.now();
     if (!quiet) { clearTimeout(timers.snap); timers.snap = setTimeout(Doc.snap, SNAP_MS); }
-    clearTimeout(timers.draft); if (Doc.dirty) timers.draft = setTimeout(Doc.draftNow, DRAFT_MS);
+    if (Doc.dirty && !timers.draft) timers.draft = setTimeout(function () { timers.draft = 0; Doc.draftNow(); }, DRAFT_MS);
     Doc.chrome();
   };
   function restore(i) {
@@ -115,32 +120,43 @@
 
   // ---- saving ----------------------------------------------------------------------------------------------------------------
   Doc.bytes = async function () { Doc.snap(); return DocSvc.save(Plan.build(Doc.paper(), Doc.xmls, Doc.pics)); };
-  Doc.draftNow = async function () {
-    var rec = Doc.rec; if (!rec || !Doc.dirty || Doc.drafting) return;
-    Doc.drafting = true; Doc.chrome();
-    try {
-      var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: 'draft-' + rec.name, base64: App.b64(buf), reason: 'Keep a draft of your edits' }), old = rec.draft && rec.draft.path;
-      rec.draft = { path: r.data.path, size: buf.byteLength, at: Date.now() }; await Store.put(rec); if (old) Store.dropFile(old);
-    } catch (e) { /* a draft is a convenience: the next edit tries again */ }
-    Doc.drafting = false; Doc.chrome();
+  function stopDraft() { clearTimeout(timers.draft); timers.draft = 0; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  // the bar says "saving" with a moving line, then "saved" with a small pop; both stay long enough to be seen
+  async function shown(work, flag, done) {
+    Doc[flag] = true; Doc.flash = ''; Doc.chrome(); var t0 = Date.now(), ok = false;
+    try { ok = await work(); } finally { var left = MIN_SHOW - (Date.now() - t0); if (left > 0) await sleep(left); Doc[flag] = false; }
+    if (ok) { Doc.flash = done; clearTimeout(timers.flash); timers.flash = setTimeout(function () { Doc.flash = ''; Doc.chrome(); }, 2200); }
+    Doc.chrome(); return ok;
+  }
+  // a draft is kept every 30 seconds while there are edits (one timer, not reset by each edit), and when the app goes to the background
+  Doc.draftNow = function () {
+    var rec = Doc.rec; if (!rec || !Doc.dirty || Doc.drafting || Doc.saving) return Promise.resolve(false);
+    return shown(async function () {
+      try {
+        var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: 'draft-' + rec.name, base64: App.b64(buf), reason: 'Keep a draft of your edits' }), old = rec.draft && rec.draft.path;
+        rec.draft = { path: r.data.path, size: buf.byteLength, at: Date.now() }; await Store.put(rec); if (old) Store.dropFile(old); return true;
+      } catch (e) { return false; /* a draft is a convenience: the next round tries again */ }
+    }, 'drafting', 's.draftok');
   };
-  Doc.save = async function () {
-    var rec = Doc.rec; if (!rec) return false;
-    clearTimeout(timers.draft);
-    var b = $('docTop').querySelector('[data-act="e-save"]'); if (b) b.disabled = true;
-    try {
-      var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: rec.name, base64: App.b64(buf), reason: 'Save the edited document' }), f = r && r.data;
-      if (!f || !f.path) throw new Error('no file');
-      var old = rec.path, oldDraft = rec.draft && rec.draft.path;
-      rec.path = f.path; rec.url = f.path; rec.size = f.sizeBytes || buf.byteLength; rec.editedAt = Date.now(); rec.openedAt = Date.now(); rec.draft = null;
-      await Store.put(rec); Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
-      await Doc.render(buf, true);   // read the saved file back: what you see is what is on disk
-      Ui.toast(t('t.saved')); return true;
-    } catch (e) { App.fail('t.savefail', e); Doc.chrome(); return false; }
+  document.addEventListener('visibilitychange', function () { if (document.hidden && Doc.dirty) { stopDraft(); Doc.draftNow(); } });
+  Doc.save = function () {
+    var rec = Doc.rec; if (!rec) return Promise.resolve(false); stopDraft();
+    return shown(async function () {
+      try {
+        var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: rec.name, base64: App.b64(buf), reason: 'Save the edited document' }), f = r && r.data;
+        if (!f || !f.path) throw new Error('no file');
+        var old = rec.path, oldDraft = rec.draft && rec.draft.path;
+        rec.path = f.path; rec.url = f.path; rec.size = f.sizeBytes || buf.byteLength; rec.editedAt = Date.now(); rec.openedAt = Date.now(); rec.draft = null;
+        await Store.put(rec); Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
+        await Doc.render(buf, true);   // read the saved file back: what you see is what is on disk
+        return true;
+      } catch (e) { App.fail('t.savefail', e); return false; }
+    }, 'saving', 't.saved');
   };
   A['e-save'] = function () { Doc.save(); };
   Doc.discard = async function () {
-    clearTimeout(timers.draft); clearTimeout(timers.snap); await Doc.dropDraft(); Doc.dirty = false; Ui.toast(t('t.discarded'));
+    stopDraft(); clearTimeout(timers.snap); await Doc.dropDraft(); Doc.dirty = false; Ui.toast(t('t.discarded'));
   };
   A['e-done'] = function () { if (!Doc.guardLeave()) Doc.setMode('read'); };
 

@@ -102,44 +102,12 @@
       Router.setBeforeLeave(function (from, to) { if (to === from) return true; if (Ui.closeDialog() || Ui.closeSheet()) return false; return true; });
       if (typeof window.MiniAppBackHandler !== 'function') window.MiniAppBackHandler = function () { return !!(Ui.closeDialog() || Ui.closeSheet()); };
     },
-    // How the next page opens. 'expand': a copy of the tapped item grows until it fills the screen and the page fades in inside it (like opening an app); going back shrinks it into the item again.
-    // 'slide': the page slides in from the side (new items). Call hint('expand', item) or hint('slide') right before navigating.
-    hint: function (kind, item) {
-      var o = { kind: kind, item: null };
-      // measure and copy the item now: once the page changes, the old page is hidden and every size reads 0
-      if (kind === 'expand' && item) { var cs = getComputedStyle(item); o.item = { id: item.dataset.id, rect: item.getBoundingClientRect(), bg: cs.backgroundColor, radius: cs.borderRadius, node: item.cloneNode(true) }; }
-      Ui.nextHint = o;
-    },
-    pageIn: function (to, back, from) {
-      var el = document.querySelector('[data-page="' + to + '"]'); if (!el) return;
-      var h = Ui.nextHint || {}; Ui.nextHint = null;
-      var done = function (c) { el.addEventListener('animationend', function f(e) { if (e.target !== el) return; el.classList.remove(c); el.removeEventListener('animationend', f); }); };
-      el.classList.remove('pg-slide', 'pg-backslide');
-      if (!back && h.kind === 'expand' && h.item) { Ui.lastItem = h.item.id; return Ui.expand(h.item, el); }
-      if (back && Ui.lastItem) { var id = Ui.lastItem; Ui.lastItem = null; return requestAnimationFrame(function () { var card = document.querySelector('[data-page="' + to + '"] [data-id="' + id + '"]'); if (card) Ui.collapse(card, from && document.querySelector('[data-page="' + from + '"]')); }); }
-      var c = back ? 'pg-backslide' : 'pg-slide'; void el.offsetWidth; el.classList.add(c); done(c);
-    },
-    expand: function (it, page) {
-      var r = it.rect, W = window.innerWidth, H = window.innerHeight, g = it.node;
-      g.removeAttribute('data-act'); g.classList.add('ghost'); g.style.cssText = 'position:fixed;margin:0;width:' + r.width + 'px;height:' + r.height + 'px;left:' + r.left + 'px;top:' + r.top + 'px;background:' + it.bg + ';border-radius:' + it.radius + ';animation:none';
-      document.body.appendChild(g);
-      page.animate([{ opacity: 0 }, { opacity: 1 }], { delay: 150, duration: 260, easing: 'ease-out', fill: 'both' });
-      Array.prototype.forEach.call(g.children, function (k) { k.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, fill: 'both' }); });
-      var full = { left: 0, top: 0, width: W + 'px', height: H + 'px', borderRadius: '0px' };
-      var a = g.animate([{ left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: it.radius, opacity: 1 }, Object.assign({ opacity: 1, offset: .82 }, full), Object.assign({ opacity: 0 }, full)], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
-      a.onfinish = function () { g.remove(); };
-    },
-    collapse: function (card, fromEl) {
-      var r = card.getBoundingClientRect(), cs = getComputedStyle(card), W = window.innerWidth, H = window.innerHeight, g = document.createElement('div');
-      g.className = 'ghost'; g.style.cssText = 'position:fixed;margin:0;left:0;top:0;width:' + W + 'px;height:' + H + 'px;background:' + getComputedStyle(document.body).backgroundColor;
-      if (fromEl) { // the page we leave stays inside the shrinking sheet for a moment, then fades
-        var snap = fromEl.cloneNode(true); snap.className = fromEl.className.replace(/pg-\S+/g, ''); snap.removeAttribute('style'); snap.removeAttribute('data-page');
-        snap.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); }); snap.style.cssText = 'display:flex;position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px';
-        g.appendChild(snap); snap.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 230, easing: 'ease-in', fill: 'forwards' });
-      }
-      document.body.appendChild(g); card.animate([{ opacity: 0 }, { opacity: 0, offset: .6 }, { opacity: 1 }], { duration: 380, fill: 'both' });
-      var a = g.animate([{ left: 0, top: 0, width: W + 'px', height: H + 'px', borderRadius: '0px', opacity: 1 }, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: cs.borderRadius, opacity: 1, offset: .75 }, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: cs.borderRadius, opacity: 0 }], { duration: 380, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' });
-      a.onfinish = function () { g.remove(); };
+    // How a page opens: the list and a document morph into each other (ui-nav.js, which sets Ui.vtOn while it runs); every other page slides in from the side, and slides back out.
+    pageIn: function (to, back) {
+      var el = document.querySelector('[data-page="' + to + '"]'); if (!el || Ui.vtOn) return;
+      var c = back ? 'pg-backslide' : 'pg-slide';
+      el.classList.remove('pg-slide', 'pg-backslide'); void el.offsetWidth; el.classList.add(c);
+      el.addEventListener('animationend', function f(e) { if (e.target !== el) return; el.classList.remove(c); el.removeEventListener('animationend', f); });
     },
     reveal: function () { var r = function () { document.documentElement.classList.remove('wait-launch'); }; setTimeout(r, 1200); r(); }
   };

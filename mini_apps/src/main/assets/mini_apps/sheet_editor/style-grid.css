@@ -3,6 +3,17 @@
 .bk-ttl{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .bk-ttl b{font:600 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bk-ttl small{display:flex;align-items:center;gap:5px;font:400 12px var(--body);color:var(--ok)}
+.bk-top{position:relative}
+.bk-ttl small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-ttl small.saving{color:var(--accent)}
+.bk-ttl small.saving i{width:10px;height:10px;box-sizing:border-box;background:none;border:2px solid currentColor;border-top-color:transparent;animation:bkspin .7s linear infinite}
+.bk-ttl small.pop{color:var(--ok);animation:bkokpop .45s var(--spring) both}
+.bk-ttl small.pop i{animation:bkokdot .5s var(--spring) both}
+@keyframes bkspin{to{transform:rotate(1turn)}}
+@keyframes bkokpop{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:none}}
+@keyframes bkokdot{0%{transform:scale(0)}60%{transform:scale(1.9)}100%{transform:scale(1)}}
+.bk-top.saving::after{content:'';position:absolute;left:0;bottom:0;height:2px;width:35%;border-radius:1px;background:var(--accent);animation:bksweep 1s var(--out) infinite}
+@keyframes bksweep{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
 .bk-ttl small.warn{color:var(--warn)}.bk-ttl small.mute{color:var(--muted)}
 .bk-ttl small i{width:6px;height:6px;border-radius:3px;background:currentColor}
 .bk-top .ib{width:40px}.bk-top .ib.off{opacity:.3}
@@ -94,3 +105,16 @@ body:has(#scrim.on) .gquick{opacity:0;pointer-events:none}
 .rs.r{top:auto;left:0;width:auto;height:18px;cursor:row-resize}
 .rs.r::after{top:auto;bottom:5px;left:30%;right:30%;width:auto;height:2px}
 .gh.rsz{background:var(--accent-soft);color:var(--accent-text)}
+.gobj{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:2}
+.gobj-i{position:absolute;background:var(--card);border:1px solid var(--cell-line);overflow:hidden;box-sizing:border-box}.gobj-i img{display:block;width:100%;height:100%}
+.cfi{flex:none;margin-right:var(--px-4);font-style:normal;font-size:.9em}
+
+/* the sheet as printed pages */
+.xpages{display:none;flex:1 1 auto;min-height:0;overflow:auto;flex-direction:column;align-items:center;gap:var(--px-12);padding:var(--px-12);background:var(--stage)}#pgBook.xp-on .xpages{display:flex}
+#pgBook.xp-on #gWrap,#pgBook.xp-on #bookBar,#pgBook.xp-on #bookTools,#pgBook.xp-on #bookStats{display:none}
+.xp-page{position:relative;flex:none;background:var(--white);color:var(--ink);box-shadow:0 2px 12px var(--shadow);overflow:hidden}
+.xp-clip{position:absolute;overflow:hidden}.xp-in{position:absolute;transform-origin:0 0}.xp-r{display:flex}
+.xp-c{flex:none;box-sizing:border-box;display:flex;align-items:center;padding:0 var(--px-4);overflow:hidden;white-space:nowrap;font:400 14.67px 'Carlito','Mulish',sans-serif;color:var(--ink)}.xp-c.num{justify-content:flex-end}
+.xp-in.gl .xp-c{border-right:1px solid var(--cell-line);border-bottom:1px solid var(--cell-line)}
+.xp-o{position:absolute;overflow:hidden}.xp-o img{display:block;width:100%;height:100%}
+.xp-hf{position:absolute;display:flex;justify-content:space-between;gap:var(--px-8);font:400 12px 'Carlito','Mulish',sans-serif;color:var(--muted)}

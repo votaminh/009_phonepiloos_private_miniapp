@@ -31,7 +31,7 @@
     return '<span' + at + '>' + h + '</span>';
   }
   function attrs(b, t) {
-    var a = ' data-t="' + t + '"' + (b.idx !== undefined ? ' data-src="' + b.idx + '"' : '') + (b.align ? ' data-al="' + b.align + '"' : '') + (b.indent ? ' data-in="' + b.indent + '" style="margin-left:' + Math.round(b.indent / 15) + 'px"' : '');
+    var a = (b.pb ? ' data-pb="' + b.pb + '"' : '') + ' data-t="' + t + '"' + (b.idx !== undefined ? ' data-src="' + b.idx + '"' : '') + (b.align ? ' data-al="' + b.align + '"' : '') + (b.indent ? ' data-in="' + b.indent + '" style="margin-left:' + Math.round(b.indent / 15) + 'px"' : '');
     return a;
   }
   var Render = window.Render = {
@@ -45,6 +45,10 @@
     imgUrl: imgUrl,
     block: function (b) {
       if (b.hidden) return '';
+      if (b.rich) return b.rich;
+      // a section break or the page settings of the last section: kept in the file, nothing to read on a phone (the break shows as a thin rule)
+      if (b.type === 'passthrough' && /^Section properties/.test(b.label || '')) return '<div class="b lk" hidden data-t="x" data-src="' + b.idx + '"></div>';
+      if (b.type === 'passthrough' && /^Section break/.test(b.label || '')) return '<div class="b lk sb" data-t="x" data-src="' + b.idx + '"></div>';
       var cls = b.edit ? 'b ed' : 'b lk';
       if (b.type === 'heading') { var n = Math.min(b.level || 1, 3); return '<h' + n + ' class="' + cls + '"' + attrs(b, 'h') + ' data-lv="' + n + '">' + (b.runs || []).map(run).join('') + '</h' + n + '>'; }
       if (b.type === 'listItem') return '<p class="' + cls + ' li ' + (b.list && b.list.kind === 'ordered' ? 'ord' : 'bul') + '"' + attrs(b, 'l') + ' data-k="' + (b.list && b.list.kind || 'bullet') + '" data-il="' + (b.list && b.list.ilvl || 0) + '">' + ((b.runs || []).map(run).join('') || '<br data-ph>') + '</p>';

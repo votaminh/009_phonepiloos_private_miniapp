@@ -2,6 +2,8 @@
 (function () {
   'use strict';
   Object.assign(Ui.icons, {
+    viewgrid: '<rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/>', viewlist: '<path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.8" cy="6.5" r="1"/><circle cx="4.8" cy="12" r="1"/><circle cx="4.8" cy="17.5" r="1"/>',
+    pages: '<rect x="6.5" y="3.5" width="11" height="17" rx="1.6"/><path d="M9.5 8h5M9.5 12h5M9.5 16h3"/>', reflow: '<path d="M4 6.5h16M4 12h10.5a3 3 0 0 1 0 6H12"/><path d="M14 15.5L11.5 18 14 20.5M4 18h4"/>',
     redo: '<path d="M15 7l5 5-5 5"/><path d="M20 12h-9a6 6 0 0 0 0 8"/>', alignl: '<path d="M4 7h16M4 12h10M4 17h14"/>', alignc: '<path d="M4 7h16M7 12h10M5 17h14"/>', alignr: '<path d="M4 7h16M10 12h10M6 17h14"/>', alignj: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     numlist: '<path d="M10 7h10M10 12h10M10 17h10"/><path d="M4 5.5l1.5-1v4M4 11.5h2.5L4 14.5h2.5M4 16.5h2.5V18H4.5M6.5 18H4" stroke-width="1.3"/>', indent: '<path d="M11 7h9M11 12h9M4 17h16M4 9l3 3-3 3"/>', outdent: '<path d="M11 7h9M11 12h9M4 17h16M7 9l-3 3 3 3"/>',
     table: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 10h17M3.5 14.5h17M9.2 5v14M14.8 5v14"/>', camera: '<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.3-2h6l1.3 2h1.2A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.3"/>',

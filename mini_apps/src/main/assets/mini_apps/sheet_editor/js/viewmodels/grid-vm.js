@@ -42,6 +42,7 @@
       for (r = 0; r < g.fy; r++) fz += '<div class="gfr" style="height:' + g.rowH(r) + 'px">' + GridView.row(g, r, s) + '</div>';
       $('gFzIn').innerHTML = fz; $('gFzIn').style.width = g.width + 'px'; $('gColIn').style.width = g.width + 'px';
       if (G.list) G.list.refresh();
+      Xrich.place($('gHost'), g);
     }
     Motion.heads(s); G.place(); G.bar(); G.tools(); Clip.stats();
   };

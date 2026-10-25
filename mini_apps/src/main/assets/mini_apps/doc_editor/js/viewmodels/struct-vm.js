@@ -82,28 +82,54 @@
     else if (e.inputType === 'deleteContentBackward' && atStart()) { e.preventDefault(); Struct.back(b); }
   });
 
-  // ---- the grip and the quick bar -----------------------------------------------------------------------------------------------
+  // ---- the actions block and the quick bar -------------------------------------------------------------------------------------
+  // one block that holds the paragraph menu (three dots) and Done; it sits next to the rect in focus, as near as the screen allows, and stays within reach of a thumb
   function ensure() {
     var pw = $('pw'); if (grip) return;
-    grip = document.createElement('button'); grip.type = 'button'; grip.className = 'grip hidden'; grip.dataset.act = 'g-grip'; grip.setAttribute('aria-label', t('g.grip')); grip.innerHTML = Ui.ic('grip', 14, 2); pw.appendChild(grip);
+    grip = document.createElement('div'); grip.className = 'gcl hidden'; grip.setAttribute('role', 'toolbar'); grip.setAttribute('aria-label', t('g.grip'));
+    grip.innerHTML = '<button type="button" class="gc-m" data-act="g-grip" aria-label="' + Ui.esc(t('g.grip')) + '">' + Ui.ic('grip', 18, 2) + '</button><button type="button" class="gc-d" data-act="g-done">' + Ui.ic('check', 16, 2.4) + '<span>' + Ui.esc(t('a.done')) + '</span></button>'; pw.appendChild(grip);
     quick = document.createElement('div'); quick.className = 'quick hidden'; quick.setAttribute('role', 'toolbar'); pw.appendChild(quick);
     quick.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     grip.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    var raf = 0; function again() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }
+    $('docBody').addEventListener('scroll', again, { passive: true }); window.addEventListener('resize', again);
   }
-  // called when the caret moves: the grip sits beside the paragraph in focus, the quick bar above a selection
+  function clearSel() { Array.prototype.forEach.call(Doc.paper().querySelectorAll('.b.lk.sel'), function (el) { el.classList.remove('sel'); }); }
+  // the block goes above the rect, right edges aligned; below it when there is no room above (or the quick bar is there); inside its top corner when the rect fills the screen
+  function place() {
+    if (!grip || !gripFor || !gripFor.isConnected || grip.classList.contains('hidden')) return;
+    var pw = $('pw').getBoundingClientRect(), vis = $('docBody').getBoundingClientRect(), r = gripFor.getBoundingClientRect(), w = grip.offsetWidth || 120, h = grip.offsetHeight || 44, M = 8, y;
+    grip.style.visibility = r.bottom < vis.top || r.top > vis.bottom ? 'hidden' : '';
+    var x = Math.max(vis.left + M, Math.min(vis.right - w - M, r.right - w)), above = r.top - h - 6, below = r.bottom + 6, qv = !quick.classList.contains('hidden');
+    if (qv && below + h <= vis.bottom - M) y = below; else if (above >= vis.top + M) y = above; else if (below + h <= vis.bottom - M) y = below; else y = Math.max(vis.top + M, Math.min(vis.bottom - h - M, r.top + 6));
+    grip.style.left = (x - pw.left) + 'px'; grip.style.top = (y - pw.top) + 'px';
+  }
+  // called when the caret moves: the actions block sits by the paragraph in focus, the quick bar above a selection
   Struct.follow = function (b) {
-    ensure(); if (Doc.mode !== 'edit') { grip.classList.add('hidden'); quick.classList.add('hidden'); return; }
-    var pw = $('pw').getBoundingClientRect(), br = b.getBoundingClientRect(), pr = Doc.paper().getBoundingClientRect(); gripFor = b;
-    grip.style.top = (br.top - pw.top + 2) + 'px'; grip.style.left = (pr.left - pw.left + 3) + 'px'; grip.classList.remove('hidden');
-    var s = getSelection(), r = s.rangeCount ? s.getRangeAt(0) : null;
+    ensure(); if (Doc.mode !== 'edit') { Struct.hide(); return; }
+    gripFor = b; clearSel(); grip.classList.remove('hidden');
+    var pw = $('pw').getBoundingClientRect(), s = getSelection(), r = s.rangeCount ? s.getRangeAt(0) : null;
     if (r && !r.collapsed && b.contains(r.startContainer)) {
       quick.innerHTML = SheetsView.quick(document.queryCommandState('bold'));
       var q = r.getBoundingClientRect(), top = q.top - pw.top - 54; quick.classList.remove('hidden');
       var w = quick.offsetWidth, left = Math.max(4, Math.min(pw.width - w - 4, q.left - pw.left + q.width / 2 - w / 2));
       quick.style.left = left + 'px'; quick.style.top = (top < 0 ? q.bottom - pw.top + 18 : top) + 'px';
     } else quick.classList.add('hidden');
+    place();
   };
-  A['g-grip'] = function (el) { if (gripFor) Edit.pop(SheetsView.grip(), el, 'menu'); };
+  // a read-only block (table of contents, picture, chart, divider...) is picked by a tap: it gets the same block, with fewer actions
+  Struct.pick = function (b) {
+    ensure(); clearSel(); b.classList.add('sel'); gripFor = b; quick.classList.add('hidden'); grip.classList.remove('hidden'); place();
+  };
+  Struct.hide = function () { if (!grip) return; clearSel(); gripFor = null; grip.classList.add('hidden'); quick.classList.add('hidden'); };
+  Struct.place = place;
+  $('paper').addEventListener('click', function (e) {
+    if (Doc.mode !== 'edit') return; var b = e.target.closest && e.target.closest('.b.lk');
+    if (!b || b.hidden || b.classList.contains('tbl') || b.classList.contains('sb')) return;
+    e.preventDefault(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); getSelection().removeAllRanges(); Edit.hidePops(); Struct.pick(b);
+  });
+  A['g-grip'] = function (el) { if (gripFor) Edit.pop(SheetsView.grip(gripFor.classList.contains('lk')), el, 'menu'); };
+  A['g-done'] = function () { Edit.hidePops(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); getSelection().removeAllRanges(); Struct.hide(); };
   function insertAt(b, where) { var n = fresh(b, 'p'); n.dataset.t = 'p'; n.innerHTML = '<br data-ph>'; where === 'above' ? b.before(n) : b.after(n); n.focus(); putCaret(n, { a: 0, z: 0 }); done(); }
   A['g-above'] = function () { Edit.hidePops(); if (gripFor) insertAt(gripFor, 'above'); };
   A['g-below'] = function () { Edit.hidePops(); if (gripFor) insertAt(gripFor, 'below'); };
@@ -112,7 +138,7 @@
     var c = b.cloneNode(true); c.removeAttribute('data-src'); c.dataset.n = Doc.nid(); c.dataset.m = '1'; b.after(c); c.focus(); putCaret(c, { a: 0, z: 0 }); done();
   };
   A['g-del'] = function () {
-    Edit.hidePops(); var b = gripFor; if (!b) return; var nx = b.nextElementSibling || b.previousElementSibling; b.remove(); gripFor = null; grip.classList.add('hidden'); quick.classList.add('hidden');
+    Edit.hidePops(); var b = gripFor; if (!b) return; var nx = b.nextElementSibling || b.previousElementSibling; b.remove(); Struct.hide();
     Doc.snap(); if (nx && nx.classList.contains('ed')) { nx.focus(); putCaret(nx, { a: 0, z: 0 }); }
     Ui.toast(t('g.deleted'), function () { A['e-undo'](); });
   };

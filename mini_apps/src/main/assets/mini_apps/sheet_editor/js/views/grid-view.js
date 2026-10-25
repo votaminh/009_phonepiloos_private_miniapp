@@ -17,13 +17,21 @@
     return s;
   }
 
+  // a long text runs on over the empty cells to its right (it stops at the first cell that holds something)
+  function spills(g, sh, r, c, text, st, w) {
+    var need = text.length * (st.sz || 11) * 0.62 + 18; if (need <= w) return false;
+    for (var k = c + 1, total = w; k < g.cols && total < need; k++) { if (Wb.mergeAt(sh, r, k) || Fmt.cell(sh, r, k).t !== '') return total > w; total += g.colW(k); }
+    return total > w;
+  }
+
   window.GridView = {
-    RH: RH, HW: HW,
+    RH: RH, HW: HW, cellStyle: cellStyle,
     // title bar: back, name and state, undo / redo, menu, Save
     top: function (name, st, o) {
       return '<button type="button" class="ib" data-act="b-back" aria-label="' + esc(t('a.back')) + '">' + Ui.ic('back', 24, 2) + '</button>'
         + '<div class="bk-ttl"><b>' + esc(name) + '</b><small class="' + st.c + '"><i></i>' + esc(st.t) + '</small></div>'
         + (o.ro ? '' : '<button type="button" class="ib' + (o.undo ? '' : ' off') + '" data-act="b-undo" aria-label="' + esc(t('a.undo')) + '">' + Ui.ic('undo', 22, 1.9) + '</button><button type="button" class="ib' + (o.redo ? '' : ' off') + '" data-act="b-redo" aria-label="' + esc(t('a.redo')) + '">' + Ui.ic('redo', 22, 1.9) + '</button>')
+        + '<button type="button" class="ib" data-act="b-page" aria-label="' + esc(t(o.page ? 'xp.grid' : 'xp.page')) + '">' + Ui.ic(o.page ? 'gridv' : 'pagesv', 22, 1.9) + '</button>'
         + '<button type="button" class="ib" data-act="b-menu" aria-label="' + esc(t('a.more')) + '">' + Ui.ic('more', 22) + '</button>'
         + (o.ro ? '' : '<button type="button" class="pill solid" data-act="b-save"' + (o.dirty ? '' : ' disabled') + '>' + esc(t('a.save')) + '</button>');
     },
@@ -44,7 +52,8 @@
         if (m) { w = 0; for (var k = m.c1; k <= m.c2; k++) w += g.colW(k); }
         var f = Fmt.cell(sh, r, c), st = Wb.style(sh, r, c);
         if (!w) { h += '<span class="gc" style="width:0;border:0"></span>'; continue; }
-        h += '<span class="gc' + (f.n ? ' num' : '') + (f.x ? ' err' : '') + (g.fx && c < g.fx ? ' fz' : '') + '" data-c="' + c + '" style="width:' + w + 'px;' + cellStyle(st, g.fx && c < g.fx ? g.colX[c] : 0) + '">' + (f.t ? esc(f.t) : '') + '</span>';
+        var cf = window.Xrich && Xrich.has(sh) ? Xrich.cf(sh, r, c, f.v) : null, over = !f.n && !f.x && f.t && !st.wrap && (!st.al || st.al === 'left') && spills(g, sh, r, c, f.t, st, w);
+        h += '<span class="gc' + (f.n ? ' num' : '') + (f.x ? ' err' : '') + (g.fx && c < g.fx ? ' fz' : '') + '" data-c="' + c + '" style="width:' + w + 'px;' + cellStyle(st, g.fx && c < g.fx ? g.colX[c] : 0) + (cf ? cf.css : '') + (over ? 'overflow:visible;z-index:1;' : '') + '">' + (cf && cf.icon ? '<i class="cfi" style="color:' + cf.icon.c + '">' + cf.icon.g + '</i>' : '') + (f.t ? esc(f.t) : '') + '</span>';
       }
       return h + '</div>';
     },

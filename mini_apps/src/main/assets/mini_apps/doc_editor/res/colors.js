@@ -11,3 +11,5 @@ window.AppColors = {
   hl_yellow: '#FFF176', hl_green: '#B9F6CA', hl_pink: '#FFC1E3', hl_blue: '#B3E5FC',
   scrim: 'rgba(21,23,28,.5)', shadow: 'rgba(21,23,28,.10)', shadow_hi: 'rgba(21,23,28,.26)', glow: 'rgba(43,92,251,.32)', tip: '#15171C'
 };
+// the series colours of a chart that names none (Office's own order), and the chart's quiet lines and text
+window.ChartLook = { series: ['#4F81BD', '#C0504D', '#9BBB59', '#8064A2', '#4BACC6', '#F79646', '#2C4D75', '#772C2A', '#5F7530', '#4D3B62'], grid: '#D9D9D9', axis: '#8C8C8C', text: '#404040', back: '#FFFFFF' };

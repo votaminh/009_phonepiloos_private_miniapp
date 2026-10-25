@@ -10,7 +10,7 @@
       var status = s.mode === 'edit' ? '<span class="dc-st ' + s.tone + '">' + (s.tone === 'busy' ? '<i class="dc-spin"></i>' : '<i class="dc-dot"></i>') + esc(s.status) + '</span>' : '<span class="dc-sub">' + esc(s.meta) + '</span>';
       var left = ib('d-back', 'back', t('a.back'), '', 24) + '<div class="dc-ttl"><b>' + esc(s.name) + '</b>' + status + '</div>';
       if (s.mode === 'edit') return left + ib('e-undo', 'undo', t('f.undo'), s.canUndo ? '' : 'off') + ib('e-redo', 'redo', t('f.redo'), s.canRedo ? '' : 'off') + '<button type="button" class="pill solid" data-act="e-save"' + (s.dirty ? '' : ' disabled') + '>' + esc(t('a.save')) + '</button>';
-      return left + ib('d-find', 'search', t('d.find')) + '<button type="button" class="pill solid" data-act="d-edit">' + Ui.ic('edit', 16, 2.1) + esc(t('a.edit')) + '</button>' + ib('d-menu', 'more', t('a.more'), '', 20);
+      return left + ib('d-find', 'search', t('d.find')) + ib('d-layout', s.pages ? 'reflow' : 'pages', t(s.pages ? 'rv.fit' : 'rv.page')) + '<button type="button" class="pill solid" data-act="d-edit">' + Ui.ic('edit', 16, 2.1) + esc(t('a.edit')) + '</button>' + ib('d-menu', 'more', t('a.more'), '', 20);
     },
     tabs: function (tab, table) {
       var tabs = TABS.concat(table ? ['table'] : []);

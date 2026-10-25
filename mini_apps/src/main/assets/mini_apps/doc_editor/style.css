@@ -52,3 +52,14 @@ html:not(.still) .hm-btns{animation:rise .45s var(--out) both .12s}html:not(.sti
 .hm-tip{margin-top:var(--px-32);width:100%;padding:var(--px-14) var(--px-16);border-radius:var(--px-18);background:var(--card);border:1px solid var(--line);display:flex;gap:var(--px-12);align-items:flex-start;text-align:left}
 .hm-tip .ti{flex:none;width:36px;height:36px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
 .hm-tip b{display:block;font:600 14px var(--body)}.hm-tip small{display:block;margin-top:2px;font:400 13px/1.45 var(--body);color:var(--muted)}
+
+/* grid view of the list: two tiles to a row, a big page preview over the name */
+.hm-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--px-12);height:100%}
+.hm-tile{flex-direction:column;align-items:stretch;gap:0;height:196px;padding:0}
+.hm-tile .hm-th{width:100%;height:118px;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:16px 18px;gap:7px}
+.hm-tile .hm-th i{height:6px}.hm-tile .hm-th b{height:4px}
+.hm-tile .hm-txt{flex:none;padding:var(--px-10) var(--px-12) var(--px-12)}
+.hm-tile .hm-more{position:absolute;right:var(--px-6);top:var(--px-6);width:36px;height:36px;border-radius:18px;background:var(--card);box-shadow:0 1px 4px var(--shadow)}
+html.vt-view::view-transition-group(*){animation-duration:.4s;animation-timing-function:cubic-bezier(.2,0,0,1)}
+.hm-th.pic{padding:0;overflow:hidden;background:var(--white)}.hm-th.pic img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.hm-tile .hm-th.pic{padding:0}

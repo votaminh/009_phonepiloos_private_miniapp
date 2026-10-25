@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   Object.assign(Ui.icons, {
+    pagesv: '<rect x="6.5" y="3.5" width="11" height="17" rx="1.6"/><path d="M9.5 8h5M9.5 12h5M9.5 16h3"/>', gridv: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.2 4.5v15M14.8 4.5v15"/>',
     sheet: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.2 4.5v15M14.8 4.5v15"/>',
     redo: '<path d="M15 7l5 5-5 5"/><path d="M20 12h-9a6 6 0 0 0 0 8"/>', alignl: '<path d="M4 7h16M4 12h10M4 17h14"/>', alignc: '<path d="M4 7h16M7 12h10M5 17h14"/>', alignr: '<path d="M4 7h16M10 12h10M6 17h14"/>',
     marker: '<path d="M5 19h6M14 5l5 5-8 8-5-5z"/>', chart: '<path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3"/>', pie: '<path d="M12 4a8 8 0 1 0 8 8h-8z"/><path d="M15 3.5a8 8 0 0 1 5.5 5.5H15z"/>', line: '<path d="M4 18l5-6 4 3 7-9"/>', area: '<path d="M4 18l5-6 4 3 7-9v12H4z"/>',

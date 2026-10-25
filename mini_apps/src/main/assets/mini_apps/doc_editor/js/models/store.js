@@ -1,7 +1,7 @@
 // Store — the list of documents the person opened (one Storage record each) and the reading preferences. Data stays in memory; Storage keeps it.
 (function () {
   'use strict';
-  var COL = 'docs', PREFS = 'prefs', list = [], prefs = { key: 'prefs', layout: 'fit', size: 100, theme: 'light' };
+  var COL = 'docs', PREFS = 'prefs', list = [], prefs = { key: 'prefs', layout: (window.matchMedia && matchMedia('(min-width: 900px) and (pointer: fine)').matches ? 'page' : 'fit'), size: 100, theme: 'light' };
   window.Store = {
     init: async function () {
       try { list = (await Storage.getAll(COL)).filter(function (d) { return d && d.key; }); } catch (e) { list = []; }
