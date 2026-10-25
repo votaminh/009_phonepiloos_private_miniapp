@@ -8,9 +8,11 @@
   window.DocView = {
     top: function (s) {
       var status = s.mode === 'edit' ? '<span class="dc-st ' + s.tone + '">' + (s.tone === 'busy' ? '<i class="dc-spin"></i>' : '<i class="dc-dot"></i>') + esc(s.status) + '</span>' : '<span class="dc-sub">' + esc(s.meta) + '</span>';
-      var left = ib('d-back', 'back', t('a.back'), '', 24) + '<div class="dc-ttl"><b>' + esc(s.name) + '</b>' + status + '</div>';
-      if (s.mode === 'edit') return left + ib('e-undo', 'undo', t('f.undo'), s.canUndo ? '' : 'off') + ib('e-redo', 'redo', t('f.redo'), s.canRedo ? '' : 'off') + '<button type="button" class="pill solid" data-act="e-save"' + (s.dirty ? '' : ' disabled') + '>' + esc(t('a.save')) + '</button>';
-      return left + ib('d-find', 'search', t('d.find')) + ib('d-layout', s.pages ? 'reflow' : 'pages', t(s.pages ? 'rv.fit' : 'rv.page')) + '<button type="button" class="pill solid" data-act="d-edit">' + Ui.ic('edit', 16, 2.1) + esc(t('a.edit')) + '</button>' + ib('d-menu', 'more', t('a.more'), '', 20);
+      var left = ib('d-back', 'back', t('a.back'), '', 24) + ib('sd-toggle', 'list', t('o.title'), 'tb-only', 22) + '<div class="dc-ttl"><b>' + esc(s.name) + '</b>' + status + '</div>';
+      if (s.mode === 'edit') return left + ib('e-undo', 'undo', t('f.undo'), s.canUndo ? '' : 'off') + ib('e-redo', 'redo', t('f.redo'), s.canRedo ? '' : 'off') + '<button type="button" class="pill solid" data-act="e-save"' + (s.dirty ? '' : ' disabled') + '>' + esc(t('a.save')) + '</button><button type="button" class="pill wd-only" data-act="e-done">' + esc(t('a.done')) + '</button>';
+      var lay = function (k, ic, lab) { var on = (k === 'page') === !!s.pages; return '<button type="button" class="' + (on ? 'on' : '') + '" data-act="r-layout" data-k="' + k + '" aria-pressed="' + on + '" aria-label="' + esc(lab) + '">' + Ui.ic(ic, 18, 1.8) + '<span>' + esc(lab) + '</span></button>'; };
+      return left + ib('d-find', 'search', t('d.find')) + ib('d-layout', s.pages ? 'reflow' : 'pages', t(s.pages ? 'rv.fit' : 'rv.page'), 'ph-only') + '<div class="dc-lay wd-only" role="group">' + lay('fit', 'reflow', t('w.wrap')) + lay('page', 'pages', t('w.pages')) + '</div>'
+        + '<button type="button" class="pill solid dc-edit" data-act="d-edit">' + Ui.ic('edit', 16, 2.1) + '<span>' + esc(t('a.edit')) + '</span></button>' + ib('d-menu', 'more', t('a.more'), 'dc-more', 20);
     },
     tabs: function (tab, table) {
       var tabs = TABS.concat(table ? ['table'] : []);

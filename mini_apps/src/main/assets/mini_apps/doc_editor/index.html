@@ -9,8 +9,10 @@
   <link rel="stylesheet" href="shell.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style-doc.css">
+  <link rel="stylesheet" href="nav.css">
   <link rel="stylesheet" href="style-edit.css">
   <link rel="stylesheet" href="style-sheets.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 <body>
 <section class="page shell" data-page="home" id="pgHome">
@@ -20,8 +22,13 @@
 </section>
 <section class="page shell" data-page="doc" id="pgDoc" style="display:none">
   <header class="shell-top dc-top" id="docTop"></header>
-  <div class="shell-body dc-body" id="docBody"><div class="pw" id="pw"><article class="paper fit" id="paper"></article><div class="pgx" id="pages"></div></div><div class="pad"></div></div>
+  <div class="dc-main" id="dcMain">
+    <aside class="dc-side" id="docSide" aria-label="Contents"></aside>
+    <div class="shell-body dc-body" id="docBody"><div class="pw" id="pw"><article class="paper fit" id="paper"></article><div class="pgx" id="pages"></div></div><div class="pad"></div></div>
+  </div>
+  <div class="dc-scrim" id="sideScrim"></div>
   <div class="shell-actions tbar hidden" id="docTools"></div>
+  <div class="zoom" id="zoomBox"></div>
 </section>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
@@ -36,6 +43,7 @@
 <script src="js/views/ui-nav.js"></script>
 <script src="js/views/icons.js"></script>
 <script src="js/views/controls.js"></script>
+<script src="js/models/wide-mode.js"></script>
 <script src="js/models/store.js"></script>
 <script src="js/models/docsvc.js"></script>
 <script src="js/models/zipx.js"></script>
@@ -59,6 +67,7 @@
 <script src="js/viewmodels/menu-vm.js"></script>
 <script src="js/viewmodels/insert-vm.js"></script>
 <script src="js/viewmodels/table-vm.js"></script>
+<script src="js/viewmodels/wide-vm.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
