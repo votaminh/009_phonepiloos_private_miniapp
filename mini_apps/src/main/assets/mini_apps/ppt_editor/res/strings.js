@@ -1,8 +1,8 @@
 // Strings — the ONLY place where user-visible text is written. Use S('key') in JS; en and vi must have the same keys.
 window.AppStrings = {
   en: {
-    "app_name": "PPT Editor",
-    "app.title": "PPT Editor",
+    "app_name": "Piloos Slider",
+    "app.title": "Piloos Slider",
     "app.sub": "Read and edit PowerPoint decks",
     "untitled": "Untitled",
     "a.open": "Open PPT",
@@ -607,8 +607,8 @@ window.AppStrings = {
     "gr.snap": "Snap to grid",
   },
   vi: {
-    "app_name": "PPT Editor",
-    "app.title": "PPT Editor",
+    "app_name": "Piloos Slider",
+    "app.title": "Piloos Slider",
     "app.sub": "Đọc và sửa bài thuyết trình PowerPoint",
     "untitled": "Chưa đặt tên",
     "a.open": "Mở PPT",

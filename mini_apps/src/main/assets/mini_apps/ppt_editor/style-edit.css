@@ -1,4 +1,4 @@
-/* PPT Editor — the deck page: stage, selection frame, the bar under the slide, strip of slides, tool bar, every-slide page, find results. */
+/* Piloos Slider — the deck page: stage, selection frame, the bar under the slide, strip of slides, tool bar, every-slide page, find results. */
 .bk-top{gap:var(--px-2);padding-left:var(--px-4);padding-right:var(--px-8)}
 .bk-ttl{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .bk-ttl b{font:600 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

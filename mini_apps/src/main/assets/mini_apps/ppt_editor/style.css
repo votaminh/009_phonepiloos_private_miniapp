@@ -1,4 +1,4 @@
-/* PPT Editor: fonts, shared buttons, the home page and the error sheet. The document page is in style-edit.css. */
+/* Piloos Slider: fonts, shared buttons, the home page and the error sheet. The document page is in style-edit.css. */
 @font-face{font-family:'Bricolage Grotesque';src:url('/pilo-fonts/bricolage_grotesque.ttf') format('truetype');font-weight:200 800;font-display:swap}
 @font-face{font-family:'Instrument Sans';src:url('/pilo-fonts/instrument_sans.ttf') format('truetype');font-weight:400 700;font-display:swap}
 :root{--head:'Bricolage Grotesque',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif}

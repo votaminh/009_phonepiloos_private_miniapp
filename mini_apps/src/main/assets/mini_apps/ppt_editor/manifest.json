@@ -1,15 +1,15 @@
 {
-  "name": "PPT Editor",
-  "description": "Read and edit PowerPoint decks on your phone: change text, move and resize shapes, add pictures and tables, reorder slides, set transitions, write speaker notes and present. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
+  "name": "Piloos Slider",
+  "description": "Open, read and edit PowerPoint (.pptx) decks: text, shapes, pictures, tables and charts, table cells and merging, comments, transitions and animations, speaker notes, find and replace, present and export as PDF or pictures. Works on phone, tablet and computer, keeps a draft of your edits and works offline.",
   "category": "Productivity",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "updatedAt": "2026-10-25",
   "icon": "icon.png",
   "showInApp": true,
   "workflowSuggestions": [
     {
       "title": "Sửa file PowerPoint",
-      "prompt": "Mở PPT Editor và giúp tôi mở một file PowerPoint."
+      "prompt": "Mở Piloos Slider và giúp tôi mở một file PowerPoint."
     }
   ],
   "entry": "index.html",
@@ -35,5 +35,5 @@
     "offline"
   ],
   "relatedFolders": [],
-  "architecture": "{\"appName\": \"PPT Editor\", \"navType\": \"router\", \"pages\": [\"home\", \"deck\"], \"dataModels\": [\"ppts\", \"prefs\"]}"
+  "architecture": "{\"appName\": \"Piloos Slider\", \"navType\": \"router\", \"pages\": [\"home\", \"deck\"], \"dataModels\": [\"ppts\", \"prefs\"]}"
 }
