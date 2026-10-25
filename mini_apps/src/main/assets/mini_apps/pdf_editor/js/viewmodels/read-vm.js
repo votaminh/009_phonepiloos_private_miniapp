@@ -63,14 +63,15 @@
     th.style.height = h + 'px'; th.style.transform = 'translateY(' + (max > 0 ? (sc.scrollTop / max) * (sc.clientHeight - h) : 0) + 'px)';
   };
   function onScroll() {
-    R.counter(); R.floatAt();
+    R.counter(); R.floatAt(); if (window.Desk) Desk.sync();
     var p = $('rdPill'), th = $('rdThumb'); p.classList.add('on'); th.classList.add('on'); clearTimeout(pillT);
     pillT = setTimeout(function () { p.classList.remove('on'); th.classList.remove('on'); }, 1100);
   }
 
+  R.zmin = function () { return window.Wide && Wide.pc ? 0.25 : 1; }; R.zmax = function () { return window.Wide && Wide.pc ? 4 : 3; };
   // ---- zoom: two fingers, or two quick taps in reading mode ---------------------------------------------------------------
   function zoomTo(z, mx, my) {
-    var sc = $('rdScroll'), old = Doc.pageW(); z = Math.max(1, Math.min(3, z)); if (z === Doc.zoom) return;
+    var sc = $('rdScroll'), old = Doc.pageW(); z = Math.max(R.zmin(), Math.min(R.zmax(), z)); if (z === Doc.zoom) return;
     var cx = sc.scrollLeft + mx, cy = sc.scrollTop + my; Doc.zoom = z; Doc.reset(Doc.sizes);
     var k = Doc.pageW() / old; measure(); R.list.relayout(); sc.scrollLeft = cx * k - mx; sc.scrollTop = cy * k - my; R.counter(); R.floatAt();
   }
@@ -92,11 +93,14 @@
     var acc = 1, at = null, raf = 0;
     sc.addEventListener('wheel', function (e) {
       if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault();
-      var b = sc.getBoundingClientRect(); acc *= Math.exp(-Math.max(-20, Math.min(20, e.deltaY * (e.deltaMode ? 5 : 1))) * 0.01); at = { x: e.clientX - b.left, y: e.clientY - b.top };
-      if (!raf) raf = requestAnimationFrame(function () { raf = 0; var f = acc; acc = 1; zoomTo(Doc.zoom * f, at.x, at.y); });
+      var b = sc.getBoundingClientRect(); acc *= Math.exp(-Math.max(-60, Math.min(60, e.deltaY * (e.deltaMode ? 16 : 1))) * 0.0005); at = { x: e.clientX - b.left, y: e.clientY - b.top };
+      if (!raf) raf = requestAnimationFrame(function () { raf = 0; var f = acc; acc = 1; if (Math.abs(f - 1) > 0.002) { zoomTo(Doc.zoom * f, at.x, at.y); if (window.Desk) Desk.sync(); } });
     }, { passive: false });
   }
 
+  R.zoomTo = function (z, mx, my) { var sc = $('rdScroll'); if (!R.list) return; zoomTo(z, mx == null ? sc.clientWidth / 2 : mx, my == null ? sc.clientHeight / 2 : my); };
+  // the room for the pages changed (a panel opened, the window resized): measure again and lay the list out
+  R.refit = function () { var sc = $('rdScroll'), w = sc.clientWidth; if (R.list && w) { Doc.viewW = w; Doc.reset(Doc.sizes); measure(); R.list.relayout(); R.counter(); } };
   // ---- modes -------------------------------------------------------------------------------------------------------------------
   R.setMode = function (m) {
     R.mode = m; $('pgDoc').dataset.mode = m; Text.clear(); R.chrome(); R.repaint(); R.floatAt();

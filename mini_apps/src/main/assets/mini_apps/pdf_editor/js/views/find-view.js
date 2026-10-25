@@ -9,12 +9,17 @@
         + '<button type="button" class="ib' + (f.none ? ' off' : '') + '" data-act="fd-prev" aria-label="' + esc(t('fd.prev')) + '">' + ic('up', 22, 2) + '</button><button type="button" class="ib' + (f.none ? ' off' : '') + '" data-act="fd-next" aria-label="' + esc(t('fd.next')) + '">' + ic('down', 22, 2) + '</button>'
         + '<button type="button" class="sx-chip fd-cs' + (f.cs ? ' on' : '') + '" data-act="fd-case" aria-pressed="' + !!f.cs + '" aria-label="' + esc(t('fd.case')) + '" title="' + esc(t('fd.case')) + '">Aa</button>';
     },
-    list: function (hits, cur, q, busy) {
+    // replace what was found with other words, or black it out
+    rep: function (v) {
+      return '<div class="fd-rep"><label class="sx-find"><input id="fdR" type="text" value="' + esc(v || '') + '" placeholder="' + esc(t('fd.rep.ph')) + '" aria-label="' + esc(t('fd.rep.ph')) + '" autocomplete="off"></label>'
+        + '<button type="button" class="pill" data-act="fd-rep1">' + esc(t('fd.rep1')) + '</button><button type="button" class="pill" data-act="fd-repall">' + esc(t('fd.repall')) + '</button><button type="button" class="pill" data-act="fd-redact">' + esc(t('fd.redact')) + '</button></div>';
+    },
+    list: function (hits, cur, q, busy, rep) {
       if (!q) return '<p class="sx-none">' + esc(t('fd.type')) + '</p>';
       if (busy) return '<p class="sx-none">' + esc(t('fd.busy')) + '</p>';
       if (!hits.length) return '<p class="sx-none">' + esc(t('fd.none')) + '</p>';
       var pages = {}; hits.forEach(function (h) { pages[h.page] = 1; });
-      return '<div class="fd-sum">' + esc(t('fd.sum', { n: hits.length, p: Object.keys(pages).length })) + '</div>' + hits.map(function (h, k) {
+      return '<div class="fd-sum">' + esc(t('fd.sum', { n: hits.length, p: Object.keys(pages).length })) + '</div>' + FindView.rep(rep) + hits.map(function (h, k) {
         return '<button type="button" class="res' + (k === cur ? ' on' : '') + '" data-act="fd-pick" data-k="' + k + '"><span class="chip">' + esc(t('fd.p', { n: h.page + 1 })) + '</span><span class="snip">' + esc(h.before.slice(-40)) + '<b>' + esc(h.hit) + '</b>' + esc(h.after.slice(0, 50)) + '</span></button>';
       }).join('');
     }

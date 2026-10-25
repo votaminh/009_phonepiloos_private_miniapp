@@ -12,15 +12,21 @@
   A['s-del'] = function () { var gone = S.sigs.filter(function (x) { return x.id === S.cur; })[0]; if (gone) Store.dropFile(gone.path); S.sigs = S.sigs.filter(function (x) { return x.id !== S.cur; }); save(); S.cur = ''; S.open(); };
   A['s-go'] = function () {
     var sg = S.sigs.filter(function (x) { return x.id === S.cur; })[0]; if (!sg) return Ui.toast(t('sg.none'));
-    Ui.closeSheet(); var i = Read.current(), w = Doc.pageW() * 0.4, im = new Image();
-    im.onload = function () {
-      var h = w * im.height / im.width; S.active = true; S.img = sg.path;
-      S.box = { page: i, l: (Doc.pageW() - w) / 2, t: Math.max(10, Math.min(Doc.pageH(i) - h - 10, (Doc.pageH(i) - h) / 2)), w: w, h: h };
-      Read.setMode('read'); Read.chrome(); Read.repaint();
-    };
-    im.src = sg.path;
+    Ui.closeSheet(); S.start(sg.path, {});
   };
-  S.cancel = function () { if (!S.active) return; S.active = false; S.box = null; Read.repaint(); Read.chrome(); };
+  // a picture to place on the current page: a signature, a picture from the phone, a stamp. opt.plain: no date under it; opt.wide: its share of the page width
+  S.start = function (src, opt) {
+    opt = opt || {}; var i = Read.current(), w = Doc.pageW() * (opt.wide || 0.4), im = new Image();
+    im.onload = function () {
+      var h = w * im.height / im.width; if (h > Doc.pageH(i) * 0.8) { h = Doc.pageH(i) * 0.8; w = h * im.width / im.height; }
+      S.active = true; S.img = src; S.plain = !!opt.plain;
+      S.box = { page: i, l: (Doc.pageW() - w) / 2, t: Math.max(10, Math.min(Doc.pageH(i) - h - 10, (Doc.pageH(i) - h) / 2)), w: w, h: h };
+      if (window.Reflow && Reflow.on) Reflow.apply('page'); Read.setMode('read'); Read.chrome(); Read.repaint();
+    };
+    im.onerror = function () { Ui.toast(t('sg.badimg')); };
+    im.src = src;
+  };
+  S.cancel = function () { if (!S.active) return; S.active = false; S.plain = false; S.box = null; Read.repaint(); Read.chrome(); };
   A['s-cancel'] = function () { S.cancel(); };
 
   // ---- the box on the page ------------------------------------------------------------------------------------------------------------------
@@ -50,18 +56,19 @@
 
   // the picture the way the page needs it: on a turned page the stamp is turned back so it reads upright
   async function pngFor(src, rot) {
-    var buf = await (await fetch(src)).arrayBuffer(); if (!rot) return buf;
-    var bm = await createImageBitmap(new Blob([buf], { type: 'image/png' })), swap = rot % 180, c = document.createElement('canvas'), g;
+    var buf = await (await fetch(src)).arrayBuffer(), u = new Uint8Array(buf, 0, 4), jpg = u[0] === 0xFF && u[1] === 0xD8, png = u[0] === 0x89 && u[1] === 0x50;
+    if (!rot && (png || jpg)) return { buf: buf, jpg: jpg };
+    var bm = await createImageBitmap(new Blob([buf])), swap = rot % 180, c = document.createElement('canvas'), g;
     c.width = swap ? bm.height : bm.width; c.height = swap ? bm.width : bm.height; g = c.getContext('2d');
     g.translate(c.width / 2, c.height / 2); g.rotate(-rot * Math.PI / 180); g.drawImage(bm, -bm.width / 2, -bm.height / 2);
-    return new Promise(function (res) { c.toBlob(function (bl) { bl.arrayBuffer().then(res); }, 'image/png'); });
+    return new Promise(function (res) { c.toBlob(function (bl) { bl.arrayBuffer().then(function (b) { res({ buf: b, jpg: false }); }); }, 'image/png'); });
   }
   A['s-place'] = function () {
     var b = S.box; if (!b) return; var i = b.page, k = Doc.scale(i), rot = Read.rot(i), p1 = Read.pdf(i, b.l, b.t), p2 = Read.pdf(i, b.l + b.w, b.t + b.h);
-    var rect = [Math.min(p1[0], p2[0]), Math.min(p1[1], p2[1]), Math.max(p1[0], p2[0]), Math.max(p1[1], p2[1])], img = S.img, date = S.date, below = Read.pdf(i, b.l, b.t + b.h + 11 * k);
-    S.active = false; S.box = null; Read.chrome();
+    var rect = [Math.min(p1[0], p2[0]), Math.min(p1[1], p2[1]), Math.max(p1[0], p2[0]), Math.max(p1[1], p2[1])], img = S.img, date = S.date && !S.plain, below = Read.pdf(i, b.l, b.t + b.h + 11 * k);
+    S.active = false; S.box = null; S.plain = false; Read.chrome();
     Viewer.run(async function () {
-      var r = await PdfSvc.stamp({ page: i, png: await pngFor(img, rot), rect: rect });
+      var pf = await pngFor(img, rot), r = await PdfSvc.stamp(pf.jpg ? { page: i, jpg: pf.buf, rect: rect } : { page: i, png: pf.buf, rect: rect });
       if (date) { await PdfSvc.insert([{ pageIndex: i, origin: below, rotate: rot, text: new Date().toLocaleDateString(I18n.locale()), fontSize: 9, color: [95, 99, 108], font: 'arial' }]); }
       return r;
     }, 'busy.sign');

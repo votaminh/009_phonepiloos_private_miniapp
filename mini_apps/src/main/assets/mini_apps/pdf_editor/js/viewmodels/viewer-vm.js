@@ -38,8 +38,17 @@
       await Files.request(rec.path);
       var res = await fetch(rec.path); if (!res.ok) throw new Error(t('err.missing'));
       await V.load(await res.arrayBuffer(), opts);
-    } catch (e) { if (String(e && e.message) !== 'cancelled') App.problem(t('err.open'), String(e && e.message || e).slice(0, 200)); V.rec = null; Router.navigate('home'); return; }
+    } catch (e) { V.failOpen(e); return; }
     if (rec.draft && !opts.edit) V.offerDraft();
+  };
+  // the file would not open: the page folds back into its row first, then the reason is shown (a sheet opened before leaving would cancel the leaving)
+  V.failOpen = function (e) {
+    V.dirty = false;
+    // an opening morph may still be running: leave when it is done
+    setTimeout(function () {
+      Router.back(); V.rec = null;
+      if (e && String(e.message) !== 'cancelled') setTimeout(function () { App.problem(t('err.open'), String(e.message || e).slice(0, 200)); }, 460);
+    }, 500);
   };
   V.load = async function (buf, opts) {
     var r;
@@ -47,6 +56,10 @@
     catch (e) { if (/password/i.test(String(e && e.message))) return V.askPassword(buf, opts); throw e; }
     Doc.reset(r.sizes); Doc.hist = []; Doc.redo = []; Doc.viewW = $('rdScroll').clientWidth || Doc.viewW;
     $('rdHost').innerHTML = ''; Read.mount(); Read.setMode(opts.edit ? 'text' : 'read');
+    var rp = V.rec; if (rp && rp.pages !== Doc.sizes.length) { rp.pages = Doc.sizes.length; Store.put(rp); }
+    if (window.Reflow) Reflow.opened(opts);
+    if (window.Desk) Desk.opened();
+    var rc = V.rec; if (rc && !rc.thumb) V.thumb(rc).then(function () { if (rc.thumb) Store.put(rc); });
     if (!opts.blank) Doc.blocks(0).then(function (b) { V.scanned = !b.length; if (V.scanned) Read.chrome(); }).catch(function () {});
   };
   V.askPassword = function (buf, opts) {
@@ -56,9 +69,9 @@
   };
   A['pw-ok'] = async function () {
     var v = $('pwIn').value; if (!v) return; V.pw = v; Ui.closeDialog();
-    try { await V.load(V.pending.buf, V.pending.opts); } catch (e) { if (/password/i.test(String(e && e.message))) V.askPassword(V.pending.buf, V.pending.opts); else { App.problem(t('err.open'), String(e && e.message || e).slice(0, 200)); Router.navigate('home'); } }
+    try { await V.load(V.pending.buf, V.pending.opts); } catch (e) { if (/password/i.test(String(e && e.message))) V.askPassword(V.pending.buf, V.pending.opts); else V.failOpen(e); }
   };
-  A['pw-no'] = function () { Ui.closeDialog(); V.rec = null; Router.navigate('home'); };
+  A['pw-no'] = function () { Ui.closeDialog(); V.failOpen(null); };
 
   // ---- drafts ------------------------------------------------------------------------------------------------------------------
   V.offerDraft = function () {
@@ -108,6 +121,15 @@
   };
 
   // ---- save and leave --------------------------------------------------------------------------------------------------------------
+  // the first page, small, kept as a picture for the list of files
+  V.thumb = async function (rec) {
+    try {
+      var sz = Doc.sizes[0], w = 240, h = Math.max(1, Math.round(w * sz[1] / sz[0])), px = await PdfSvc.render(0, w, h), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(px), w, h), 0, 0);
+      var png = cv.toDataURL('image/png').split(',')[1], r = await NativeTools.call('save_local_file', { fileName: 'thumb.png', base64: png, reason: 'A small picture of the first page' }), old = rec.thumbPath;
+      rec.thumb = r.data.path; rec.thumbPath = r.data.path; if (old) Store.dropFile(old);
+    } catch (e) { /* the list shows a plain page instead */ }
+  };
   V.save = function () {
     var rec = V.rec; if (!rec) return Promise.resolve(false); stopTimer();
     return shown(async function () {
@@ -116,7 +138,7 @@
         if (!f || !f.path) throw new Error('no file');
         var old = rec.path, oldDraft = rec.draft && rec.draft.path;
         rec.path = f.path; rec.url = f.path; rec.size = f.sizeBytes || buf.byteLength; rec.editedAt = Date.now(); rec.openedAt = Date.now(); rec.draft = null;
-        await Store.put(rec); Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
+        await V.thumb(rec); await Store.put(rec); Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
         V.dirty = false; return true;
       } catch (e) { App.fail('t.savefail', e); return false; }
     }, 'saving', 's.saved').then(function (ok) { Read.chrome(); return ok; });
@@ -128,7 +150,7 @@
     $('dlg').innerHTML = SheetsView.choice(t('lv.title'), t('lv.body'), [{ act: 'lv-discard', label: t('lv.discard'), kind: 'danger' }, { act: 'lv-save', label: t('lv.save'), kind: 'solid' }]);
     return true;
   };
-  function leave() { V.dirty = false; V.rec = null; Ui.hint('slide'); Router.navigate('home'); }
+  function leave() { V.dirty = false; Router.back(); }   // the page folds back into its row (UiNav.hookBack)
   A['lv-save'] = async function () { Ui.closeDialog(); if (await V.save()) leave(); };
   A['lv-discard'] = async function () { Ui.closeDialog(); stopTimer(); await V.dropDraft(); leave(); };
   A['v-back'] = function () { if (V.backInPage()) return; if (!V.guardLeave()) leave(); };

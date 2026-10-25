@@ -1,13 +1,13 @@
 {
-  "name": "PDF Editor",
-  "description": "Read and edit PDF files on your phone: change the text right on the page, highlight and draw, sign, black out private details, and rearrange pages. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
+  "name": "Piloos PDF",
+  "description": "Read and edit PDF files: reflow text to fit the screen, change the text on the page, fill in forms, highlight, draw and stamp, add pictures, sign, black out private details, find and replace, and rearrange, trim, number and watermark pages. Works on phone, tablet and computer, keeps a draft of your edits and works offline.",
   "category": "Productivity",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "updatedAt": "2026-10-25",
   "icon": "icon.png",
   "showInApp": true,
   "workflowSuggestions": [
-    { "title": "Sửa file PDF", "prompt": "Mở PDF Editor và giúp tôi mở một file PDF." }
+    { "title": "Sửa file PDF", "prompt": "Mở Piloos PDF và giúp tôi mở một file PDF." }
   ],
   "entry": "index.html",
   "permissions": ["storage_write"],
@@ -19,7 +19,7 @@
       "mimeTypes": ["application/pdf"]
     }
   ],
-  "tags": ["pdf", "documents", "editor", "reader", "sign", "annotate", "redact", "offline"],
+  "tags": ["pdf", "documents", "editor", "reader", "forms", "sign", "annotate", "redact", "offline"],
   "relatedFolders": [],
-  "architecture": "{\"appName\": \"PDF Editor\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"pdfs\", \"prefs\", \"signs\"]}"
+  "architecture": "{\"appName\": \"Piloos PDF\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"pdfs\", \"prefs\", \"signs\"]}"
 }

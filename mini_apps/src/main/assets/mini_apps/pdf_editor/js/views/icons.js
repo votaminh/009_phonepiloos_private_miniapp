@@ -2,6 +2,11 @@
 (function () {
   'use strict';
   Object.assign(Ui.icons, {
+    dot: '<circle cx="12" cy="12" r="5" fill="currentColor"/>',
+    sqr: '<rect x="4.5" y="6.5" width="15" height="11" rx="1.4"/>', circ: '<ellipse cx="12" cy="12" rx="8" ry="6"/>', arrow: '<path d="M5 19L19 5M10 5h9v9"/>',
+    right: '<path d="M9 5l7 7-7 7"/>',
+    reflow: '<path d="M4 6.5h16M4 12h10.5a3 3 0 0 1 0 6H12"/><path d="M14 15.5L11.5 18 14 20.5M4 18h4"/>',
+    viewgrid: '<rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/>', viewlist: '<path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.8" cy="6.5" r="1"/><circle cx="4.8" cy="12" r="1"/><circle cx="4.8" cy="17.5" r="1"/>',
     doc: '<path d="M7 3.5h7.5L19 8v12a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 7 20z"/><path d="M14 3.5V8h5M10 12.5h6M10 16h4"/>', sign: '<path d="M3 17c3-6 5-9 6-9s-1 8 1 8 3-5 4-5 1 3 3 3 2-2 4-2"/><path d="M3 21h18"/>', pages: '<rect x="5" y="3.5" width="10" height="13" rx="1.5"/><path d="M9 20.5h8.5a1.5 1.5 0 0 0 1.5-1.5V8"/>', addtext: '<path d="M5 6h14M12 6v13M9 19h6"/>', redact: '<rect x="4" y="9" width="16" height="6" rx="1"/>', hlight: '<path d="M5 19h6M14 5l5 5-8 8-5-5z"/>', under: '<path d="M8 5v7a4 4 0 0 0 8 0V5M6 20h12"/>', strike: '<path d="M16 7a4 4 0 0 0-8 1c0 4 8 3 8 8a4 4 0 0 1-8 1M4 12h16"/>', note: '<path d="M5 5h14v10H11l-4 4v-4H5z"/>', sheet: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.2 4.5v15M14.8 4.5v15"/>',
     redo: '<path d="M15 7l5 5-5 5"/><path d="M20 12h-9a6 6 0 0 0 0 8"/>', alignl: '<path d="M4 7h16M4 12h10M4 17h14"/>', alignc: '<path d="M4 7h16M7 12h10M5 17h14"/>', alignr: '<path d="M4 7h16M10 12h10M6 17h14"/>',
     marker: '<path d="M5 19h6M14 5l5 5-8 8-5-5z"/>', chart: '<path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3"/>', pie: '<path d="M12 4a8 8 0 1 0 8 8h-8z"/><path d="M15 3.5a8 8 0 0 1 5.5 5.5H15z"/>', line: '<path d="M4 18l5-6 4 3 7-9"/>', area: '<path d="M4 18l5-6 4 3 7-9v12H4z"/>',

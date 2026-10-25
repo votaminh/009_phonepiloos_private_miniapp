@@ -1,4 +1,4 @@
-/* PDF Editor: fonts, shared buttons, the home page and the error sheet. The document page is in style-read.css. */
+/* Piloos PDF: fonts, shared buttons, the home page and the error sheet. The document page is in style-read.css. */
 @font-face{font-family:'Bricolage Grotesque';src:url('/pilo-fonts/bricolage_grotesque.ttf') format('truetype');font-weight:200 800;font-display:swap}
 @font-face{font-family:'PdfArimo';src:url('fonts/engine/Arimo.ttf') format('truetype')}
 @font-face{font-family:'PdfTinos';src:url('fonts/engine/Tinos-Regular.ttf') format('truetype')}
@@ -63,3 +63,31 @@ html:not(.still) .hm-btns{animation:rise .45s var(--out) both .12s}html:not(.sti
 .er-i{flex:none;width:44px;height:44px;border-radius:22px;background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;justify-content:center}
 .er+.btn{margin-top:var(--px-16)}
 .shell-actions .btn{white-space:nowrap;padding:0 var(--px-14);font-size:16px;gap:var(--px-6)}
+
+.hm-th.pic{padding:0;overflow:hidden;width:68px;height:44px}.hm-th.pic img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* grid view of the list: two tiles to a row, the first slide big over the name */
+.hm-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--px-12);height:100%}
+#homeList{--tile-h:180px;--tile-th:104px}
+.hm-tile{flex-direction:column;align-items:stretch;gap:0;height:var(--tile-h,180px);padding:0}
+.hm-tile .hm-th{width:100%;height:var(--tile-th,104px);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:var(--px-12)}
+.hm-tile .hm-th.pic{padding:0;background:var(--chip)}.hm-tile .hm-th.pic img{display:block;width:100%;height:100%;object-fit:contain}
+.hm-tile .hm-txt{flex:none;padding:var(--px-10) var(--px-12) var(--px-12)}
+.hm-tile .hm-more{position:absolute;right:var(--px-6);top:var(--px-6);width:36px;height:36px;border-radius:18px;background:var(--card);box-shadow:0 1px 4px var(--shadow)}
+
+/* the computer's home: a centred column, the buttons in the header, a table */
+html.pc #pgHome .shell-top,html.pc #homeCols,html.pc #pgHome .shell-body{width:min(1100px,100%);margin-left:auto;margin-right:auto;box-sizing:border-box}
+html.pc #pgHome .shell-top{padding:var(--px-24) var(--px-24) var(--px-12);gap:var(--px-10)}
+html.pc #pgHome .shell-body{padding:0 var(--px-24) var(--px-24);scrollbar-width:thin}
+html.pc #homeActions{display:none}
+.hm-pcfind{flex:none;display:flex;align-items:center;gap:var(--px-8);width:260px;height:40px;padding:0 var(--px-14);border-radius:20px;background:var(--card);border:1px solid var(--line);color:var(--muted)}.hm-pcfind:focus-within{border-color:var(--accent)}
+.hm-tb{flex:none;height:40px!important;padding:0 var(--px-16)!important;border-radius:20px!important;font-size:14px!important;display:inline-flex;align-items:center;gap:var(--px-6)}
+html.pc .shell-top .hm-tb{flex:none;width:auto}
+.hm-cols{display:none}
+html.pc .hm-cols:not(:empty){display:grid;grid-template-columns:minmax(0,1fr) 90px 110px 170px 44px;gap:var(--px-8);padding:0 calc(var(--px-24) + var(--px-4)) var(--px-6) calc(var(--px-24) + var(--px-12))}
+.hm-col{display:inline-flex;align-items:center;gap:var(--px-4);justify-content:flex-start;height:28px;padding:0;border:0;background:transparent;color:var(--muted);font:700 11.5px var(--body);letter-spacing:.06em;text-transform:uppercase}.hm-col.on{color:var(--ink)}.hm-col:hover{color:var(--ink)}
+.hm-trow{display:grid;grid-template-columns:minmax(0,1fr) 90px 110px 170px 44px;gap:var(--px-8);align-items:center;height:54px;padding:0 var(--px-4) 0 var(--px-12);border-radius:var(--px-12)}.hm-trow:hover{background:var(--accent-soft);border-color:var(--accent)}
+.hm-nm{display:flex;align-items:center;gap:var(--px-12);min-width:0}.hm-nm b{font:600 14.5px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hm-nm .hm-th{width:30px;height:38px}.hm-nm .hm-th.pic{width:40px;height:30px;border-radius:4px}
+.hm-c{font:500 13.5px var(--body);color:var(--muted);white-space:nowrap}
+html.pc .hm-card{cursor:pointer}
+html.pc #pgHome.drop::after{content:attr(data-drop);position:absolute;inset:var(--px-12);z-index:9;display:flex;align-items:center;justify-content:center;border:2px dashed var(--accent);border-radius:var(--px-24);background:var(--accent-soft);color:var(--accent-text);font:700 20px var(--head);pointer-events:none}

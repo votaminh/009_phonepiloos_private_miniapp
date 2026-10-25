@@ -34,6 +34,15 @@
     annotate: function (a) { return call('annotate', a); },
     pages: function (kind, a) { return call('pages', Object.assign({ kind: kind }, a || {})); },
     stamp: function (a) { return call('stamp', a); },
+    outline: function () { return call('outline', {}).then(function (r) { return r.items; }); },
+    links: function (page) { return call('links', { page: page }).then(function (r) { return r.links; }); },
+    forms: function () { return call('forms', {}).then(function (r) { return r.fields; }); },
+    formSet: function (values, flatten) { return call('formSet', { values: values, flatten: !!flatten }); },
+    shape: function (a) { return call('shape', a); },
+    numbers: function (a) { return call('numbers', a); },
+    crop: function (a) { return call('crop', a); },
+    insertPages: function (a) { return call('insertPages', a); },
+    imagePage: function (a) { return call('imagePage', a); },
     save: function () { return call('save', {}).then(function (r) { return r.bytes; }); }
   };
 })();

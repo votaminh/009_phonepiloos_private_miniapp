@@ -28,8 +28,10 @@
     if (!g || e.pointerId !== g.id) return; var l = Read.local(g.p.el, e); g.x = l.x; g.y = l.y;
     if (Math.abs(g.x - g.x0) + Math.abs(g.y - g.y0) > 8) g.moved = true;
     if (!g.moved) return;
+    if (g.k === 'line' || g.k === 'arrow') { var ln = g.line || (g.line = shapeLine(g)); ln.setAttribute('x2', l.x); ln.setAttribute('y2', l.y); return; }
     if (g.k === 'pen') { g.pts.push([l.x, l.y]); var pl = g.line || (g.line = penLine(g)); pl.setAttribute('points', g.pts.map(function (q) { return q[0] + ',' + q[1]; }).join(' ')); return; }
     var b = band(g);
+    if (g.k === 'rect' || g.k === 'ellipse') { b.style.cssText = 'left:' + Math.min(g.x0, g.x) + 'px;top:' + Math.min(g.y0, g.y) + 'px;width:' + Math.abs(g.x - g.x0) + 'px;height:' + Math.abs(g.y - g.y0) + 'px;border:2px solid ' + M.color + ';background:transparent;border-radius:' + (g.k === 'ellipse' ? '50%' : '0'); return; }
     if (g.k === 'area') b.style.cssText = 'left:' + Math.min(g.x0, g.x) + 'px;top:' + Math.min(g.y0, g.y) + 'px;width:' + Math.abs(g.x - g.x0) + 'px;height:' + Math.abs(g.y - g.y0) + 'px';
     else b.style.cssText = 'left:' + Math.min(g.x0, g.x) + 'px;top:' + (g.y0 - 9) + 'px;width:' + Math.abs(g.x - g.x0) + 'px;height:18px';
   }
@@ -37,12 +39,17 @@
     var ov = g2.p.el.querySelector('.ov'), s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'inkp');
     var pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline'); pl.setAttribute('stroke', M.color); s.appendChild(pl); ov.appendChild(s); g2.svg = s; return pl;
   }
+  function shapeLine(g2) {
+    var ov = g2.p.el.querySelector('.ov'), s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'inkp');
+    var ln = document.createElementNS('http://www.w3.org/2000/svg', 'line'); ln.setAttribute('x1', g2.x0); ln.setAttribute('y1', g2.y0); ln.setAttribute('x2', g2.x0); ln.setAttribute('y2', g2.y0); ln.setAttribute('stroke', M.color); ln.setAttribute('stroke-width', 2); s.appendChild(ln); ov.appendChild(s); g2.svg = s; return ln;
+  }
   function up(e) {
     if (!g || e.pointerId !== g.id) return; var d = g; g = null;
     if (d.band) d.band.remove(); if (d.svg) d.svg.remove();
     if (e.type === 'pointercancel') return;
     var i = d.p.i, a = Read.pdf(i, d.x0, d.y0), b = Read.pdf(i, d.x, d.y);
     if (d.k === 'pen') { if (d.pts.length > 1) pen(i, d.pts); return; }
+    if (d.k === 'rect' || d.k === 'ellipse' || d.k === 'line' || d.k === 'arrow') { if (d.moved && Math.hypot(d.x - d.x0, d.y - d.y0) > 8) shape(i, d.k, a, b); return; }
     if (d.k === 'note') { if (!d.moved) note(i, a); return; }
     if (d.k === 'area') { if (d.moved && Math.abs(d.x - d.x0) > 6 && Math.abs(d.y - d.y0) > 6) addMark(i, [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])]); return; }
     // text kinds: the line under the finger, all of it for a tap, the dragged part for a drag along the line
@@ -54,6 +61,7 @@
     });
   }
   function mark(i, r) { var kd = M.tool; Viewer.run(function () { return PdfSvc.annotate({ page: i, kind: kd, rects: [r], color: rgba(kd === 'highlight' ? M.color : M.color) }); }, 'busy.mark'); }
+  function shape(i, kd, a, b) { var c = rgba(M.color); Viewer.run(function () { return PdfSvc.shape({ page: i, kind: kd, rect: [a[0], a[1], b[0], b[1]], color: [c[0], c[1], c[2]], width: 2 }); }, 'busy.mark'); }
   function pen(i, pts) {
     var pp = pts.map(function (q) { return Read.pdf(i, q[0], q[1]); }), xs = pp.map(function (q) { return q[0]; }), ys = pp.map(function (q) { return q[1]; }), w = 2.2;
     var box = [Math.min.apply(0, xs) - w, Math.min.apply(0, ys) - w, Math.max.apply(0, xs) + w, Math.max.apply(0, ys) + w];

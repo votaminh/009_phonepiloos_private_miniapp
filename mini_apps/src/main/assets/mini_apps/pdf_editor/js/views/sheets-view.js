@@ -39,7 +39,7 @@
     menu: function (m) {
       return '<h2 class="sh-h">' + esc(m.name) + '</h2><p class="sx-meta">' + esc(m.info) + '</p>'
         + row('m-save', 'save', t('mn.save'), m.dirty ? t('mn.save.s') : '') + row('m-copy', 'download', t('mn.copy'), t('mn.copy.s')) + row('m-share', 'share', t('mn.share'))
-        + row('fd-open', 'search', t('fd.title')) + row('m-rename', 'edit', t('mn.rename')) + row('m-remove', 'trash', t('r.remove'), t('r.remove.s'), true) + (m.dirty ? row('m-discard', 'close', t('mn.discard'), t('mn.discard.s'), true) : '');
+        + row('all-open', 'sliders', t('all.title'), t('all.sub')) + row('fd-open', 'search', t('fd.title')) + row('m-rename', 'edit', t('mn.rename')) + row('m-remove', 'trash', t('r.remove'), t('r.remove.s'), true) + (m.dirty ? row('m-discard', 'close', t('mn.discard'), t('mn.discard.s'), true) : '');
     },
     rename: function (v) { return '<h2 class="sh-h">' + esc(t('rn.title')) + '</h2><label class="sx-find"><input id="rnName" type="text" value="' + esc(v) + '" placeholder="' + esc(t('rn.ph')) + '" aria-label="' + esc(t('rn.ph')) + '" autocomplete="off"></label><div class="btns"><button type="button" class="btn light" data-act="sheet-done">' + esc(t('a.cancel')) + '</button><button type="button" class="btn" data-act="rn-apply">' + esc(t('a.done')) + '</button></div>'; },
     choice: function (title, body, acts) { return '<h2>' + esc(title) + '</h2><p>' + esc(body) + '</p><div class="btns">' + acts.map(function (a) { return '<button type="button" class="btn ' + (a.kind === 'danger' ? 'red' : a.kind === 'solid' ? '' : 'light') + '" data-act="' + a.act + '">' + esc(a.label) + '</button>'; }).join('') + '</div>'; },

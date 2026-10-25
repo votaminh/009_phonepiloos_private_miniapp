@@ -9,24 +9,50 @@
 
   // ---- home ------------------------------------------------------------------------------------------------------------------
   function sameDay(ms) { var a = new Date(ms), b = new Date(); return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+  // the tiles of the grid view: two on a phone, more where there is room (each about 200px wide, the page drawn A4-shaped)
+  App.homeGrid = function (body) {
+    var room = Math.min(1100, (body ? body.clientWidth : window.innerWidth) - 32), cols = Math.max(2, Math.min(6, Math.floor((room + 12) / 212))), w = (room - (cols - 1) * 12) / cols, th = Math.round(w * 0.78);
+    return { cols: cols, th: th, tile: th + 66 };
+  };
   App.renderHome = function () {
-    var s = App.state, all = Store.all(), books = Store.recent(s.q), body = $('homeBody'), host = $('homeList');
-    $('homeTop').innerHTML = HomeView.top({ search: s.search, q: s.q, count: all.length });
+    var s = App.state, all = Store.all(), books = Store.recent(s.q), body = $('homeBody'), host = $('homeList'), hold = App.hold, grid = !!Store.prefs().grid, sort = App.sort();
+    if (Wide.pc && !hold && sort.k !== 'opened' || Wide.pc && sort.dir > 0 && sort.k === 'opened') books.sort(App.cmp(sort));
+    // while a file is open (and while the page folds back into its row) the list keeps the order it had when the row was tapped
+    if (hold) books.sort(function (a, b) { return hold.ord.indexOf(a.key) - hold.ord.indexOf(b.key); });
+    function when(d) { return hold && hold.at[d.key] !== undefined ? hold.at[d.key] : d.openedAt || 0; }
+    $('homeTop').innerHTML = HomeView.top({ search: s.search, q: s.q, count: all.length, grid: grid });
+    $('homeCols').innerHTML = Wide.pc && !grid && books.length ? HomeView.cols(sort) : '';
     $('homeActions').innerHTML = HomeView.actions();
     if (list) { list.destroy(); list = null; }
     host.innerHTML = '';
     if (!all.length) { host.style.height = 'auto'; host.innerHTML = HomeView.empty(); return; }
     if (!books.length) { host.style.height = 'auto'; host.innerHTML = HomeView.none(); return; }
     rows = [];
-    var today = books.filter(function (d) { return sameDay(d.openedAt || 0); }), earlier = books.filter(function (d) { return !sameDay(d.openedAt || 0); });
-    if (today.length) rows.push({ head: t('h.today') }); today.forEach(function (d) { rows.push({ d: d }); });
-    if (earlier.length) rows.push({ head: t('h.earlier') }); earlier.forEach(function (d) { rows.push({ d: d }); });
+    var byDay = !(Wide.pc && !grid) || (sort.k === 'opened' && sort.dir < 0), today = byDay ? books.filter(function (d) { return sameDay(when(d)); }) : books, earlier = byDay ? books.filter(function (d) { return !sameDay(when(d)); }) : [];
+    var g = App.homeGrid(body); host.style.setProperty('--tile-h', g.tile + 'px'); host.style.setProperty('--tile-th', g.th + 'px'); host.dataset.cols = g.cols;
+    function add(l) { if (!grid) return l.forEach(function (d) { rows.push({ d: d }); }); for (var k = 0; k < l.length; k += g.cols) { var ch = l.slice(k, k + g.cols); ch.cols = g.cols; rows.push({ pair: ch }); } }
+    if (today.length) { if (byDay) rows.push({ head: t('h.today') }); add(today); }
+    if (earlier.length) rows.push({ head: t('h.earlier') }); add(earlier);
     list = VList.mount(body, host, {
       count: function () { return rows.length; },
-      height: function (i) { return rows[i].head ? 34 : 80; },
+      height: function (i) { return rows[i].head ? 34 : rows[i].pair ? g.tile + 16 : Wide.pc ? 62 : 80; },
       cls: function (i) { return rows[i].head ? 'hd' : 'hr'; },
-      html: function (i) { return rows[i].head ? HomeView.head(rows[i].head) : HomeView.row(rows[i].d); }
+      html: function (i) { return rows[i].head ? HomeView.head(rows[i].head) : rows[i].pair ? HomeView.pair(rows[i].pair) : (Wide.pc ? HomeView.trow(rows[i].d) : HomeView.row(rows[i].d)); }
     });
+  };
+  // how the list is ordered on a computer: by a column, the last choice kept
+  App.sort = function () { var v = Store.prefs().sort; return v && v.k ? v : { k: 'opened', dir: -1 }; };
+  App.cmp = function (so) {
+    return function (a, b) {
+      var x, y; if (so.k === 'name') { x = String(a.name).toLowerCase(); y = String(b.name).toLowerCase(); return so.dir * (x < y ? -1 : x > y ? 1 : 0); }
+      x = so.k === 'pages' ? a.pages || 0 : so.k === 'size' ? a.size || 0 : a.openedAt || 0; y = so.k === 'pages' ? b.pages || 0 : so.k === 'size' ? b.size || 0 : b.openedAt || 0; return so.dir * (x - y);
+    };
+  };
+  A['h-sort'] = function (el) { var s = App.sort(), k = el.dataset.k; Store.savePrefs({ sort: { k: k, dir: s.k === k ? -s.dir : (k === 'name' ? 1 : -1) } }); UiNav.swap($('homeList'), App.renderHome); };
+  // the file just closed hops from its old place to the top: every row that moves slides to its new place (see UiNav.flip)
+  App.settleOrder = function () {
+    if (!App.hold) return; var key = App.hold.open;
+    UiNav.flip($('homeList'), function () { App.hold = null; App.renderHome(); }, key);
   };
 
   // an A4 PDF with one empty page, as plain text
@@ -45,6 +71,7 @@
     rec.path = rec.url;   // Storage.put copied the picked file into the app and swapped the address for files/<id>.pdf
     return rec;
   }
+  App.add = add;
   async function pick() {
     var r;
     try { r = await NativeTools.call('pick_file', { type: 'document', mimeTypes: [PDF, 'application/octet-stream'], multiple: false, reason: 'Open a PDF' }); }
@@ -54,16 +81,23 @@
     if (!/\.pdf$/i.test(f.fileName || '')) { Ui.toast(t('err.pick')); return null; }
     try { return await add(f); } catch (e) { App.fail('err.generic', e); return null; }
   }
-  A['h-pick'] = async function () { Ui.closeSheet(); var rec = await pick(); if (rec) { Ui.hint('slide'); Viewer.open(rec); } };
+  A['h-pick'] = async function () { Ui.closeSheet(); var rec = await pick(); if (rec) { Viewer.open(rec); } };
   A['h-new'] = async function () {
     try {
       var name = t('untitled') + '.pdf', buf = App.blankPdf();
       var r = await NativeTools.call('save_local_file', { fileName: name, base64: App.b64(buf), reason: 'Create a new PDF' }), f = r.data;
       var rec = { key: 'p' + Ui.nextId(), name: name, size: f.sizeBytes || buf.byteLength, url: f.path, path: f.path, openedAt: Date.now(), editedAt: Date.now() };
-      await Store.put(rec); Ui.hint('slide'); Viewer.open(rec, { edit: true, blank: true });
+      await Store.put(rec); Viewer.open(rec, { edit: true, blank: true });
     } catch (e) { App.fail('err.generic', e); }
   };
-  A['h-open'] = function (el) { var rec = Store.get(el.dataset.id); if (!rec) return; Ui.hint('expand', el); rec.openedAt = Date.now(); Store.put(rec); Viewer.open(rec); };
+  A['h-open'] = function (el) {
+    var rec = Store.get(el.dataset.id); if (!rec) return;
+    App.hold = { open: rec.key, ord: Store.recent(App.state.q).map(function (d) { return d.key; }), at: {} }; Store.all().forEach(function (d) { App.hold.at[d.key] = d.openedAt || 0; });
+    rec.openedAt = Date.now(); Store.put(rec);
+    UiNav.open(el, $('pgDoc'), function () { Viewer.open(rec); });
+  };
+  // list <-> grid: every file glides from its place in one view to its place in the other
+  A['h-view'] = function () { Store.savePrefs({ grid: !Store.prefs().grid }); UiNav.swap($('homeList'), App.renderHome); };
   A['h-more'] = function (el, ev) {
     ev.stopPropagation();
     var rec = Store.get(el.dataset.id); if (!rec) return;
@@ -90,20 +124,23 @@
       if (from === 'doc' && Viewer.guardLeave()) return false;
       return true;
     });
+    // the device's Back button (and the arrow in the title bar) run the same morph: the page folds back into its row, then the row hops to the top
+    UiNav.hookBack({ page: 'doc', el: function () { return $('pgDoc'); }, list: function () { return document.querySelector('[data-page="home"]'); }, id: function () { return Viewer.rec && Viewer.rec.key; }, after: App.settleOrder });
     window.MiniAppBackHandler = function () { return !!(Ui.closeDialog() || Ui.closeSheet() || Viewer.backInPage()); };
     document.addEventListener('nav:changed', function (ev) {
       var from = s.page, to = ev.detail.to; s.page = to;
-      if (from !== to) Ui.pageIn(to, to === 'home', from);
+      if (from !== to) Ui.pageIn(to, to === 'home');
       if (to === 'home') App.renderHome();
     });
+    var gc = 0; window.addEventListener('resize', function () { if (Router.getCurrent() !== 'home') return; clearTimeout(gc); gc = setTimeout(function () { var g = App.homeGrid($('homeBody')), h = $('homeList'); if (h && String(g.cols) !== h.dataset.cols) App.renderHome(); }, 160); });
     window.addEventListener('language:changed', function () { App.renderHome(); Viewer.relabel(); });
-    Read.init();
+    Read.init(); Desk.init(); Extras.init(); HomeDesk.init();
     $('homeTop').addEventListener('input', function (e) { if (e.target.id === 'homeQ') { s.q = e.target.value; var keep = e.target.selectionStart; App.renderHome(); var i = $('homeQ'); if (i) { i.focus(); i.setSelectionRange(keep, keep); } } });
     App.renderHome(); Ui.reveal();
     // opened from another app ("Open with PiloOS"): go straight to the workbook
     try {
       var r = await NativeTools.call('get_launch_files', {}), f = ((r && r.data && r.data.files) || [])[0];
-      if (f && /\.pdf$/i.test(f.fileName || '')) { var rec = await add(f); Ui.hint('slide'); Viewer.open(rec); }
+      if (f && /\.pdf$/i.test(f.fileName || '')) { var rec = await add(f); Viewer.open(rec); }
     } catch (e) { /* a normal launch */ }
   };
 })();

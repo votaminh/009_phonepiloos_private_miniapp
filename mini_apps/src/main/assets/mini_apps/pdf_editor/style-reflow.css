@@ -1,0 +1,27 @@
+/* Reflow: the text of a PDF as one column that fits the screen (reflow-vm.js). Three looks, set on #rfScroll[data-th]. */
+.rf{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--rf-bg,var(--card));color:var(--rf-ink,var(--ink));--rf-bg:var(--card);--rf-ink:var(--ink);--rf-line:var(--line);--rf-chip:var(--chip);--rf-mute:var(--muted);--rf-fs:17px}
+.rf[data-th="paper"]{--rf-bg:var(--rf-paper-bg);--rf-ink:var(--rf-paper-ink);--rf-line:var(--rf-paper-line);--rf-chip:var(--rf-paper-line);--rf-mute:var(--rf-paper-ink)}
+.rf[data-th="dark"]{--rf-bg:var(--rf-dark-bg);--rf-ink:var(--rf-dark-ink);--rf-line:var(--rf-dark-line);--rf-chip:var(--rf-dark-chip);--rf-mute:var(--rf-dark-ink)}
+#pgDoc[data-view="wrap"] .rf{display:block}
+#pgDoc[data-view="wrap"] .rd-scroll,#pgDoc[data-view="wrap"] .rd-pill,#pgDoc[data-view="wrap"] .rd-thumb{display:none}
+.rf-art{--fs:var(--rf-fs,17px);max-width:720px;margin:0 auto;padding:var(--px-20) var(--px-20) var(--px-64);font:400 var(--fs)/1.62 var(--body);overflow-wrap:anywhere}
+.rf-art p{margin:0 0 .85em}.rf-art p.c{text-align:center}.rf-art p.r{text-align:right}
+.rf-h{font-family:var(--head);font-weight:700;line-height:1.25;margin:1.3em 0 .5em}
+h1.rf-h{font-size:1.65em}h2.rf-h{font-size:1.32em}h3.rf-h{font-size:1.12em}
+.rf-ul{margin:0 0 .85em;padding-left:1.3em}.rf-ul li{margin:.2em 0}
+.rf-pg{display:flex;align-items:center;justify-content:space-between;gap:var(--px-8);margin:1.6em 0 1em;padding-top:.7em;border-top:1px solid var(--rf-line);font:600 12px var(--body);color:var(--rf-mute);opacity:.75}
+.rf-pg:first-child{margin-top:0;border-top:0;padding-top:0}.rf-pg.quiet{display:none}
+.rf-pg button{border:0;background:transparent;color:var(--accent);font:700 12px var(--body);padding:6px 4px}
+.rf[data-th="dark"] .rf-pg button{color:var(--accent-hi)}
+.rf-fig{display:block;max-width:100%;height:auto;margin:.4em auto 1em;border-radius:6px;background:var(--white)}
+.rf-tb{margin:0 0 1em;border:1px solid var(--rf-line);border-radius:10px;overflow:hidden;font-size:.9em;line-height:1.4}
+.rf-tr{display:grid}.rf-tr+.rf-tr{border-top:1px solid var(--rf-line)}.rf-tr:nth-child(odd){background:var(--rf-chip)}
+.rf-tr span{padding:.45em .6em;min-width:0;overflow-wrap:anywhere}.rf-tr span+span{border-left:1px solid var(--rf-line)}
+/* header: one button on a phone, a pair on a wide screen */
+.rf-aa{font:800 14px var(--head);letter-spacing:-.02em}
+.rf-seg{display:none;gap:2px;padding:2px;border-radius:10px;background:var(--chip);margin:0 var(--px-4)}
+.rf-seg button{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:700 13px var(--body)}
+.rf-seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+@media (min-width:900px){.rf-ph{display:none}.rf-seg{display:inline-flex}}
+.rf-ctl{display:flex;align-items:center;justify-content:space-between;margin:var(--px-12) 0 var(--px-8);font:700 14px var(--body)}
+.rf-ctl>div{display:flex;align-items:center;gap:var(--px-8)}.rf-ctl b{min-width:2ch;text-align:center;font:700 16px var(--head)}

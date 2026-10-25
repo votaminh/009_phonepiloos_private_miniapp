@@ -1,0 +1,19 @@
+/* the look of the morphs in ui-nav.js (View Transitions). Only shape, fades and timing live here. */
+:root{--vt-r:16px}   /* corner radius of the item that grows into the page; set it to the item's own radius */
+/* item <-> page: ONE group (name "doc"); it grows from the item to the screen, corners straightening. The item's words fade out in the first 45%, the page fades in from 25%. */
+::view-transition-group(doc){overflow:clip;animation-duration:.44s;animation-timing-function:cubic-bezier(.2,0,0,1)}
+::view-transition-old(doc),::view-transition-new(doc){width:100%;height:100%;object-fit:none;object-position:left top;mix-blend-mode:normal;animation-duration:.44s;animation-fill-mode:both}
+::view-transition-old(doc){animation-name:vt-out;animation-timing-function:ease-in}::view-transition-new(doc){animation-name:vt-in;animation-timing-function:ease-out}
+html.vt-open::view-transition-group(doc){animation-name:-ua-view-transition-group-anim-doc,vt-r}
+html.vt-back::view-transition-group(doc){animation-name:-ua-view-transition-group-anim-doc,vt-rb;animation-duration:.36s}
+html.vt-back::view-transition-old(doc),html.vt-back::view-transition-new(doc){animation-duration:.36s}
+/* back plays the opening in reverse: the page stays until the last quarter, the item shows only at the end */
+html.vt-back::view-transition-old(doc){animation-name:vt-bout;animation-timing-function:ease-out}html.vt-back::view-transition-new(doc){animation-name:vt-bin;animation-timing-function:ease-in}
+/* the screen behind sinks and dims while the page grows */
+html.vt-open::view-transition-old(root){animation:vt-root .44s ease-in both}::view-transition-new(root){animation:none}
+/* list <-> grid, sort, filter: every item (name "i-<id>") glides from its old place to its new one */
+html.vt-swap::view-transition-group(*){animation-duration:.4s;animation-timing-function:cubic-bezier(.2,0,0,1)}
+@keyframes vt-out{0%{opacity:1}45%{opacity:0}100%{opacity:0}}@keyframes vt-in{0%,25%{opacity:0}100%{opacity:1}}
+@keyframes vt-bout{0%,30%{opacity:1}85%,100%{opacity:0}}@keyframes vt-bin{0%,55%{opacity:0}100%{opacity:1}}
+@keyframes vt-r{from{border-radius:var(--vt-r)}to{border-radius:0}}@keyframes vt-rb{from{border-radius:0}to{border-radius:var(--vt-r)}}
+@keyframes vt-root{to{opacity:.55;transform:scale(.97)}}

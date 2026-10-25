@@ -12,6 +12,7 @@
       return '<button type="button" class="ib" data-act="' + (edit ? 'm-done' : 'v-back') + '" aria-label="' + esc(t(edit ? 'a.close' : 'a.back')) + '">' + ic(edit ? 'close' : 'back', edit ? 22 : 24, 2) + '</button>'
         + '<div class="bk-ttl"><b>' + esc(name) + '</b><small class="' + st.c + '"><i></i>' + esc(st.t) + '</small></div>'
         + (o.undo || o.redo || edit ? '<button type="button" class="ib' + (o.undo ? '' : ' off') + '" data-act="d-undo" aria-label="' + esc(t('a.undo')) + '">' + ic('undo', 22, 1.9) + '</button><button type="button" class="ib' + (o.redo ? '' : ' off') + '" data-act="d-redo" aria-label="' + esc(t('a.redo')) + '">' + ic('redo', 22, 1.9) + '</button>' : '')
+        + (window.Reflow ? Reflow.btns(edit) : '')
         + (edit ? '' : '<button type="button" class="ib" data-act="fd-open" aria-label="' + esc(t('fd.title')) + '">' + ic('search', 22, 1.9) + '</button>')
         + '<button type="button" class="ib" data-act="v-menu" aria-label="' + esc(t('a.more')) + '">' + ic('more', 22) + '</button>'
         + (o.dirty ? '<button type="button" class="pill solid" data-act="v-save">' + esc(t('a.save')) + '</button>' : '');
@@ -24,7 +25,7 @@
       if (mode === 'read') return '<div class="dc-row">' + tb('m-text', t('tl.text'), 'edit') + tb('m-annot', t('tl.annot'), 'brush') + tb('m-sign', t('tl.sign'), 'sign') + tb('m-pages', t('tl.pages'), 'pages') + '</div>';
       if (mode === 'text' || mode === 'add') return '<div class="dc-row">' + tb('m-text', t('tl.text'), 'edit', mode === 'text') + tb('m-add', t('tl.add'), 'addtext', mode === 'add') + tb('m-redact', t('tl.redact'), 'redact') + tb('m-done', t('a.done'), 'check') + '</div>';
       if (mode === 'annot') {
-        var K = [['highlight', 'hlight'], ['underline', 'under'], ['strike', 'strike'], ['pen', 'brush'], ['note', 'note']];
+        var K = [['highlight', 'hlight'], ['underline', 'under'], ['strike', 'strike'], ['pen', 'brush'], ['note', 'note'], ['rect', 'sqr'], ['ellipse', 'circ'], ['line', 'line'], ['arrow', 'arrow']];
         return '<div class="an-row">' + K.map(function (k) { return '<button type="button" class="an-b' + (o.tool === k[0] ? ' on' : '') + '" data-act="a-tool" data-k="' + k[0] + '">' + ic(k[1], 22, 1.8) + '<span>' + esc(t('an.' + k[0])) + '</span></button>'; }).join('') + '</div>'
           + '<div class="an-sw">' + SW.map(function (n) { var c = C(n); return '<button type="button" class="sx-sw' + (o.color === c ? ' on' : '') + '" data-act="a-color" data-v="' + c + '" style="background:' + c + '" aria-label="' + esc(t('c.' + n)) + '"></button>'; }).join('') + '</div>';
       }

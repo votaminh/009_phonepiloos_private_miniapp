@@ -9,7 +9,8 @@
   D.reset = function (sizes) { var same = !D.fresh && sizes.length === D.sizes.length; D.fresh = false; D.prev = same ? D.caches : {}; D.sizes = sizes; D.gen++; D.caches = {}; D.cost = {}; D.blocksOf = {}; D.parasOf = {}; D.order = []; };
   D.previous = function (i) { var k = Object.keys(D.prev).filter(function (x) { return x.indexOf(i + ':') === 0 && D.prev[x] && D.prev[x].width; }); return k.length ? D.prev[k[k.length - 1]] : null; };
   // page width on screen: the phone width less the side margin, times the zoom
-  D.pageW = function () { return Math.max(120, Math.round((D.viewW - SIDE * 2) * D.zoom)); };
+  D.baseW = function () { var a = D.viewW - SIDE * 2; return window.Wide && Wide.pc ? Math.min(a, 860) : a; };   // a computer shows a page at a readable width, centred
+  D.pageW = function () { return Math.max(120, Math.round(D.baseW() * D.zoom)); };
   D.pageH = function (i) { var s = D.sizes[i]; return Math.round(D.pageW() * s[1] / s[0]); };
   D.rowH = function (i) { return D.pageH(i) + GAP; };
   D.scale = function (i) { return D.pageW() / D.sizes[i][0]; };   // css px per PDF point
