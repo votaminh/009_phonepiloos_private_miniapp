@@ -1,13 +1,13 @@
 {
-  "name": "Sheet Editor",
-  "description": "Read and edit Excel (.xlsx) files on your phone: cells and formulas, number formats, rows and columns, sorting and filters. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
+  "name": "Piloos Sheet",
+  "description": "Open, read and edit Excel (.xlsx) files: cells and formulas (XLOOKUP, FILTER, SORT, LET…), number formats, conditional formatting, filters, tables, pivot tables, charts, pictures and shapes, named ranges, sheet protection and printing. Works on phone, tablet and computer, keeps a draft of your edits and works offline.",
   "category": "Productivity",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "updatedAt": "2026-10-25",
   "icon": "icon.png",
   "showInApp": true,
   "workflowSuggestions": [
-    { "title": "Bảng tính Excel", "prompt": "Mở Sheet Editor và giúp tôi mở một file Excel." }
+    { "title": "Bảng tính Excel", "prompt": "Mở Piloos Sheet và giúp tôi mở một file Excel." }
   ],
   "entry": "index.html",
   "permissions": ["storage_write"],
@@ -21,5 +21,5 @@
   ],
   "tags": ["excel", "xlsx", "spreadsheet", "editor", "reader", "office", "offline"],
   "relatedFolders": [],
-  "architecture": "{\"appName\": \"Sheet Editor\", \"navType\": \"router\", \"pages\": [\"home\", \"book\"], \"dataModels\": [\"books\", \"prefs\"]}"
+  "architecture": "{\"appName\": \"Piloos Sheet\", \"navType\": \"router\", \"pages\": [\"home\", \"book\"], \"dataModels\": [\"books\", \"prefs\"]}"
 }

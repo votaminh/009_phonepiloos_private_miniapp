@@ -35,7 +35,7 @@
     },
     menu: function (m) {
       return '<h2 class="sh-h">' + esc(m.name) + '</h2><p class="sx-meta">' + esc(m.info) + '</p>'
-        + row('m-save', 'save', t('mn.save'), m.dirty ? t('mn.save.s') : '') + row('m-copy', 'download', t('mn.copy'), t('mn.copy.s')) + row('m-share', 'share', t('mn.share'))
+        + row('all-open', 'grid', t('all.title'), t('all.sub')) + row('m-save', 'save', t('mn.save'), m.dirty ? t('mn.save.s') : '') + row('m-copy', 'download', t('mn.copy'), t('mn.copy.s')) + row('m-share', 'share', t('mn.share'))
         + row('m-pdf', 'pdf', t('mn.pdf')) + row('m-csv', 'csv', t('mn.csv'), t('mn.csv.s')) + row('fd-open', 'search', t('fd.title')) + row('m-rename', 'edit', t('mn.rename'))
         + row('m-remove', 'trash', t('r.remove'), t('r.remove.s'), true) + (m.dirty ? row('m-discard', 'close', t('mn.discard'), t('mn.discard.s'), true) : '');
     },

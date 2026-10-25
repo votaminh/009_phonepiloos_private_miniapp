@@ -1,4 +1,4 @@
-/* Sheet Editor: bottom sheets, find panel and print. */
+/* Piloos Sheet: bottom sheets, find panel and print. */
 .sx-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--px-12);margin-bottom:var(--px-8)}
 .sx-hd h2{margin:0;font:700 22px var(--head)}.sx-hd small{display:block;margin-top:2px;font:400 13px var(--body);color:var(--muted)}
 .sx-sec{margin:var(--px-18) 0 var(--px-8);font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}

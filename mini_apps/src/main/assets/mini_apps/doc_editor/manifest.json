@@ -1,13 +1,13 @@
 {
-  "name": "Doc Editor",
+  "name": "Piloos Doc",
   "description": "Read and edit Word (.docx) files on your phone: headings, lists, bold and italic, fonts and sizes, tables and pictures. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
   "category": "Productivity",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updatedAt": "2026-10-24",
   "icon": "icon.png",
   "showInApp": true,
   "workflowSuggestions": [
-    { "title": "Soạn thảo Word", "prompt": "Mở Doc Editor và giúp tôi mở một file Word." }
+    { "title": "Soạn thảo Word", "prompt": "Mở Piloos Doc và giúp tôi mở một file Word." }
   ],
   "entry": "index.html",
   "permissions": ["storage_write"],
@@ -21,5 +21,5 @@
   ],
   "tags": ["word", "docx", "documents", "editor", "reader", "office", "offline"],
   "relatedFolders": [],
-  "architecture": "{\"appName\": \"Doc Editor\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"docs\", \"prefs\"]}"
+  "architecture": "{\"appName\": \"Piloos Doc\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"docs\", \"prefs\"]}"
 }

@@ -187,7 +187,7 @@
     if (q.x - hw() < left) left = q.x - hw(); else if (q.x + q.w > left + sc.clientWidth) left = q.x + q.w - sc.clientWidth + 6;
     if (top !== sc.scrollTop || left !== sc.scrollLeft) sc.scrollTo({ top: top, left: left });
   };
-  A['tl-tab'] = function (el) { G.tab = el.dataset.k; G.tools(); };
+  A['tl-tab'] = function (el) { if (el.dataset.k === 'all') return window.All && All.open(); G.tab = el.dataset.k; G.tools(); };
   A['fb-ok'] = function () { $('fbIn').blur(); };
   A['fb-cancel'] = function () { var i = $('fbIn'); i.value = G.raw; G.editing = false; i.blur(); $('bookBar').classList.remove('edit'); G.paint(true); };
 

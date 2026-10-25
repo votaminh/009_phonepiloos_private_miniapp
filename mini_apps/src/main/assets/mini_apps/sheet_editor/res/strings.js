@@ -1,8 +1,8 @@
 // Strings — the ONLY place where user-visible text is written. Use S('key') in JS; en and vi must have the same keys.
 window.AppStrings = {
   en: {
-    app_name: 'Sheet Editor',
-    "app.title": 'Sheet Editor', "app.sub": 'Read and edit Excel files',
+    app_name: 'Piloos Sheet',
+    "app.title": 'Piloos Sheet', "app.sub": 'Read and edit Excel files',
     untitled: 'Untitled',
     "a.open": 'Open file', "a.close": 'Close', "a.back": 'Back', "a.cancel": 'Cancel', "a.undo": 'Undo', "a.redo": 'Redo', "a.more": 'More', "a.apply": 'Apply', "a.done": 'Done', "a.edit": 'Edit', "a.save": 'Save', "h.grid": 'Show as grid', "h.list": 'Show as list', "home.new": 'New',
     "h.today": 'Today', "h.earlier": 'Earlier', "h.search": 'Search files', "h.search.ph": 'Search your spreadsheets', "h.none": 'No spreadsheet matches that.',
@@ -575,10 +575,15 @@ window.AppStrings = {
     "sp.k.pentagon": "Pentagon",
     "sp.k.star5": "Star",
     "sp.k.textbox": "Text box",
+    "all.title": "All features",
+    "all.sub": "Everything the computer menu has",
+    "tl.all": "All",
+    "ob.edit": "Edit",
+    "ob.del": "Delete",
   },
   vi: {
-    app_name: 'Sheet Editor',
-    "app.title": 'Sheet Editor', "app.sub": 'Xem và sửa file Excel',
+    app_name: 'Piloos Sheet',
+    "app.title": 'Piloos Sheet', "app.sub": 'Xem và sửa file Excel',
     untitled: 'Chưa đặt tên',
     "a.open": 'Mở file', "a.close": 'Đóng', "a.back": 'Quay lại', "a.cancel": 'Hủy', "a.undo": 'Hoàn tác', "a.redo": 'Làm lại', "a.more": 'Thêm', "a.apply": 'Áp dụng', "a.done": 'Xong', "a.edit": 'Sửa', "a.save": 'Lưu', "h.grid": 'Xem dạng lưới', "h.list": 'Xem dạng danh sách', "home.new": 'Tạo mới',
     "h.today": 'Hôm nay', "h.earlier": 'Trước đó', "h.search": 'Tìm file', "h.search.ph": 'Tìm trong bảng tính', "h.none": 'Không có bảng tính nào khớp.',
@@ -1151,5 +1156,10 @@ window.AppStrings = {
     "sp.k.pentagon": "Ngũ giác",
     "sp.k.star5": "Ngôi sao",
     "sp.k.textbox": "Hộp văn bản",
+    "all.title": "Tất cả tính năng",
+    "all.sub": "Mọi thứ có trong menu máy tính",
+    "tl.all": "Tất cả",
+    "ob.edit": "Sửa",
+    "ob.del": "Xóa",
   }
 };

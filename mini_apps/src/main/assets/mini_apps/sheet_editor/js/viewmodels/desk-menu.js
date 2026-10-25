@@ -70,9 +70,10 @@
   // ---- the bar --------------------------------------------------------------------------------------------------------------------
   var NAMES = ['file', 'edit', 'view', 'insert', 'format', 'data', 'tools', 'help'];
   M.build = function () { var el = $('dkMenu'); if (el) el.innerHTML = NAMES.map(function (n) { return '<button type="button" class="dk-m" data-m="' + n + '">' + Ui.esc(t('mb.' + n)) + '</button>'; }).join(''); };
+  // the items of one menu: its own, then what other files added with Menus.add (the touch layout lists them in the same order)
+  M.items = function (n) { var items = MENUS[n](); (M.extra[n] || []).forEach(function (f) { var more = f(); if (more && more.length) items = items.concat(['-'], more); }); return items; };
   function open(btn) {
-    var n = btn.dataset.m, items = MENUS[n](), r = btn.getBoundingClientRect(); (M.extra[n] || []).forEach(function (f) { var more = f(); if (more && more.length) items = items.concat(['-'], more); });
-    PopMenu.show(r.left, r.bottom + 2, items, { from: btn });
+    var r = btn.getBoundingClientRect(); PopMenu.show(r.left, r.bottom + 2, M.items(btn.dataset.m), { from: btn });
   }
   M.init = function () {
     var el = $('dkMenu'); if (!el) return; M.build();

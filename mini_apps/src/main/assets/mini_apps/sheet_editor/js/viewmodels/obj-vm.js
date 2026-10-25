@@ -4,14 +4,22 @@
   'use strict';
   var t = Ui.t, G = window.Grid, sel = null, drag = null;
   function objOf(el) { var s = Xrich.sheets[Wb.sheets.indexOf(G.geo.sh)]; return s && s.objs[+el.dataset.k]; }
-  function mark() { Array.prototype.forEach.call(document.querySelectorAll('.gobj-i'), function (e) { e.classList.toggle('sel', !!sel && +e.dataset.k === sel.k); }); }
+  // the picture / chart / shape that is selected gets a small bar with Edit (charts and shapes) and Delete, for a touch screen that has no double-click and no Delete key
+  function mark() {
+    Array.prototype.forEach.call(document.querySelectorAll('.gobj-i'), function (e) {
+      var on = !!sel && +e.dataset.k === sel.k, bar = e.querySelector('.obar'); e.classList.toggle('sel', on); if (bar) bar.remove();
+      if (on && sel.o.dpath && !Wb.readOnly) e.insertAdjacentHTML('beforeend', '<div class="obar">' + (sel.o.chart || sel.o.shape ? '<button type="button" class="ib" data-act="ob-edit" aria-label="' + t('ob.edit') + '">' + Ui.ic('edit', 20, 2) + '</button>' : '') + '<button type="button" class="ib" data-act="ob-del" aria-label="' + t('ob.del') + '">' + Ui.ic('trash', 20, 2) + '</button></div>');
+    });
+  }
+  App.acts['ob-edit'] = function () { var o = sel && sel.o; if (!o) return; if (o.chart && window.ChartEdit) ChartEdit.open(o); else if (o.shape && window.Shape) Shape.props(o); };
+  App.acts['ob-del'] = function () { var o = sel && sel.o; if (!o) return; sel = null; apply({ drawingPath: o.dpath, drawingIndex: o.dix, remove: true }); };
   // a point of the object layer → the cell it falls in and the distance from that cell's corner, in EMU
   function anchorAt(x, y) {
     var g = G.geo, z = G.z || 1, gx = x - GridView.hw(), gy = y + g.tops[g.fy], p = G.at(gx, gy);
     return { row: p.r, col: p.c, rowOff: Math.max(0, Math.round((gy - g.tops[p.r]) / z * 9525)), colOff: Math.max(0, Math.round((gx - g.colX[p.c]) / z * 9525)) };
   }
   document.addEventListener('pointerdown', function (e) {
-    var el = e.target.closest && e.target.closest('.gobj-i'); if (!el || !G.geo) { if (sel) { sel = null; mark(); } return; }
+    if (e.target.closest && e.target.closest('.obar')) return; var el = e.target.closest && e.target.closest('.gobj-i'); if (!el || !G.geo) { if (sel) { sel = null; mark(); } return; }
     var o = objOf(el); if (!o) return; sel = { k: +el.dataset.k, o: o }; mark(); if (Wb.readOnly || !o.dpath) return;
     drag = { el: el, mode: e.target.classList.contains('oh') ? 'size' : 'move', x: e.clientX, y: e.clientY, l: el.offsetLeft, t: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight, moved: false }; try { el.setPointerCapture(e.pointerId); } catch (x) { /* not captured */ }
     e.preventDefault();

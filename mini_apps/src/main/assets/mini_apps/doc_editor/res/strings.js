@@ -1,8 +1,8 @@
 // Strings — the ONLY place where user-visible text is written. Use S('key') in JS; en and vi must have the same keys.
 window.AppStrings = {
   en: {
-    app_name: 'Doc Editor',
-    "app.title": 'Doc Editor', "app.sub": 'Read and edit Word files',
+    app_name: 'Piloos Doc',
+    "app.title": 'Piloos Doc', "app.sub": 'Read and edit Word files',
     untitled: 'Untitled',
     "a.undo": 'Undo', "a.cancel": 'Cancel', "a.open": 'Open file', "a.new": 'New document', "a.close": 'Close', "a.done": 'Done', "a.save": 'Save', "a.edit": 'Edit', "a.back": 'Back', "a.more": 'More', "a.apply": 'Apply',
     "h.grid": 'Show as grid', "h.list": 'Show as list',
@@ -38,8 +38,8 @@ window.AppStrings = {
     "t.discarded": 'Changes discarded'
   },
   vi: {
-    app_name: 'Soạn thảo Word',
-    "app.title": 'Soạn thảo Word', "app.sub": 'Đọc và sửa file Word',
+    app_name: 'Piloos Doc',
+    "app.title": 'Piloos Doc', "app.sub": 'Đọc và sửa file Word',
     untitled: 'Chưa đặt tên',
     "a.undo": 'Hoàn tác', "a.cancel": 'Hủy', "a.open": 'Mở file', "a.new": 'Tài liệu mới', "a.close": 'Đóng', "a.done": 'Xong', "a.save": 'Lưu', "a.edit": 'Sửa', "a.back": 'Quay lại', "a.more": 'Thêm', "a.apply": 'Áp dụng',
     "h.grid": 'Xem dạng lưới', "h.list": 'Xem dạng danh sách',

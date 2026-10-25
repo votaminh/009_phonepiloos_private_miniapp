@@ -83,7 +83,7 @@
         + (edit ? '<button type="button" class="bk-tab add" data-act="sh-open" aria-label="' + esc(t('sh.title')) + '">' + Ui.ic('plus', 20, 2.2) + '</button>' : '');
     },
     tools: function (tab, st, nfLabel) {
-      var T = ['format', 'cells', 'data', 'insert'];
+      var T = ['format', 'cells', 'data', 'insert', 'all'];
       return '<div class="tl-tabs">' + T.map(function (k) { return '<button type="button" class="tl-tab' + (k === tab ? ' on' : '') + '" data-act="tl-tab" data-k="' + k + '">' + esc(t('tl.' + k)) + '</button>'; }).join('') + '</div>' + GridView.toolRow(tab, st, nfLabel);
     },
     // the row of tools under the tabs
