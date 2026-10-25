@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="wait-launch">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title data-i18n="app.title">PPT Editor</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-edit.css">
+  <link rel="stylesheet" href="style-show.css">
+  <link rel="stylesheet" href="style-sheets.css">
+</head>
+<body>
+<section class="page shell" data-page="home" id="pgHome">
+  <header class="shell-top" id="homeTop"></header>
+  <div class="shell-body" id="homeBody"><div class="vl" id="homeList"></div></div>
+  <div class="shell-actions" id="homeActions"></div>
+</section>
+<section class="page shell" data-page="deck" id="pgDeck" style="display:none">
+  <header class="shell-top bk-top" id="deckTop"></header>
+  <div class="dstage" id="stage">
+    <div class="slidebox" id="slideBox">
+      <canvas id="slideCv"></canvas>
+      <div id="lifts"></div><div id="guides"></div>
+      <div class="frame" id="frame"></div>
+    </div>
+    <div class="st-pill" id="stPill" aria-live="polite"></div>
+    <div class="rd-float" id="stFloat"></div>
+    <div class="rd-busy hidden" id="stBusy" role="status"></div>
+  </div>
+  <section class="outline" id="outline" aria-label="Outline"></section>
+  <section class="quick" id="quick" aria-label="Options"></section>
+  <section class="film" id="film" aria-label="Slides"></section>
+  <nav class="dc-tools" id="deckTools"></nav>
+  <div class="fd-panel hidden" id="fdPanel"></div>
+  <div class="pgs hidden" id="ovPanel"></div>
+</section>
+<div class="pres hidden" id="presPanel"></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="res/colors.js"></script>
+<script src="res/dimens.js"></script>
+<script src="res/strings.js"></script>
+<script src="sdk.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/views/ui.js"></script>
+<script src="js/views/icons.js"></script>
+<script src="js/models/store.js"></script>
+<script src="js/models/fonts.js"></script>
+<script src="js/models/pptsvc.js"></script>
+<script src="js/models/deck.js"></script>
+<script src="js/views/home-view.js"></script>
+<script src="js/views/slide-draw.js"></script>
+<script src="js/views/slide-draw2.js"></script>
+<script src="js/views/edit-view.js"></script>
+<script src="js/views/slides-view.js"></script>
+<script src="js/views/sheets-view.js"></script>
+<script src="js/views/find-view.js"></script>
+<script src="js/views/present-view.js"></script>
+<script src="js/viewmodels/app-vm.js"></script>
+<script src="js/viewmodels/stage-vm.js"></script>
+<script src="js/viewmodels/quick-vm.js"></script>
+<script src="js/viewmodels/slides-vm.js"></script>
+<script src="js/viewmodels/text-vm.js"></script>
+<script src="js/viewmodels/insert-vm.js"></script>
+<script src="js/viewmodels/layout-vm.js"></script>
+<script src="js/viewmodels/motion-vm.js"></script>
+<script src="js/viewmodels/find-vm.js"></script>
+<script src="js/viewmodels/present-anim.js"></script>
+<script src="js/viewmodels/outline-vm.js"></script>
+<script src="js/viewmodels/present-vm.js"></script>
+<script src="js/viewmodels/viewer-vm.js"></script>
+<script src="js/viewmodels/menu-vm.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

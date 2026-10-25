@@ -1,0 +1,25 @@
+{
+  "name": "PDF Editor",
+  "description": "Read and edit PDF files on your phone: change the text right on the page, highlight and draw, sign, black out private details, and rearrange pages. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
+  "category": "Productivity",
+  "version": "0.1.0",
+  "updatedAt": "2026-10-25",
+  "icon": "icon.png",
+  "showInApp": true,
+  "workflowSuggestions": [
+    { "title": "Sửa file PDF", "prompt": "Mở PDF Editor và giúp tôi mở một file PDF." }
+  ],
+  "entry": "index.html",
+  "permissions": ["storage_write"],
+  "accepts": [
+    {
+      "type": "document",
+      "multiple": false,
+      "maxItems": 1,
+      "mimeTypes": ["application/pdf"]
+    }
+  ],
+  "tags": ["pdf", "documents", "editor", "reader", "sign", "annotate", "redact", "offline"],
+  "relatedFolders": [],
+  "architecture": "{\"appName\": \"PDF Editor\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"pdfs\", \"prefs\", \"signs\"]}"
+}
