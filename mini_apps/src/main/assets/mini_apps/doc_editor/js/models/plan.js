@@ -18,14 +18,15 @@
     var out = [];
     function push(t, f) {
       t = t.replace(/ /g, ' '); if (!t) return;
-      var r = { t: t, b: !!f.b, i: !!f.i, u: !!f.u, s: !!f.s, c: f.c, sz: f.sz, f: f.f, h: f.h, va: f.va, link: f.link, k: f.k === undefined ? -1 : f.k }, p = out[out.length - 1];
-      var same = p && ['b', 'i', 'u', 's', 'c', 'sz', 'f', 'h', 'va', 'link', 'k'].every(function (q) { return p[q] === r[q]; });
+      var r = { cm: f.cm, fn: f.fn, t: t, b: !!f.b, i: !!f.i, u: !!f.u, s: !!f.s, c: f.c, sz: f.sz, f: f.f, h: f.h, va: f.va, link: f.link, k: f.k === undefined ? -1 : f.k }, p = out[out.length - 1];
+      var same = p && !r.fn && !p.fn && String(r.cm) === String(p.cm) && ['b', 'i', 'u', 's', 'c', 'sz', 'f', 'h', 'va', 'link', 'k'].every(function (q) { return p[q] === r[q]; });
       if (same) p.t += t; else out.push(r);
     }
     function walk(n, f) {
       if (n.nodeType === 3) { push(n.nodeValue, f); return; }
-      if (n.nodeType !== 1) return;
-      var tag = n.tagName, g = Object.assign({}, f);
+      if (n.nodeType !== 1) return; if (n.classList && n.classList.contains('pgsp')) return;
+      if (n.dataset && n.dataset.fn) { push(n.textContent || '1', Object.assign({}, f, { fn: n.dataset.fn })); return; }
+      var tag = n.tagName, g = Object.assign({}, f); if (n.dataset && n.dataset.cm) g.cm = (f.cm || []).concat(n.dataset.cm.split(',').filter(Boolean));
       if (tag === 'BR') { if (!n.hasAttribute('data-ph')) push('\n', f); return; }
       if (tag === 'B' || tag === 'STRONG') g.b = true;
       if (tag === 'I' || tag === 'EM') g.i = true;
@@ -34,7 +35,7 @@
       if (tag === 'SUP') g.va = 'superscript'; if (tag === 'SUB') g.va = 'subscript';
       if (tag === 'A' && n.dataset.href) g.link = n.dataset.href;
       if (tag === 'FONT' && n.getAttribute('color')) g.c = hex(n.getAttribute('color')) || g.c;
-      var st = n.style;
+      var st = n === el ? null : n.style;   // the paragraph's own style (shading, spacing) is not a run's look
       if (st) {
         if (st.fontWeight) g.b = st.fontWeight === 'bold' || +st.fontWeight >= 600;
         if (st.fontStyle) g.i = st.fontStyle === 'italic';
@@ -64,15 +65,21 @@
         var src = el.dataset.src !== undefined ? +el.dataset.src : undefined, n = el.dataset.n;
         if (el.classList.contains('tbl') && el.dataset.m) { var tb = { cells: Table.cells(el) }; if (src !== undefined) tb.o = src; else tb.xml = xmls[n]; if (el.dataset.ops) tb.ops = JSON.parse(el.dataset.ops); blocks.push({ tbl: tb }); return; }
         if (el.classList.contains('lk')) {
-          if (src !== undefined) blocks.push({ o: src }); else if (xmls && xmls[n]) blocks.push({ xml: xmls[n] });
-          else if (pics && pics[n]) { images[n] = pics[n].buf.slice(0); blocks.push({ img: { ref: n, mime: pics[n].mime, w: pics[n].w, h: pics[n].h, align: pics[n].align } }); }
+          if (el.dataset.sbk) { blocks.push({ sectbreak: Object.assign({ o: +el.dataset.endsrc, kind: el.dataset.sbk }, el.dataset.sset ? { s: JSON.parse(el.dataset.sset) } : {}) }); return; }   // a section break made here
+          if (src !== undefined && el.dataset.shpc) { blocks.push({ shpatch: { o: src, s: JSON.parse(el.dataset.shp), chg: JSON.parse(el.dataset.shpc) } }); return; }
+          if (src !== undefined && el.dataset.sset) blocks.push({ sectset: { o: src, s: JSON.parse(el.dataset.sset) } }); else if (src !== undefined && (el.dataset.rw || el.dataset.pf)) blocks.push({ imgsize: Object.assign({ o: src }, el.dataset.rw ? { w: +el.dataset.rw, h: +el.dataset.rh } : {}, el.dataset.pf ? { rot: +el.dataset.rot || 0, wrap: el.dataset.wrap || 'inline', crop: (el.dataset.crop || '0,0,0,0').split(',').map(Number) } : {}) }); else if (src !== undefined) blocks.push({ o: src }); else if (xmls && xmls[n]) blocks.push({ xml: xmls[n] });
+          else if (pics && pics[n]) { images[n] = pics[n].buf.slice(0); blocks.push({ img: { ref: n, mime: pics[n].mime, w: pics[n].w, h: pics[n].h, align: pics[n].align, rot: pics[n].rot || 0, wrap: pics[n].wrap || 'inline' } }); }
           return;
         }
         if (src !== undefined && !el.dataset.m) { blocks.push({ o: src }); return; }
         var t = el.dataset.t, g = { type: t === 'h' ? 'heading' : t === 'l' ? 'listItem' : 'paragraph', runs: extract(el) };
         if (t === 'h') g.level = +el.dataset.lv || 1;
-        if (t === 'l') g.list = { kind: el.dataset.k || 'bullet', ilvl: +el.dataset.il || 0 };
+        if (t === 'l') g.list = { kind: el.dataset.k || 'bullet', ilvl: +el.dataset.il || 0, numId: el.dataset.nid || undefined };
         g.align = el.dataset.al || 'left'; g.indent = +el.dataset.in || 0;
+        if (el.dataset.bm !== undefined) g.bm = el.dataset.bm.split(',').filter(Boolean);
+        if (el.dataset.cm) g.cm = el.dataset.cm.split(',').filter(Boolean);
+        if (el.dataset.fmt) { try { g.fmt = JSON.parse(el.dataset.fmt); } catch (e) {} }
+        if (el.dataset.st) g.style = el.dataset.st;
         var it = { g: g }; if (src !== undefined) it.o = src; blocks.push(it);
       });
       return { blocks: blocks, images: images };

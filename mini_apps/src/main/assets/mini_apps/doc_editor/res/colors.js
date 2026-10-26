@@ -8,6 +8,8 @@ window.AppColors = {
   sepia_bg: '#F1E7D0', sepia_ink: '#3B2F1B', sepia_line: '#D8C9A6', night_bg: '#14161B', night_ink: '#E7E6E1', night_head: '#F5F4F0', night_muted: '#A3A7AF', night_line: '#2A2D34', night_chip: '#232A45', night_accent: '#9DB4FF',
   find_hit: '#FFE9A6', find_cur: '#FFB84D', sel: 'rgba(43,92,251,.22)',
   sw_black: '#15171C', sw_red: '#C23B3B', sw_blue: '#2B5CFB', sw_green: '#157A6A', sw_orange: '#B3591A', sw_purple: '#7A3FBF',
+  sh_blue: '#CFE0FF', sh_green: '#CFEFE3', sh_yellow: '#FFF2B8', sh_red: '#F9D0D0', sh_gray: '#E4E1DA',
+  pc_cream: '#FDF6E3', pc_mint: '#E6F4EA', pc_sky: '#E3F0FB', pc_pink: '#FBE9EF', pc_lav: '#EEE9FB', pc_gray: '#EDEDED', wm_gray: '#C0C0C0', wm_red: '#D86A6A', wm_blue: '#6A8FD8', wm_green: '#6AB88A',
   hl_yellow: '#FFF176', hl_green: '#B9F6CA', hl_pink: '#FFC1E3', hl_blue: '#B3E5FC',
   scrim: 'rgba(21,23,28,.5)', shadow: 'rgba(21,23,28,.10)', shadow_hi: 'rgba(21,23,28,.26)', glow: 'rgba(43,92,251,.32)', tip: '#15171C'
 };

@@ -13,16 +13,16 @@
     var w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), n, pos = 0, r = document.createRange(), a = null, z = null; c = c || { a: 0, z: 0 };
     while ((n = w.nextNode())) { var l = n.nodeValue.length; if (!a && pos + l >= c.a) a = [n, c.a - pos]; if (!z && pos + l >= c.z) { z = [n, c.z - pos]; break; } pos += l; }
     if (!a) { r.selectNodeContents(b); r.collapse(false); } else { r.setStart(a[0], a[1]); r.setEnd((z || a)[0], (z || a)[1]); }
-    var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    if (window.Surface) Surface.focus(); var s = getSelection(); s.removeAllRanges(); s.addRange(r);
   }
   Struct.putCaret = putCaret;
   function swap(b, tag, set) {
     var c = caretOffsets(b), n = document.createElement(tag);
     Array.prototype.forEach.call(b.attributes, function (a) { n.setAttribute(a.name, a.value); });
     while (b.firstChild) n.appendChild(b.firstChild);
-    b.parentNode.replaceChild(n, b); set(n); n.dataset.m = '1'; n.contentEditable = 'true'; n.focus(); putCaret(n, c); return n;
+    b.parentNode.replaceChild(n, b); set(n); n.dataset.m = '1'; putCaret(n, c); return n;
   }
-  function plain(n) { n.classList.remove('li', 'bul', 'ord'); n.removeAttribute('data-k'); n.removeAttribute('data-il'); n.removeAttribute('data-lv'); n.dataset.t = 'p'; }
+  function plain(n) { n.classList.remove('li', 'bul', 'ord'); n.removeAttribute('data-k'); n.removeAttribute('data-il'); n.removeAttribute('data-lv'); n.removeAttribute('data-nid'); n.removeAttribute('data-ls'); n.removeAttribute('data-no'); n.dataset.t = 'p'; }
   function done() { Doc.snap(); Edit.sync(); }
 
   // ---- style, alignment, lists, indent -------------------------------------------------------------------------------------
@@ -41,6 +41,8 @@
     swap(b, 'p', function (e) { plain(e); e.dataset.t = 'l'; e.dataset.k = kind; e.dataset.il = '0'; e.classList.add('li', kind === 'ordered' ? 'ord' : 'bul'); e.removeAttribute('data-in'); e.style.marginLeft = ''; e.removeAttribute('data-lv'); });
     done();
   }
+  // a paragraph becomes an item of a list of the given kind (the new element is returned)
+  Struct.toList = function (b, kind) { return b.dataset.t === 'l' ? b : swap(b, 'p', function (e) { plain(e); e.dataset.t = 'l'; e.dataset.k = kind; e.dataset.il = '0'; e.classList.add('li', kind === 'ordered' ? 'ord' : 'bul'); e.removeAttribute('data-in'); e.style.marginLeft = ''; e.removeAttribute('data-lv'); }); };
   A['e-bul'] = function () { list('bullet'); }; A['e-num'] = function () { list('ordered'); };
   function indent(d) {
     var b = cur(); if (!b) return Ui.toast(t('e.tap'));
@@ -54,16 +56,17 @@
   function empty(b) { return !b.textContent.replace(/ /g, '').length && !b.querySelector('img'); }
   function ph(b) { if (empty(b) && !b.querySelector('br')) b.innerHTML = '<br data-ph>'; else if (!empty(b)) { var x = b.querySelector('br[data-ph]'); if (x) x.remove(); } }
   function fresh(like, tag) {
-    var n = document.createElement(tag || 'p'); n.className = 'b ed'; n.dataset.n = Doc.nid(); n.dataset.m = '1'; n.contentEditable = 'true';
+    var n = document.createElement(tag || 'p'); n.className = 'b ed'; n.dataset.n = Doc.nid(); n.dataset.m = '1';
     if (like.dataset.al) n.dataset.al = like.dataset.al;
     return n;
   }
   Struct.fresh = fresh;
   Struct.split = function (b) {
-    var s = getSelection(), r = s.getRangeAt(0); if (!r.collapsed) r.deleteContents();
+    var s = getSelection(), r = s.getRangeAt(0); if (!r.collapsed) { Surface.deleteRange(r); b = cur(); if (!b) return; r = getSelection().getRangeAt(0); }
     if (b.dataset.t === 'l' && empty(b)) { swap(b, 'p', plain); return done(); }   // Return on an empty list item leaves the list
     var tail = document.createRange(); tail.selectNodeContents(b); tail.setStart(r.startContainer, r.startOffset);
     var frag = tail.extractContents(), n = fresh(b, 'p'); n.dataset.t = 'p';
+    if (b.dataset.t !== 'h') { if (b.dataset.st) n.dataset.st = b.dataset.st; if (b.getAttribute('style')) n.setAttribute('style', b.getAttribute('style').replace(/margin-top:[^;]*;?/, '')); }   // the next paragraph looks like this one (a heading is followed by Normal text)
     if (b.dataset.t === 'l') { n.dataset.t = 'l'; n.dataset.k = b.dataset.k; n.dataset.il = b.dataset.il; n.className = 'b ed li ' + (b.dataset.k === 'ordered' ? 'ord' : 'bul'); }
     else if (b.dataset.t === 'p' && b.dataset.in) { n.dataset.in = b.dataset.in; n.style.marginLeft = b.style.marginLeft; }
     n.appendChild(frag); ph(n); ph(b); b.dataset.m = '1'; b.after(n); n.focus(); putCaret(n, { a: 0, z: 0 }); done();
@@ -76,18 +79,14 @@
     while (b.firstChild) prev.appendChild(b.firstChild); b.remove(); ph(prev); prev.dataset.m = '1'; prev.focus(); putCaret(prev, { a: len, z: len }); done();
   };
   function atStart() { var s = getSelection(), b = cur(); if (!b || !s.isCollapsed) return false; var p = document.createRange(); p.selectNodeContents(b); p.setEnd(s.anchorNode, s.anchorOffset); return !p.toString().replace(/ /g, '').length && !p.cloneContents().querySelector('img'); }
-  $('paper').addEventListener('beforeinput', function (e) {
-    var b = cur(); if (!b) return;
-    if (e.inputType === 'insertParagraph') { e.preventDefault(); Struct.split(b); }
-    else if (e.inputType === 'deleteContentBackward' && atStart()) { e.preventDefault(); Struct.back(b); }
-  });
+  // what the browser does before it changes the page (Return, Backspace, Delete, paste, undo) is decided in surface-vm.js
 
   // ---- the actions block and the quick bar -------------------------------------------------------------------------------------
   // one block that holds the paragraph menu (three dots) and Done; it sits next to the rect in focus, as near as the screen allows, and stays within reach of a thumb
   function ensure() {
     var pw = $('pw'); if (grip) return;
     grip = document.createElement('div'); grip.className = 'gcl hidden'; grip.setAttribute('role', 'toolbar'); grip.setAttribute('aria-label', t('g.grip'));
-    grip.innerHTML = '<button type="button" class="gc-m" data-act="g-grip" aria-label="' + Ui.esc(t('g.grip')) + '">' + Ui.ic('grip', 18, 2) + '</button><button type="button" class="gc-d" data-act="g-done">' + Ui.ic('check', 16, 2.4) + '<span>' + Ui.esc(t('a.done')) + '</span></button>'; pw.appendChild(grip);
+    grip.innerHTML = '<button type="button" class="gc-m" data-act="g-grip" aria-label="' + Ui.esc(t('g.grip')) + '">' + Ui.ic('grip', 18, 2) + '</button>'; pw.appendChild(grip);
     quick = document.createElement('div'); quick.className = 'quick hidden'; quick.setAttribute('role', 'toolbar'); pw.appendChild(quick);
     quick.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     grip.addEventListener('pointerdown', function (e) { e.preventDefault(); });

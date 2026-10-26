@@ -11,8 +11,8 @@
   function groups(ss) {
     var g = ss.map(function () { return []; }), at = 0;
     Array.prototype.forEach.call(Doc.paper().children, function (el) {
-      if (!el.classList.contains('b') || el.hidden || el.classList.contains('sb')) return;
-      var src = el.dataset.src; if (src !== undefined) { src = +src; while (at < ss.length - 1 && src > ss[at].end) at++; }
+      if (!el.classList.contains('b') || el.hidden) return;
+      if (el.classList.contains('sb')) { if (at < ss.length - 1) at++; return; }   // the breaks in the sheet are in the order of the sections: the n-th break closes section n
       g[at].push(clean(el));
     });
     return g;
@@ -26,10 +26,11 @@
   }
   // the inside of one page: header, the text area (the section's box of columns shifted to this page), footer
   function fill(el, p, at, total) {
-    var s = p.s, d = p.d, first = s.title && p.j === 0, tok = function (h) { return (h || '').replace('{PAGE}', at + 1).replace('{NUMPAGES}', total); };
-    var hd = tok(first ? s.hdr.first : s.hdr['default']), ft = tok(first ? s.ftr.first : s.ftr['default']);
-    el.innerHTML = (hd ? '<div class="pgx-hd" style="left:' + d.l + 'px;top:' + d.hd + 'px;width:' + d.cw + 'px">' + hd + '</div>' : '')
-      + '<div class="pgx-clip" style="left:' + d.l + 'px;top:' + d.t + 'px;width:' + d.cw + 'px;height:' + d.ch + 'px"><div class="pgx-flow" style="' + flowStyle(s, d, p.base) + ';transform:translateX(' + (-p.j * (d.cw + d.gap)) + 'px)">' + p.html + '</div></div>'
+    var s = p.s, d = p.d, first = s.title && p.j === 0, tok = function (h) { return (h || '').replace('{PAGE}', p.num || at + 1).replace('{NUMPAGES}', total); };
+    var cn = p.cnt || at + 1, hd = tok(Sec.pick(s, 'hdr', p.j === 0, cn)), ft = tok(Sec.pick(s, 'ftr', p.j === 0, cn));
+    el.innerHTML = (s.border ? '<div class="pgx-bd"></div>' : '') + (hd ? '<div class="pgx-hd" style="left:' + d.l + 'px;top:' + d.hd + 'px;width:' + d.cw + 'px">' + hd + '</div>' : '')
+      + '<div class="pgx-clip" style="left:' + d.l + 'px;top:' + d.t + 'px;width:' + d.cw + 'px;height:' + d.ch + 'px">' + (p.bands ? '' : '<div class="pgx-flow" style="' + flowStyle(s, d, p.base) + ';transform:translateX(' + (-p.j * (d.cw + d.gap)) + 'px)">' + p.html + '</div>') + '</div>'
+      + (p.bands ? PagePack.html(p, flowStyle) : '')
       + (ft ? '<div class="pgx-ft" style="left:' + d.l + 'px;bottom:' + d.ft + 'px;width:' + d.cw + 'px">' + ft + '</div>' : '');
   }
   function put(pg) { if (pg.done) return; pg.done = true; fill(pg.el, pg.def, pg.at, PV.total); }
@@ -43,6 +44,8 @@
     var host = $('pages'), ss = sects(), g = groups(ss), base = (DocRich.doc && DocRich.doc.base) || { pt: 11, after: 8, line: 1.1 }, defs = [], total = 0;
     var meas = document.createElement('div'); meas.className = 'pgx-meas'; document.body.appendChild(meas);
     PV.map = {}; PV.pages = []; host.innerHTML = ''; if (io) io.disconnect();
+    var packed = ss.some(function (s, k) { return k > 0 && s.kind === 'continuous'; });
+    if (packed) { var L = PagePack.layout(ss, g, base, meas, dims, flowStyle); defs = L.defs; PV.map = L.map; total = defs.length; ss = []; }
     ss.forEach(function (s, k) {
       var d = dims(s), flow = document.createElement('div'), html = g[k].join('');
       flow.className = 'pgx-flow'; flow.style.cssText = flowStyle(s, d, base); flow.innerHTML = html; meas.appendChild(flow);
@@ -52,6 +55,7 @@
       total += n; meas.removeChild(flow);
     });
     document.body.removeChild(meas); PV.total = total;
+    var labels = Sec.numbers(defs.map(function (q) { return { s: q.s, first: q.j === 0 }; })); var counts = Sec.counts(defs.map(function (q) { return { s: q.s, first: q.j === 0 }; })); defs.forEach(function (q, i) { q.num = labels[i]; q.cnt = counts[i]; });
     var maxW = 0; defs.forEach(function (p, i) {
       var el = document.createElement('div'); el.className = 'pgx-page'; el.style.cssText = 'width:' + p.d.w + 'px;height:' + p.d.h + 'px'; host.appendChild(el); maxW = Math.max(maxW, p.d.w);
       PV.pages.push({ el: el, def: p, at: i, done: false });
@@ -61,12 +65,12 @@
     PV.pages.forEach(function (pg) { io.observe(pg.el); }); PV.pages.slice(0, 2).forEach(put);
   };
   PV.stamp = function () { return Doc.rid + ':' + Doc.histAt + ':' + Doc.hist.length; };
-  PV.fitZoom = function () { return Math.max(0.2, Math.min(1, ($('docBody').clientWidth - 24) / (PV.maxW || sects()[0].w * PX || 794))); };
+  PV.fitZoom = function () { return Math.max(0.2, Math.min(1, ($('docBody').clientWidth - 24) / (Math.max(PV.maxW || 0, Math.max.apply(null, sects().map(function (x) { return x.w * PX; }))) || 794))); };
   // editing keeps one continuous sheet, set to the first section's page width, margins and text size, so lines break where they do in the pages
   PV.editStyle = function (p, on) {
     if (!on) { ['width', 'padding', 'minHeight', 'margin', 'boxSizing', 'lineHeight'].forEach(function (k) { p.style[k] = ''; }); p.style.removeProperty('--pg-after'); return; }
-    var s = sects()[0], d = dims(s), base = (DocRich.doc && DocRich.doc.base) || { pt: 11, after: 8, line: 1.1 };
-    p.style.width = d.w + 'px'; p.style.boxSizing = 'border-box'; p.style.padding = d.t + 'px ' + s.r * PX + 'px ' + s.b * PX + 'px ' + d.l + 'px'; p.style.minHeight = d.h + 'px'; p.style.margin = '0 auto';
+    var s = sects()[0], d = dims(s), multi = window.Sec && Sec.multi(), base = (DocRich.doc && DocRich.doc.base) || { pt: 11, after: 8, line: 1.1 };
+    var W = Math.max.apply(null, sects().map(function (x) { return x.w * PX; })); p.classList.toggle('multi', !!multi); p.style.width = (multi ? W : d.w) + 'px'; p.style.boxSizing = 'border-box'; p.style.padding = multi ? d.t + 'px 0 ' + s.b * PX + 'px 0' : d.t + 'px ' + s.r * PX + 'px ' + s.b * PX + 'px ' + d.l + 'px'; p.style.minHeight = d.h + 'px'; p.style.margin = '0 auto';
     p.style.fontSize = base.pt * 96 / 72 + 'px'; p.style.lineHeight = Math.max(1.05, base.line * 1.12); p.style.setProperty('--pg-after', base.after * 96 / 72 + 'px');
   };
   PV.show = function () {

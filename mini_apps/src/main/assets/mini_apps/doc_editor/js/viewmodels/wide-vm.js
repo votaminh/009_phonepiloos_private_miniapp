@@ -5,20 +5,22 @@
   var Wd = window.Wide;
   function heads() { return Array.prototype.map.call(Doc.paper().querySelectorAll('.b[data-t="h"]'), function (el) { return { lv: +el.dataset.lv || 1, text: el.textContent.trim(), el: el }; }).filter(function (h) { return h.text; }); }
   function onPages() { return $('pages').classList.contains('on'); }
-  function pageOf(h) { var s = h.el.dataset.src; return onPages() && window.PageView && s !== undefined && PageView.map[s] !== undefined ? PageView.map[s] + 1 : ''; }
+  function pageOf(h) { if (window.Paginate && Paginate.active()) return Paginate.pageOf(h.el); var s = h.el.dataset.src; return onPages() && window.PageView && s !== undefined && PageView.map[s] !== undefined ? PageView.map[s] + 1 : ''; }
 
   // ---- Contents ------------------------------------------------------------------------------------------------------------------
   function render() {
     var side = $('docSide'); if (!side || !Doc.rec || !Wd.is()) return;
-    var hs = heads(), key = Doc.rec.key + '|' + hs.map(function (h) { return h.lv + h.text + pageOf(h); }).join('~');
+    var hs = heads(), qq = (Wd.q || '').toLowerCase(), key = Doc.rec.key + '|' + qq + '|' + hs.map(function (h) { return h.lv + h.text + pageOf(h); }).join('~');
     if (key === sig) return; sig = key; cur = hs;
     side.innerHTML = '<div class="sd-h">' + esc(t('o.title')) + '</div>'
       + '<button type="button" class="sd-i sd-doc" data-act="sd-top"><b class="sd-n">' + Ui.ic('doc', 18, 1.8) + '</b><span class="sd-t">' + esc(Doc.rec.name.replace(/\.docx$/i, '')) + '</span></button>'
       + (hs.length ? hs.map(function (h, i) { return '<button type="button" class="sd-i lv' + Math.min(h.lv, 3) + '" data-act="sd-go" data-i="' + i + '"><b class="sd-n">' + (i + 1) + '</b><span class="sd-t">' + esc(h.text) + '</span><em>' + pageOf(h) + '</em></button>'; }).join('') : '<p class="sd-none">' + esc(t('o.none')) + '</p>');
     mark();
   }
+  Wd.renderSide = render;
   function here() {
     if (!cur.length) return -1; var at = -1;
+    if (window.Paginate && Paginate.active()) { var cp = Paginate.at(); cur.forEach(function (h, i) { if (Paginate.pageOf(h.el) <= cp) at = i; }); return at; }
     if (onPages()) { var pg = PageView.here(); cur.forEach(function (h, i) { var p = PageView.map[h.el.dataset.src]; if (p !== undefined && p <= pg) at = i; }); return at; }
     var top = $('docBody').scrollTop + 60; cur.forEach(function (h, i) { if (h.el.offsetTop - Doc.paper().offsetTop <= top) at = i; }); return at;
   }

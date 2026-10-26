@@ -17,6 +17,7 @@
     // plan: { blocks: [...], images: { ref: ArrayBuffer } } -> ArrayBuffer of the new .docx
     save: function (plan) { return call('save', { plan: plan }, Object.keys(plan.images || {}).map(function (k) { return plan.images[k]; })).then(function (r) { return r.bytes; }); },
     blank: function () { return call('blank', { options: {} }).then(function (r) { return r.bytes; }); },
+    math: function (latex, align) { return call('math', { latex: latex, align: align }).then(function (r) { return { mathml: r.mathml, xml: r.xml }; }); },
     table: function (rows, cols) { return call('table', { rows: rows, cols: cols, header: true }).then(function (r) { return r.xml; }); }
   };
 })();

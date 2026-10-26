@@ -1,3 +1,4 @@
+:root{--pgbg:var(--paper)}   /* the page colour of the file (Layout ▸ Page Color) is set on <html> at run time; no colour: the paper's own */
 /* The reading and editing page: top bar, the stage, the paper and the blocks on it. */
 .dc-top{gap:var(--px-2);padding-left:var(--px-4);padding-right:var(--px-8);background:var(--bg);border-bottom:1px solid var(--line);min-height:calc(var(--px-60) + env(safe-area-inset-top))}
 .dc-ttl{flex:1;min-width:0;display:flex;flex-direction:column;padding:0 var(--px-4)}
@@ -20,7 +21,7 @@
 .dc-err{color:var(--danger)}.dc-err small{display:block;margin-top:var(--px-8);color:var(--paper-muted)}
 
 /* the paper: always white while editing (it is the person's document) */
-.paper{background:var(--paper);color:var(--paper-ink);border-radius:6px;box-shadow:0 2px 12px var(--shadow);padding:var(--px-26) var(--px-22) var(--px-40);min-height:60vh;font:400 15px/1.55 'Roboto',sans-serif;overflow-wrap:anywhere;word-break:normal}
+.paper{background:var(--pgbg,var(--paper));color:var(--paper-ink);border-radius:6px;box-shadow:0 2px 12px var(--shadow);padding:var(--px-26) var(--px-22) var(--px-40);min-height:60vh;font:400 15px/1.55 'Roboto',sans-serif;overflow-wrap:anywhere;word-break:normal}
 .paper.sheetpg{width:794px;padding:60px 72px;font-size:14.67px;min-height:1123px;margin:0 auto}
 [data-th="sepia"] .dc-body{background:var(--sepia-bg)}[data-th="sepia"] .paper{background:var(--sepia-bg);color:var(--sepia-ink);box-shadow:none}
 [data-th="dark"] .dc-body{background:var(--night-bg)}[data-th="dark"] .paper{background:var(--night-bg);color:var(--night-ink);box-shadow:none}
@@ -35,27 +36,35 @@ h1.b{font-size:1.6em;font-weight:700}h2.b{font-size:1.3em;font-weight:600}h3.b{f
 .b[data-al="center"]{text-align:center}.b[data-al="right"]{text-align:right}.b[data-al="justify"]{text-align:justify}
 .b b,.b strong{font-weight:700}
 .li{padding-left:1.6em}
-.li.bul::before{content:'•';position:absolute;left:.55em}
+.li.bul::before{content:attr(data-no);position:absolute;left:.25em;width:1.1em;text-align:center}
 .paper{counter-reset:ord}
 .b:not(.ord)+.ord,.ord:first-child{counter-reset:ord}
-.ord{counter-increment:ord}.ord::before{content:counter(ord) '.';position:absolute;left:0;width:1.4em;text-align:right}
+.ord{counter-increment:ord}.ord::before{content:attr(data-no);position:absolute;left:0;width:1.4em;text-align:right;white-space:nowrap}
 .li[data-il="1"]{margin-left:1.6em}.li[data-il="2"]{margin-left:3.2em}.li[data-il="3"]{margin-left:4.8em}
 a.lnk{color:var(--accent-text);text-decoration:underline}
 [data-th="dark"] a.lnk{color:var(--night-accent)}
 .b.tbl{overflow-x:auto}.tbl table{border-collapse:collapse;min-width:60%}.tbl td{border:1px solid var(--paper-line);padding:var(--px-6) var(--px-8);vertical-align:top;min-width:48px;white-space:pre-wrap}
 .imgp img{max-width:100%;height:auto;display:block}
+.paper.pgedit.hasfloat{display:block}.paper.pgedit.hasfloat .b[data-pgp]{margin-top:0;padding-top:var(--pgp)}
+.b.wf-l{float:left;max-width:50%;margin:0 14px 8px 0!important}.b.wf-r{float:right;max-width:50%;margin:0 0 8px 14px!important}.pgx-sl .b.wf-l,.pgx-sl .b.wf-r{float:none;max-width:none}
+.b[data-wl]::after{content:attr(data-wl);display:inline-block;margin-top:6px;font:600 11px/1 var(--body);color:var(--accent-text);background:var(--accent-soft);border-radius:999px;padding:4px 9px}
+.b.shp{line-height:0}.b.shp.al-center{text-align:center}.b.shp.al-right{text-align:right}.shp-b{position:relative;display:inline-block;max-width:100%}.shp-r{position:relative;display:inline-block;max-width:none}.shp-r>span{position:absolute}.b.shp.drag{opacity:.45}.shp-drop{position:fixed;height:3px;background:var(--accent);border-radius:2px;pointer-events:none;z-index:60}.b.shp:hover{cursor:grab}.shp-b svg{display:block;max-width:100%;height:auto;overflow:visible}
+.shp-t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 10px;font:14px/1.3 var(--body);color:var(--paper-ink);overflow:hidden;word-break:break-word}.shp-t.tb{align-items:flex-start;justify-content:flex-start;text-align:left}
+.b.shp[data-wl]::after{line-height:1}
+#shTx{width:100%;box-sizing:border-box;font:14px/1.4 var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);resize:vertical}
+.crop-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .hr hr{border:0;border-top:1px solid var(--paper-line);margin:.4em 0}
 .pb{display:flex;align-items:center;gap:var(--px-8);color:var(--paper-muted);font:500 11px var(--body);text-transform:uppercase;letter-spacing:.08em}
 .pb::before,.pb::after{content:'';flex:1;border-top:1px dashed var(--paper-line)}
-.eq{font-family:'Noto Serif',serif;font-style:italic}.pt{color:var(--paper-muted);font-size:12px;background:var(--chip);border-radius:6px;padding:2px 8px;display:inline-block}
+.eq{font-family:'Noto Serif',serif}.b.eq{text-align:center}.b.eq.al-left{text-align:left}.b.eq.al-right{text-align:right}.b.eq math{font-size:1.15em}.b.eq[data-latex]{cursor:default}
+.eq-sn{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.eq-prev{min-height:64px;display:flex;align-items:center;justify-content:center;padding:10px 14px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow-x:auto}.eq-prev math{font-size:1.4em}.eq-prev.bad{color:var(--danger);font-size:13px}
+#eqTx{width:100%;box-sizing:border-box;font:14px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);resize:vertical}.pt{color:var(--paper-muted);font-size:12px;background:var(--chip);border-radius:6px;padding:2px 8px;display:inline-block}
 ::highlight(find){background-color:var(--find-hit);color:inherit}::highlight(findcur){background-color:var(--find-cur);color:inherit}
 
 /* while editing */
-.paper.editing .b.ed{border-radius:3px;outline:1px dashed var(--sel);outline-offset:2px;caret-color:var(--accent)}
-.paper.editing .b.ed:focus{outline:2px solid var(--accent)}
+.paper.editing .b.ed{caret-color:var(--accent)}   /* one surface, no boxes: a paragraph is not drawn until it is the page's text */
 .paper.editing .b.lk{cursor:default}.paper.editing .b.lk.sel{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
-.paper.editing .tbl td{outline:1px dashed var(--sel);outline-offset:-2px}.paper.editing .tbl td:focus{outline:2px solid var(--accent);background:var(--accent-soft)}
-.paper.editing .b.ed[data-m="1"]{outline-color:var(--ok)}.paper.editing .b.ed[data-m="1"]:focus{outline-color:var(--accent)}
+.paper.editing .tbl td:focus{outline:2px solid var(--accent);outline-offset:-2px}
 .grip{position:absolute;z-index:3;width:22px;height:30px;padding:0;border:0;border-radius:11px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--shadow-hi);animation:rise .24s var(--out) both}
 .quick{position:absolute;z-index:4;height:46px;padding:0 6px;border-radius:23px;background:var(--tip);color:var(--white);display:flex;align-items:center;white-space:nowrap;box-shadow:0 8px 22px var(--shadow-hi);animation:rise .24s var(--out) both}
 .quick button{height:40px;padding:0 12px;border:0;background:transparent;color:var(--white);font:600 13px var(--body);border-radius:12px}
@@ -68,13 +77,15 @@ a.lnk{color:var(--accent-text);text-decoration:underline}
   html.printing #pgDoc,html.printing .dc-body{display:block!important;height:auto!important;overflow:visible!important;background:var(--paper)!important;padding:0!important}
   html.printing .paper{box-shadow:none!important;border-radius:0!important;width:auto!important;zoom:1!important;padding:0!important;min-height:0!important;font-size:12pt!important;color:var(--paper-ink)!important;background:var(--paper)!important}
 }
-.b.lk.dr{display:block}.dr img{max-width:100%}.dr .chart svg{display:block;width:100%;height:auto}.b.lk.sb{height:0;border-top:1px dashed var(--paper-line);margin:var(--px-10) 0}
+.b.lk.dr{display:block}.dr img{max-width:100%}.dr .chart svg{display:block;width:100%;height:auto}.b.lk.sb[data-sbl]::after{content:attr(data-sbl);position:absolute;right:0;top:-9px;font:600 10px/1 var(--body);color:var(--muted);background:var(--paper);padding:0 6px}.b.lk.sb[data-sbl]{position:relative}
+.b.lk.sb{height:0;border-top:1px dashed var(--paper-line);margin:var(--px-10) 0}
 .tbl td[hidden]{display:none}
 
 /* the document as pages (page view) */
 .pgx{display:none;flex-direction:column;align-items:center;gap:var(--px-12);padding-bottom:var(--px-12)}.pgx.on{display:flex}
-.pgx-page{position:relative;flex:none;background:var(--paper);color:var(--paper-ink);box-shadow:0 2px 12px var(--shadow);overflow:hidden;font:400 14.67px/1.2 'Roboto',sans-serif}
+.pgx-page{position:relative;flex:none;background:var(--pgbg,var(--paper));color:var(--paper-ink);box-shadow:0 2px 12px var(--shadow);overflow:hidden;font:400 14.67px/1.2 'Roboto',sans-serif}
 .pgx-clip{position:absolute;overflow:hidden}
+.pgx-band{position:absolute}.pgx-flow.pgx-col{position:absolute;top:0}.pgx-sl{overflow:hidden}
 .pgx-flow{position:relative;column-fill:auto;font-size:var(--pg-fs);line-height:var(--pg-lh);overflow-wrap:anywhere}
 .pgx-flow .b{margin:0 0 var(--pg-after);min-height:0}.pgx-flow [data-pb="b"]{break-before:column}.pgx-flow [data-pb="a"]{break-after:column}
 .pgx-flow .tbl,.pgx-flow .imgp,.pgx-flow .dr{break-inside:avoid}.pgx-flow .b.tbl{overflow:visible}.pgx-flow .sb{display:none}.pgx-flow h1.b,.pgx-flow h2.b,.pgx-flow h3.b{break-after:avoid-column}
@@ -92,4 +103,45 @@ a.lnk{color:var(--accent-text);text-decoration:underline}
 /* the actions block (menu + Done) beside the rect in focus */
 .gcl{position:absolute;z-index:5;height:44px;border-radius:22px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;box-shadow:0 6px 18px var(--shadow-hi);animation:rise .24s var(--out) both}
 .gcl button{height:44px;border:0;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;gap:var(--px-6);font:600 14px var(--body)}
-.gc-m{width:44px;border-radius:22px 0 0 22px}.gc-d{padding:0 var(--px-14) 0 var(--px-10);border-radius:0 22px 22px 0;border-left:1px solid var(--accent-hi)}
+.gc-m{width:44px;border-radius:22px}.gc-d{padding:0 var(--px-14) 0 var(--px-10);border-radius:0 22px 22px 0;border-left:1px solid var(--accent-hi)}
+
+#paper:focus{outline:none}#paper[contenteditable="true"]{caret-color:var(--accent)}
+
+/* Print Layout while editing: sheets behind the text */
+.paper.paged{position:relative;background:transparent!important;box-shadow:none!important;border-radius:0}
+.paper.paged .b{position:relative;z-index:1}.paper.paged .b[data-pgp]{margin-top:var(--pgp)}
+.pgov{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:0;user-select:none}
+.pgs{position:absolute;left:0;right:0;background:var(--pgbg,var(--paper));box-shadow:0 0 0 1px rgba(21,23,28,.08),0 2px 6px rgba(21,23,28,.12),0 8px 24px var(--shadow)}
+.pgh,.pgf{position:absolute;left:0;width:100%;color:var(--paper-muted);font-size:.8em;line-height:1.3;z-index:1}.pgh p,.pgf p{margin:0}
+.pgsp{display:inline-block;width:0;vertical-align:bottom;pointer-events:none}
+
+/* Word's own fonts' look-alikes: the same letter widths, so lines break where they do in Word */
+@font-face{font-family:'Carlito';src:url('fonts/Carlito-Regular.woff') format('woff');font-weight:400;font-display:swap}
+@font-face{font-family:'Carlito';src:url('fonts/Carlito-Bold.woff') format('woff');font-weight:700;font-display:swap}
+@font-face{font-family:'Arimo';src:url('fonts/Arimo.woff') format('woff');font-weight:400 700;font-display:swap}
+@font-face{font-family:'Tinos';src:url('fonts/Tinos-Regular.woff') format('woff');font-weight:400;font-display:swap}
+@font-face{font-family:'Tinos';src:url('fonts/Tinos-Bold.woff') format('woff');font-weight:700;font-display:swap}
+@font-face{font-family:'Cousine';src:url('fonts/Cousine-Regular.woff') format('woff');font-weight:400;font-display:swap}
+@font-face{font-family:'Cousine';src:url('fonts/Cousine-Bold.woff') format('woff');font-weight:700;font-display:swap}
+@font-face{font-family:'Gelasio';src:url('fonts/Gelasio.woff') format('woff');font-weight:400 700;font-display:swap}
+/* the sheet while editing: paragraph spacing adds up as in Word (no margin collapsing); a style, not the app, sets how a heading looks */
+.paper.pgedit{display:flex;flex-direction:column;font-family:'Carlito','Calibri',sans-serif}
+.paper.pgedit h1.b,.paper.pgedit h2.b,.paper.pgedit h3.b{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;letter-spacing:0;color:inherit}
+.paper.pgedit .li{padding-left:1.6em}
+.paper.paged .b[data-pgp]{margin-top:var(--pgp)!important}
+/* tab boxes */
+span.tb{display:inline-block;white-space:pre;overflow:hidden;vertical-align:bottom;height:1.2em;line-height:1.2;color:transparent}
+span.tb[data-ld="hyphen"]{background:linear-gradient(90deg,var(--paper-muted) 60%,transparent 60%) 0 60%/6px 1px repeat-x}
+span.tb[data-ld="underscore"],span.tb[data-ld="heavy"]{border-bottom:1px solid var(--paper-muted)}
+span.tb[data-ld="dot"]{background:radial-gradient(circle,var(--paper-muted) .7px,transparent .8px) 0 80%/4px 4px repeat-x}
+.tbl td[hidden]{display:none}
+.tbl td.csel{background:var(--accent-soft)!important;outline:2px solid var(--accent);outline-offset:-2px}
+/* sections of different size: each block takes its section's offsets */
+.paper{--bml:0px;--bmr:0px;--sdl:0px;--sdr:0px}
+.paper.multi.pgedit .b{margin-left:calc(var(--bml,0px) + var(--sdl,0px))!important;margin-right:calc(var(--bmr,0px) + var(--sdr,0px))!important}
+.paper.multi .li[data-il="1"]{--bml:1.6em}.paper.multi .li[data-il="2"]{--bml:3.2em}.paper.multi .li[data-il="3"]{--bml:4.8em}
+.paper.rs-col .tbl td{cursor:col-resize}.paper.rs-row .tbl td{cursor:row-resize}
+.pgw{position:absolute;z-index:0;transform:translate(-50%,-50%) rotate(-40deg);white-space:nowrap;font-weight:700;font-family:Carlito,Calibri,sans-serif;color:var(--paper-line);opacity:.45;pointer-events:none;letter-spacing:.04em}
+.pgw.flat{transform:translate(-50%,-50%)}
+.pgb{position:absolute;z-index:0;box-sizing:border-box;border:1px solid var(--paper-ink);pointer-events:none}
+.pgx-bd{position:absolute;inset:32px;border:1px solid var(--paper-ink);pointer-events:none;z-index:0}

@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="style-edit.css">
   <link rel="stylesheet" href="style-sheets.css">
   <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="style-desk.css">
 </head>
 <body>
 <section class="page shell" data-page="home" id="pgHome">
@@ -22,6 +23,8 @@
 </section>
 <section class="page shell" data-page="doc" id="pgDoc" style="display:none">
   <header class="shell-top dc-top" id="docTop"></header>
+  <nav class="dk-menu" id="dkMenu" aria-label="Menu"></nav>
+  <div class="dk-bar" id="dkBar"></div>
   <div class="dc-main" id="dcMain">
     <aside class="dc-side" id="docSide" aria-label="Contents"></aside>
     <div class="shell-body dc-body" id="docBody"><div class="pw" id="pw"><article class="paper fit" id="paper"></article><div class="pgx" id="pages"></div></div><div class="pad"></div></div>
@@ -29,6 +32,7 @@
   <div class="dc-scrim" id="sideScrim"></div>
   <div class="shell-actions tbar hidden" id="docTools"></div>
   <div class="zoom" id="zoomBox"></div>
+  <footer class="dk-status" id="dkStatus"></footer>
 </section>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
@@ -41,6 +45,7 @@
 <script src="js/i18n/i18n.js"></script>
 <script src="js/views/ui.js"></script>
 <script src="js/views/ui-nav.js"></script>
+<script src="js/views/popmenu.js"></script>
 <script src="js/views/icons.js"></script>
 <script src="js/views/controls.js"></script>
 <script src="js/models/wide-mode.js"></script>
@@ -50,8 +55,12 @@
 <script src="js/models/chart-svg.js"></script>
 <script src="js/models/docx-rich.js"></script>
 <script src="js/models/docx-sect.js"></script>
+<script src="js/models/page-pack.js"></script>
 <script src="js/models/page-view.js"></script>
 <script src="js/models/thumb.js"></script>
+<script src="js/models/styles.js"></script>
+<script src="js/models/lists.js"></script>
+<script src="js/models/secs.js"></script>
 <script src="js/models/render.js"></script>
 <script src="js/models/plan.js"></script>
 <script src="js/views/home-view.js"></script>
@@ -61,6 +70,7 @@
 <script src="js/viewmodels/doc-vm.js"></script>
 <script src="js/viewmodels/edit-vm.js"></script>
 <script src="js/viewmodels/struct-vm.js"></script>
+<script src="js/viewmodels/surface-vm.js"></script>
 <script src="js/viewmodels/read-vm.js"></script>
 <script src="js/viewmodels/find-vm.js"></script>
 <script src="js/viewmodels/layout-vm.js"></script>
@@ -68,6 +78,29 @@
 <script src="js/viewmodels/insert-vm.js"></script>
 <script src="js/viewmodels/table-vm.js"></script>
 <script src="js/viewmodels/wide-vm.js"></script>
+<script src="js/viewmodels/para-vm.js"></script>
+<script src="js/viewmodels/list-vm.js"></script>
+<script src="js/viewmodels/tabs-vm.js"></script>
+<script src="js/viewmodels/paginate-vm.js"></script>
+<script src="js/viewmodels/desk-vm.js"></script>
+<script src="js/viewmodels/keys-vm.js"></script>
+<script src="js/viewmodels/ctx-vm.js"></script>
+<script src="js/viewmodels/float-vm.js"></script>
+<script src="js/viewmodels/ruler-vm.js"></script>
+<script src="js/viewmodels/ribbon-vm.js"></script>
+<script src="js/viewmodels/titlebar-vm.js"></script>
+<script src="js/viewmodels/backstage-vm.js"></script>
+<script src="js/viewmodels/setup-vm.js"></script>
+<script src="js/viewmodels/toc-vm.js"></script>
+<script src="js/viewmodels/hf-vm.js"></script>
+<script src="js/viewmodels/review-vm.js"></script>
+<script src="js/viewmodels/pic-vm.js"></script>
+<script src="js/viewmodels/extras-vm.js"></script>
+<script src="js/viewmodels/eq-vm.js"></script>
+<script src="js/viewmodels/shape-vm.js"></script>
+<script src="js/viewmodels/shape-drag-vm.js"></script>
+<script src="js/viewmodels/sectbreak-vm.js"></script>
+<script src="js/viewmodels/bm-vm.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

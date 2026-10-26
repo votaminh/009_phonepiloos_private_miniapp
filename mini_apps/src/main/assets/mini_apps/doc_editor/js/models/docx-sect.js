@@ -37,25 +37,28 @@
         if (s2) { var a = num(s2, 'after', null), l = num(s2, 'line', null); if (a !== null) out.base.after = a / 20; if (l !== null) out.base.line = l / 240; }
         else if (sp) { /* defaults without a Normal override */ }
       }
-      async function part(ref) { if (!ref) return ''; var p = relOf(ref.getAttribute('r:id')); if (!p) return ''; var t = await z.text(p); return t ? hfHtml(xml(t)) : ''; }
+      var sset = await z.text('word/settings.xml'); out.evenOdd = !!sset && /<w:evenAndOddHeaders(?![\w:-])(?![^>]*w:val="(?:0|false|off)")/.test(sset);
+      var wmFound = ''; async function part(ref) { if (!ref) return ''; var p = relOf(ref.getAttribute('r:id')); if (!p) return ''; var t = await z.text(p); if (t && !wmFound) { var mw = /<v:textpath[^>]*\sstring="([^"]*)"/.exec(t); if (mw) { wmFound = mw[1]; var sh = /<v:shape\b[^>]*>/.exec(t), fl = /<v:fill\b[^>]*opacity="([^"]*)"/.exec(t), fc = sh && /fillcolor="#?([0-9A-Fa-f]{6}|silver)"/.exec(sh[0]); out.wmSpec = { colorHex: fc ? (fc[1] === 'silver' ? 'C0C0C0' : fc[1].toUpperCase()) : 'C0C0C0', opacity: fl ? (/f$/.test(fl[1]) ? parseInt(fl[1], 10) / 65536 : parseFloat(fl[1])) : 0.5, diagonal: !sh || /rotation:\s*3\d\d/.test(sh[0]) }; } } return t ? hfHtml(xml(t)) : ''; }
       async function sect(sp, end) {
         var sz = kid(sp, 'pgSz'), mg = kid(sp, 'pgMar'), co = kids(sp, 'cols').pop(), o = {
           end: end, w: num(sz, 'w', 11906), h: num(sz, 'h', 16838), t: num(mg, 'top', 1440), r: num(mg, 'right', 1440), b: num(mg, 'bottom', 1440), l: num(mg, 'left', 1440), hd: num(mg, 'header', 720), ft: num(mg, 'footer', 720),
-          cols: num(co, 'num', 1), space: num(co, 'space', 720), title: !!kid(sp, 'titlePg'), hdr: {}, ftr: {}
+          pgStart: (function (n) { return n && n.getAttribute('w:start') !== null ? +n.getAttribute('w:start') : null; })(kid(sp, 'pgNumType')), pgFmt: (function (n) { return (n && n.getAttribute('w:fmt')) || 'decimal'; })(kid(sp, 'pgNumType')),
+          cols: num(co, 'num', 1), space: num(co, 'space', 720), border: !!kid(sp, 'pgBorders'), title: !!kid(sp, 'titlePg'), kind: (kid(sp, 'type') || { getAttribute: function () { return 'nextPage'; } }).getAttribute('w:val') || 'nextPage', hdr: {}, ftr: {}
         };
         if (sz && sz.getAttribute('w:orient') === 'landscape' && o.w < o.h) { var q = o.w; o.w = o.h; o.h = q; }
         var refs = kids(sp, 'headerReference'), fr = kids(sp, 'footerReference'), k;
         for (k = 0; k < refs.length; k++) o.hdr[refs[k].getAttribute('w:type') || 'default'] = await part(refs[k]);
         for (k = 0; k < fr.length; k++) o.ftr[fr[k].getAttribute('w:type') || 'default'] = await part(fr[k]);
-        return o;
+        o.wm = wmFound; return o;
       }
       for (i = 0; i < items.length; i++) {
         var pr = items[i].localName === 'p' ? kid(items[i], 'pPr') : null, sp = pr && kid(pr, 'sectPr');
         if (sp) out.sects.push(await sect(sp, i));
       }
+      var bgEl = body && body.parentNode && kid(body.parentNode, 'background'), bgc = bgEl && bgEl.getAttribute('w:color'); out.bg = bgc && /^[0-9A-Fa-f]{6}$/.test(bgc) ? bgc.toUpperCase() : null;
       var last = kid(body, 'sectPr'); out.sects.push(await sect(last, Infinity));
       // a section that names no header or footer carries the one before it
-      out.sects.forEach(function (s, k) { if (k) ['hdr', 'ftr'].forEach(function (w) { ['default', 'first'].forEach(function (ty) { if (s[w][ty] === undefined && out.sects[k - 1][w][ty] !== undefined) s[w][ty] = out.sects[k - 1][w][ty]; }); }); });
+      out.sects.forEach(function (s, k) { if (k) ['hdr', 'ftr'].forEach(function (w) { ['default', 'first', 'even'].forEach(function (ty) { if (s[w][ty] === undefined && out.sects[k - 1][w][ty] !== undefined) s[w][ty] = out.sects[k - 1][w][ty]; }); }); });
       return out;
     }
   };

@@ -5,9 +5,11 @@
   var Edit = window.Edit = {};
   function cur() { var s = getSelection(); if (!s.rangeCount) return null; var n = s.anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n); return el && el.closest ? el.closest('#paper .b.ed') : null; }
   Edit.block = cur;
+  // the paragraphs the selection touches are marked as changed (walks only from the first to the last, not the whole page)
   function mark() {
-    var s = getSelection(), p = Doc.paper();
-    Array.prototype.forEach.call(p.querySelectorAll('.b.ed'), function (el) { if (s.rangeCount && s.containsNode(el, true)) el.dataset.m = '1'; });
+    var s = getSelection(); if (!s.rangeCount) return; var r = s.getRangeAt(0), up = function (n) { var el = n && (n.nodeType === 3 ? n.parentElement : n); return el && el.closest ? el.closest('#paper > .b') : null; };
+    var a = up(r.startContainer), z = s.isCollapsed ? a : up(r.endContainer); if (!a) return;
+    for (var el = a; el; el = el.nextElementSibling) { if (el.classList.contains('ed')) el.dataset.m = '1'; if (el === z) break; }
   }
   Edit.mark = mark;
   Edit.cmd = function (name, arg, whole) {
@@ -21,6 +23,7 @@
 
   // ---- the bar --------------------------------------------------------------------------------------------------------------
   Edit.buildTools = function () {
+    if (window.Wide && Wide.pc) { if (window.Desk) Desk.bar(); return; }
     var el = $('docTools');
     el.innerHTML = '<div id="tlTabs"></div><div id="tlBody"></div>';
     Edit.tab(Doc.tab || 'text', true);
@@ -66,6 +69,7 @@
     var now = sz ? px2pt(getComputedStyle(sz).fontSize) : 11, next = to || Math.max(6, Math.min(72, Math.round(now) + delta));
     document.execCommand('styleWithCSS', false, true); document.execCommand('fontSize', false, '7');
     Array.prototype.forEach.call(Doc.paper().querySelectorAll('font[size="7"]'), function (f) { var sp = document.createElement('span'); sp.style.fontSize = next + 'pt'; while (f.firstChild) sp.appendChild(f.firstChild); f.parentNode.replaceChild(sp, f); });
+    Array.prototype.forEach.call(Doc.paper().querySelectorAll('span[style*="xxx-large"]'), function (sp) { sp.style.fontSize = next + 'pt'; });
     mark(); Doc.touch(); Edit.sync(); var fs = $('foSize'); if (fs) fs.textContent = next;
   }
   A['e-smaller'] = function () { resize(-1); }; A['e-larger'] = function () { resize(1); };
@@ -125,6 +129,5 @@
   };
   A['l-remove'] = function () { Ui.closeSheet(); withRange(function () { var n = getSelection().anchorNode, a = n && (n.nodeType === 3 ? n.parentElement : n).closest('a.lnk'); if (a) { while (a.firstChild) a.parentNode.insertBefore(a.firstChild, a); a.remove(); } mark(); Doc.touch(); }); };
 
-  // paste as plain text and keep Return for the structure module
-  $('paper').addEventListener('paste', function (e) { var b = cur(); if (!b) return; e.preventDefault(); var tx = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\s*\n\s*/g, ' '); document.execCommand('insertText', false, tx); });
+  // paste is decided in surface-vm.js
 })();
