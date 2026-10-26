@@ -24,7 +24,11 @@
   document.addEventListener('selectionchange', function () { log('selchange', true); });
   document.addEventListener('pointerdown', function (e) { log('pdown ' + Math.round(e.clientX) + ',' + Math.round(e.clientY) + ' ' + (e.target.className || e.target.tagName) + ' ' + (e.pointerType || '')); }, true);
   document.addEventListener('pointerup', function () { log('pup'); }, true);
-  document.addEventListener('scroll', function (e) { var n = performance.now(); if (n - lastScroll < 100) return; lastScroll = n; log('scroll ' + (e.target.id || e.target.className || 'doc')); }, true);
+  document.addEventListener('scroll', function (e) { var n = performance.now(); frames(); if (n - lastScroll < 100) return; lastScroll = n; log('scroll ' + (e.target.id || e.target.className || 'doc')); }, true);
+  // while the page is moving, a frame that took more than 50 ms is a flicker: it is written down
+  var watching = false, lastF = 0, stopAt = 0;
+  function frames() { stopAt = performance.now() + 400; if (watching) return; watching = true; lastF = performance.now(); requestAnimationFrame(tick); }
+  function tick(n) { var d = n - lastF; lastF = n; if (d > 50) log('slow frame ' + Math.round(d) + 'ms'); if (n < stopAt) requestAnimationFrame(tick); else watching = false; }
   window.addEventListener('error', function (e) { log('ERROR ' + e.message + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno); });
   window.addEventListener('unhandledrejection', function (e) { log('REJECTION ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); });
   log('log started', true);

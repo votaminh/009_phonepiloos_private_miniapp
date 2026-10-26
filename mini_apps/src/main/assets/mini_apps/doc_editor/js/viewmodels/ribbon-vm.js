@@ -48,6 +48,9 @@
         + sep() + g('picfmt', b('pic-rot', '&#8634;', t('pic.rotl'), { data: ' data-d="-90"', cls: 'tx2' }) + b('pic-rot', '&#8635;', t('pic.rotr'), { data: ' data-d="90"', cls: 'tx2' }) + b('pic-crop', ic('pages', 26, 1.7) + '<span>' + esc(t('pic.crop')) + '</span>', t('pic.crop'), { cls: 'big' }) + b('pic-wrap', ic('indent', 26, 1.7) + '<span>' + esc(t('pic.wrap')) + '</span>', t('pic.wrap'), { cls: 'big' }))
         + sep() + g('picdel', icb('pic-del', 'trash', t('g.del'), { big: true }));
     },
+    shape: function () {
+      return g('shpg', b('shp-edit', ic('edit', 26, 1.7) + '<span>' + esc(t('a.edit')) + '</span>', t('a.edit'), { cls: 'big' })) + sep() + g('picdel', icb('shp-del', 'trash', t('g.del'), { big: true }));
+    },
     table: function () {
       var T = function (a, ico, k) { return icb(a, ico, t(k), { big: true }); };
       return g('rowscols', T('t-rowa', 'rowabove', 'tb.rowa') + T('t-rowb', 'rowbelow', 'tb.rowb') + T('t-cola', 'colleft', 'tb.cola') + T('t-colb', 'colright', 'tb.colb') + T('t-delrow', 'delrow', 'tb.delrow') + T('t-delcol', 'delcol', 'tb.delcol'))
@@ -63,9 +66,13 @@
       var pg = Store.prefs().layout === 'page';
       return g('views', b('r-layout', ic('pages', 26, 1.7) + '<span>' + esc(t('w.pages')) + '</span>', t('w.pages'), { cls: 'big' + (pg ? ' on' : ''), data: ' data-k="page"' }) + b('r-layout', ic('reflow', 26, 1.7) + '<span>' + esc(t('w.wrap')) + '</span>', t('w.wrap'), { cls: 'big' + (!pg ? ' on' : ''), data: ' data-k="fit"' }))
         + sep() + g('zoom', icb('z-in', 'plus', t('w.zin'), { big: true }) + icb('z-out', 'minus', t('w.zout'), { big: true }) + b('z-fit', ic('viewgrid', 26, 1.7) + '<span>' + esc(t('w.fit')) + '</span>', t('w.fit'), { cls: 'big' }))
-        + sep() + g('show', b('sd-toggle', ic('viewlist', 26, 1.7) + '<span>' + esc(t('o.title')) + '</span>', t('o.title'), { cls: 'big' }));
+        + sep() + g('show', (Wide.pc ? b('sd-toggle', ic('viewlist', 26, 1.7) + '<span>' + esc(t('o.title')) + '</span>', t('o.title'), { cls: 'big' }) : b('m-contents', ic('viewlist', 26, 1.7) + '<span>' + esc(t('o.title')) + '</span>', t('o.title'), { cls: 'big' })));
     }
   };
+  // a picked shape: edit (the same dialog as a double click) or delete
+  function pickedShape() { return Doc.paper().querySelector('.b.shp.sel'); }
+  A['shp-edit'] = function () { var s = pickedShape(); if (s && window.Shape) Shape.edit(s); };
+  A['shp-del'] = function () { var s = pickedShape(); if (!s) return; var nx = s.nextElementSibling; s.remove(); Doc.snap(); Doc.dirty = true; Doc.touch(); Doc.chrome(); if (window.Paginate) Paginate.schedule(0); if (window.Struct) Struct.hide(); if (nx && nx.focus) nx.focus(); };
   A['q-cut'] = function () { Surface.focus(); document.execCommand('cut'); Edit.mark(); Doc.touch(); };
   A['q-copy'] = function () { Surface.focus(); document.execCommand('copy'); };
   A['d-words'] = function () { Desk.words(); };
@@ -93,6 +100,7 @@
     }, 0);
   });
   R.render = function () {
+    if (!Wide.pc) return R.phone();
     var host = $('dkBar'); if (!host) return;
     if (!Wide.pc || !Doc.rec || !Doc.blocks) { host.innerHTML = ''; host.classList.remove('on'); return; }
     host.classList.add('on', 'rib');
@@ -101,7 +109,7 @@
     if (edit) Edit.sync(); R.sync();
   };
   // a tab that appears with what is picked: Table when the caret is in a cell, Picture when a picture added in this session is picked
-  function ctx() { if (!Wide.pc || Doc.mode !== 'edit') return ''; if (window.Table && (Table.cell() || Table.selection())) return 'table'; var p = Doc.paper().querySelector('.b.imgp.sel'); return p && (Doc.pics[p.dataset.n] || p.dataset.src !== undefined) ? 'picture' : ''; }
+  function ctx() { if (Doc.mode !== 'edit') return ''; if (pickedShape()) return 'shape'; if (window.Table && (Table.cell() || Table.selection())) return 'table'; var p = Doc.paper().querySelector('.b.imgp.sel'); return p && (Doc.pics[p.dataset.n] || p.dataset.src !== undefined) ? 'picture' : ''; }
   R.ctx = ctx;
   function tabsNow() { var c = ctx(); return c ? R.tabs.concat([c]) : R.tabs; }
   R.menu = function () {
@@ -114,19 +122,21 @@
     Array.prototype.forEach.call(cur.children, function (x) { x.classList.toggle('on', x.dataset.id === id); });
   };
   R.go = function (k) { R.tab = k; R.menu(); R.render(); };
+  // the phone and the touch tablet have their own bottom bar (dock-vm.js)
+  R.phone = function () { if (window.Dock) Dock.render(); };
 
   // the ribbon replaces the menu bar and the strip
   Desk.chrome = function () { if (!Wide.pc) return; R.menu(); Desk.status(); };
   Desk.bar = function () { R.render(); };
   document.addEventListener('click', function (e) { var x = e.target.closest && e.target.closest('[data-rt]'); if (x) { e.preventDefault(); R.go(x.dataset.rt); } });
   document.addEventListener('selectionchange', function () {
-    if (!Wide.pc || Doc.mode !== 'edit') return; clearTimeout(R.t);
+    if (Doc.mode !== 'edit') return; clearTimeout(R.t);
     R.t = setTimeout(R.follow, 60);
   });
   // the contextual tab follows what is picked
   R.follow = function () {
     var c = ctx(); if (c !== (R.cur || '')) { if (c) { if (!R.cur) R.back = R.tab; R.tab = c; } else if (R.tab === R.cur) R.tab = R.back || 'home'; R.cur = c; R.menu(); R.render(); } R.sync();
   };
-  document.addEventListener('click', function () { if (Wide.pc && Doc.mode === 'edit') setTimeout(R.follow, 30); });
+  document.addEventListener('click', function () { if (Doc.mode === 'edit') setTimeout(R.follow, 30); });
   if (Wide.pc && Doc.rec) { R.menu(); }
 })();

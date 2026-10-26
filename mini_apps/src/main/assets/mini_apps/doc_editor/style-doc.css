@@ -66,7 +66,7 @@ a.lnk{color:var(--accent-text);text-decoration:underline}
 .paper.editing .b.lk{cursor:default}.paper.editing .b.lk.sel{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 .paper.editing .tbl td:focus{outline:2px solid var(--accent);outline-offset:-2px}
 .grip{position:absolute;z-index:3;width:22px;height:30px;padding:0;border:0;border-radius:11px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--shadow-hi);animation:rise .24s var(--out) both}
-.quick{transition:left .2s var(--out),top .2s var(--out);position:absolute;z-index:4;height:46px;padding:0 6px;border-radius:23px;background:var(--tip);color:var(--white);display:flex;align-items:center;white-space:nowrap;box-shadow:0 8px 22px var(--shadow-hi);animation:rise .24s var(--out) both}
+.quick{transition:left .2s var(--out),top .2s var(--out),opacity .15s;position:absolute;z-index:4;height:46px;padding:0 6px;border-radius:23px;background:var(--tip);color:var(--white);display:flex;align-items:center;white-space:nowrap;box-shadow:0 8px 22px var(--shadow-hi);animation:rise .24s var(--out) both}
 .quick button{height:40px;padding:0 12px;border:0;background:transparent;color:var(--white);font:600 13px var(--body);border-radius:12px}
 .quick .sq{width:36px;height:36px;padding:0;border-radius:10px;font-size:15px}.quick .sq.on{background:var(--accent)}
 .quick i{width:1px;height:22px;background:var(--ink-soft);margin:0 4px}
@@ -148,3 +148,4 @@ span.tb[data-ld="dot"]{background:radial-gradient(circle,var(--paper-muted) .7px
 img.mf{vertical-align:middle;display:inline-block}.b.obj{line-height:1.9}
 
 .b.obj{white-space:pre-wrap}
+.gcl,.quick{transition:opacity .15s}.gcl.moving,.quick.moving{opacity:0;pointer-events:none}

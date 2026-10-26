@@ -24,6 +24,7 @@
   // ---- the bar --------------------------------------------------------------------------------------------------------------
   Edit.buildTools = function () {
     if (window.Wide && Wide.pc) { if (window.Desk) Desk.bar(); return; }
+    if (window.Ribbon) { Ribbon.phone(); return; }   // the touch layout shows the same ribbon as a dock
     var el = $('docTools');
     el.innerHTML = '<div id="tlTabs"></div><div id="tlBody"></div>';
     Edit.tab(Doc.tab || 'text', true);

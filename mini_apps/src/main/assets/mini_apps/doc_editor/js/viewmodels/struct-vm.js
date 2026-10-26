@@ -91,7 +91,13 @@
     quick.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     grip.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     var raf = 0; function again() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }
-    $('docBody').addEventListener('scroll', function () { again(); placeQuick(); }, { passive: true }); window.addEventListener('resize', function () { again(); placeQuick(); });
+    // while the page moves under the finger the block and the bar step aside (they come back where they belong when it stops): placing them on every frame made them flicker and cost a layout per frame
+    var idle = 0;
+    $('docBody').addEventListener('scroll', function () {
+      grip.classList.add('moving'); quick.classList.add('moving'); clearTimeout(idle);
+      idle = setTimeout(function () { grip.classList.remove('moving'); quick.classList.remove('moving'); place(); placeQuick(); }, 150);
+    }, { passive: true });
+    window.addEventListener('resize', function () { again(); placeQuick(); });
   }
   function clearSel() { Array.prototype.forEach.call(Doc.paper().querySelectorAll('.b.lk.sel'), function (el) { el.classList.remove('sel'); }); }
   // the block goes above the rect, right edges aligned; below it when there is no room above (or the quick bar is there); inside its top corner when the rect fills the screen
