@@ -66,20 +66,26 @@
 
   // ---- paragraphs with a formula (an OLE object whose picture is a WMF/EMF): the text and, in its place, the picture; the picture is made when it comes into view (Mf)
   var BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  // a paragraph of plain runs and formulas can be edited in place (the text between the formulas; the formulas stay as atoms); anything else in it (links, fields, tracked changes, other drawings) keeps it locked
+  var PLAIN_P = { pPr: 1, r: 1, bookmarkStart: 1, bookmarkEnd: 1, proofErr: 1 }, PLAIN_R = { rPr: 1, t: 1, tab: 1, br: 1, object: 1, lastRenderedPageBreak: 1 };
+  function plainPara(p) {
+    return kids(p).every(function (c) { return PLAIN_P[c.localName] && (c.localName !== 'r' || (kids(c).every(function (x) { return PLAIN_R[x.localName]; }) && all(c, 'object').length <= 1)); });
+  }
   function objectHtml(p, ctx, b) {
     var runs = []; kids(p).forEach(function (c) { if (c.localName === 'r') runs.push(c); else if (c.localName === 'hyperlink') kids(c, 'r').forEach(function (r) { runs.push(r); }); });
-    var out = '', any = false;
+    var out = '', any = false, oi = 0, edit = plainPara(p);
     runs.forEach(function (r) {
       var obj = all(r, 'object')[0]; if (!obj) { out += runHtml(r); return; }
       var shape = all(obj, 'shape')[0], st = (shape && shape.getAttribute('style')) || '', im = all(obj, 'imagedata')[0], id = im && (im.getAttribute('r:id') || im.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id')), part = id && ctx.part(id);
-      var wm = /(?:^|;)\s*width:\s*([\d.]+)pt/.exec(st), hm = /(?:^|;)\s*height:\s*([\d.]+)pt/.exec(st);
+      var wm = /(?:^|;)\s*width:\s*([\d.]+)pt/.exec(st), hm = /(?:^|;)\s*height:\s*([\d.]+)pt/.exec(st), at = oi++;
       var w = wm ? +wm[1] * 4 / 3 : (+obj.getAttribute('w:dxaOrig') || 0) / 15, h = hm ? +hm[1] * 4 / 3 : (+obj.getAttribute('w:dyaOrig') || 0) / 15;
-      if (!part || !/\.(wmf|emf)$/i.test(part) || !w || !h) { out += '<span class="pt">' + esc(b.label || 'Object') + '</span>'; return; }
-      any = true; out += '<img class="mf" data-mf="' + esc(part) + '" src="' + BLANK + '" style="width:' + Math.round(w * 10) / 10 + 'px;height:' + Math.round(h * 10) / 10 + 'px" alt="">';
+      if (!part || !/\.(wmf|emf)$/i.test(part) || !w || !h) { edit = false; out += '<span class="pt">' + esc(b.label || 'Object') + '</span>'; return; }
+      any = true; out += '<img class="mf" data-mf="' + esc(part) + '" data-oi="' + at + '" contenteditable="false" src="' + BLANK + '" style="width:' + Math.round(w * 10) / 10 + 'px;height:' + Math.round(h * 10) / 10 + 'px" alt="">';
     });
     if (!any) return '';
-    var jc = JC[wv(kid(p, 'pPr'), 'jc')] || '';
-    return '<p class="b lk obj" data-t="x" data-src="' + b.idx + '"' + (jc ? ' style="text-align:' + jc + '"' : '') + '>' + (out || '<br>') + '</p>';
+    var jc = JC[wv(kid(p, 'pPr'), 'jc')] || '', st2 = jc ? ' style="text-align:' + jc + '"' : '';
+    if (edit) return '<p class="b ed obj" data-t="p" data-eqp="1" data-src="' + b.idx + '"' + st2 + '>' + (out || '<br data-ph>') + '</p>';
+    return '<p class="b lk obj" data-t="x" data-src="' + b.idx + '"' + st2 + '>' + (out || '<br>') + '</p>';
   }
 
   window.DocRich = {

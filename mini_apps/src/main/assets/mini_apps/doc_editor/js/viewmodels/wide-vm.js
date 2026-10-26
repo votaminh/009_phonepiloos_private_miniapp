@@ -51,7 +51,10 @@
   var chrome0 = Doc.chrome, apply0 = Read.apply, tq = 0;
   Doc.chrome = function () { chrome0.apply(this, arguments); clearTimeout(tq); tq = setTimeout(function () { render(); label(); }, 250); };
   Read.apply = function () { apply0.apply(this, arguments); label(); sig = ''; clearTimeout(tq); tq = setTimeout(render, 250); };
-  Wd.on(function () {
+  var lastW = window.innerWidth;
+  Wd.on(function (changed) {
+    var wpx = window.innerWidth, same = wpx === lastW; lastW = wpx;
+    if (!changed && same) return;   // the keyboard of a phone only changes the height of the window: the zoom, the place in the page and the selection stay (a new width, a turned phone, still refits the page)
     close(); sig = '';
     if (App.state.page === 'home') App.renderHome(); else if (Doc.rec) { Read.pz = 0; Read.apply(); Doc.chrome(); }
   });

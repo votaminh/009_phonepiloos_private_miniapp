@@ -91,7 +91,7 @@
     quick.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     grip.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     var raf = 0; function again() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }
-    $('docBody').addEventListener('scroll', again, { passive: true }); window.addEventListener('resize', again);
+    $('docBody').addEventListener('scroll', function () { again(); placeQuick(); }, { passive: true }); window.addEventListener('resize', function () { again(); placeQuick(); });
   }
   function clearSel() { Array.prototype.forEach.call(Doc.paper().querySelectorAll('.b.lk.sel'), function (el) { el.classList.remove('sel'); }); }
   // the block goes above the rect, right edges aligned; below it when there is no room above (or the quick bar is there); inside its top corner when the rect fills the screen
@@ -103,17 +103,31 @@
     if (qv && below + h <= vis.bottom - M) y = below; else if (above >= vis.top + M) y = above; else if (below + h <= vis.bottom - M) y = below; else y = Math.max(vis.top + M, Math.min(vis.bottom - h - M, r.top + 6));
     grip.style.left = (x - pw.left) + 'px'; grip.style.top = (y - pw.top) + 'px';
   }
-  // called when the caret moves: the actions block sits by the paragraph in focus, the quick bar above a selection
+  // the quick bar of a selection: the phone's own menu (Cut, Copy, Paste) and the handles of the selection are above and just under the words, so the bar goes below the handles;
+  // when that is out of the screen (the keyboard) it goes to the top of the page area, never over the words
+  var quickAt = null, quickNew = true;
+  function placeQuick() {
+    if (!quickAt || !quick || quick.classList.contains('hidden')) return;
+    var pw = $('pw').getBoundingClientRect(), vis = $('docBody').getBoundingClientRect(), q = quickAt.getBoundingClientRect(), w = quick.offsetWidth, h = quick.offsetHeight || 46;
+    if (!q.width && !q.height) { quick.classList.add('hidden'); return; }
+    var y = q.bottom + 64; if (y + h > vis.bottom - 6) y = q.top - h - 70; if (y < vis.top + 6) y = vis.top + 8;
+    var x = Math.max(vis.left + 6, Math.min(vis.right - w - 6, q.left + q.width / 2 - w / 2));   // inside what is on screen (the page can be wider than the screen when zoomed)
+    var fresh = quickNew; quickNew = false;
+    if (fresh) quick.style.transition = 'none';   // the first place is taken at once; after that the bar glides to each new place
+    quick.style.left = (x - pw.left) + 'px'; quick.style.top = (y - pw.top) + 'px';
+    if (fresh) { void quick.offsetWidth; requestAnimationFrame(function () { quick.style.transition = ''; }); }
+  }
+  Struct.placeQuick = placeQuick;
+  // called when the caret moves: the actions block sits by the paragraph in focus, the quick bar near a selection
   Struct.follow = function (b) {
     ensure(); if (Doc.mode !== 'edit') { Struct.hide(); return; }
     gripFor = b; clearSel(); grip.classList.remove('hidden');
     var pw = $('pw').getBoundingClientRect(), s = getSelection(), r = s.rangeCount ? s.getRangeAt(0) : null;
     if (r && !r.collapsed && b.contains(r.startContainer)) {
       quick.innerHTML = SheetsView.quick(document.queryCommandState('bold'));
-      var q = r.getBoundingClientRect(), top = q.top - pw.top - 54; quick.classList.remove('hidden');
-      var w = quick.offsetWidth, left = Math.max(4, Math.min(pw.width - w - 4, q.left - pw.left + q.width / 2 - w / 2));
-      quick.style.left = left + 'px'; quick.style.top = (top < 0 ? q.bottom - pw.top + 18 : top) + 'px';
-    } else quick.classList.add('hidden');
+      if (quick.classList.contains('hidden')) quickNew = true;
+      quick.classList.remove("hidden"); quickAt = r.cloneRange(); placeQuick();
+    } else { quick.classList.add('hidden'); quickAt = null; }
     place();
   };
   // a read-only block (table of contents, picture, chart, divider...) is picked by a tap: it gets the same block, with fewer actions

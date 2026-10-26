@@ -133,11 +133,12 @@
       return;
     }
     if (!b) return;
+    if (b.dataset.eqp && (ty === 'insertParagraph' || (ty === 'deleteContentBackward' && atStart(b)) || (ty === 'deleteContentForward' && atEnd(b)))) { e.preventDefault(); return; }   // a paragraph with formulas is not split or joined here
     if (ty === 'insertParagraph') { e.preventDefault(); Struct.split(b); }
     else if (ty === 'deleteContentBackward' && atStart(b)) { e.preventDefault(); Struct.back(b); }
     else if (ty === 'deleteContentForward' && atEnd(b)) { e.preventDefault(); Struct.forward(b); }
   });
-  paper().addEventListener('paste', function (e) { if (Doc.mode !== 'edit') return; var r = S.range(); if (!r || !Edit.block() && !(r && !r.collapsed)) return; e.preventDefault(); S.paste(e.clipboardData || window.clipboardData); });
+  paper().addEventListener('paste', function (e) { if (Doc.mode !== 'edit') return; var cb = Edit.block(); if (cb && cb.dataset.eqp) { e.preventDefault(); document.execCommand('insertText', false, ((e.clipboardData || window.clipboardData).getData('text/plain') || '').replace(/\s*\n\s*/g, ' ')); return; } var r = S.range(); if (!r || !Edit.block() && !(r && !r.collapsed)) return; e.preventDefault(); S.paste(e.clipboardData || window.clipboardData); });
   // a letter composed with an input method over a selection of several paragraphs: the selection goes first
   paper().addEventListener('compositionstart', function () { if (Doc.mode !== 'edit') return; var r = S.range(); if (r && !r.collapsed && spans(r)) S.deleteRange(r); });
   // anything the browser did inside the page: every block touched is marked; a stray node is wrapped; the history is told

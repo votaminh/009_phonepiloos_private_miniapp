@@ -55,6 +55,19 @@
     if (out.length) out[out.length - 1].t = out[out.length - 1].t.replace(/\n+$/, '');
     return out.filter(function (r) { return r.t !== ''; });
   }
+  // the text of a paragraph with formulas, in order: { s } between the formulas and { a } for each formula still in it
+  function eqParts(el) {
+    var parts = [{ s: '' }];
+    function add(t) { parts[parts.length - 1].s += t; }
+    (function walk(n) {
+      if (n.nodeType === 3) { add(n.nodeValue.replace(/\u00a0/g, ' ')); return; }
+      if (n.nodeType !== 1 || (n.classList && n.classList.contains('pgsp'))) return;
+      if (n.tagName === 'IMG' && n.dataset.oi !== undefined) { parts.push({ a: +n.dataset.oi }); parts.push({ s: '' }); return; }
+      if (n.tagName === 'BR') { if (!n.hasAttribute('data-ph')) add('\n'); return; }
+      Array.prototype.forEach.call(n.childNodes, walk);
+    })(el);
+    return parts;
+  }
   window.Plan = {
     extract: extract,
     // root: the element that holds the blocks; xmls: { n: '<w:p>…' } for blocks made in this session (table, divider, page break); pics: { n: { buf, mime, w, h } }
@@ -72,6 +85,7 @@
           return;
         }
         if (src !== undefined && !el.dataset.m) { blocks.push({ o: src }); return; }
+        if (src !== undefined && el.dataset.eqp) { blocks.push({ eqp: { o: src, parts: eqParts(el) } }); return; }   // a paragraph with formulas: only the text between them is written
         var t = el.dataset.t, g = { type: t === 'h' ? 'heading' : t === 'l' ? 'listItem' : 'paragraph', runs: extract(el) };
         if (t === 'h') g.level = +el.dataset.lv || 1;
         if (t === 'l') g.list = { kind: el.dataset.k || 'bullet', ilvl: +el.dataset.il || 0, numId: el.dataset.nid || undefined };
