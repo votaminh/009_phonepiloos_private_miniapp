@@ -62,6 +62,7 @@
   Doc.render = async function (buf, keepScroll) {
     var copy = buf.slice(0); Doc.zbuf = buf.slice(0); var r = await DocSvc.open(buf), p = Doc.paper(), body = $('docBody'), y = keepScroll ? body.scrollTop : 0;
     Styles.load(r.styles, r.defaults);
+    if (window.Mf) Mf.reset();
     await DocRich.load(copy, r.blocks);
     p.innerHTML = Render.all(r.blocks) || '<p class="dc-load">' + Ui.esc(t('d.empty')) + '</p>';
     Doc.blocks = r.blocks; Doc.bmap = {}; r.blocks.forEach(function (b) { Doc.bmap[b.idx] = b; }); Doc.words = (p.textContent.trim().match(/\S+/g) || []).length; Doc.ms = r.ms;

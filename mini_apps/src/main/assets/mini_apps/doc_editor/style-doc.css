@@ -82,8 +82,8 @@ a.lnk{color:var(--accent-text);text-decoration:underline}
 .tbl td[hidden]{display:none}
 
 /* the document as pages (page view) */
-.pgx{display:none;flex-direction:column;align-items:center;gap:var(--px-12);padding-bottom:var(--px-12)}.pgx.on{display:flex}
-.pgx-page{position:relative;flex:none;background:var(--pgbg,var(--paper));color:var(--paper-ink);box-shadow:0 2px 12px var(--shadow);overflow:hidden;font:400 14.67px/1.2 'Roboto',sans-serif}
+.pgx{display:none;flex-direction:column;align-items:flex-start;gap:var(--px-12);padding-bottom:var(--px-12)}.pgx.on{display:flex}
+.pgx-page{position:relative;flex:none;margin-left:auto;margin-right:auto;background:var(--pgbg,var(--paper));color:var(--paper-ink);box-shadow:0 2px 12px var(--shadow);overflow:hidden;font:400 14.67px/1.2 'Roboto',sans-serif}
 .pgx-clip{position:absolute;overflow:hidden}
 .pgx-band{position:absolute}.pgx-flow.pgx-col{position:absolute;top:0}.pgx-sl{overflow:hidden}
 .pgx-flow{position:relative;column-fill:auto;font-size:var(--pg-fs);line-height:var(--pg-lh);overflow-wrap:anywhere}
@@ -145,3 +145,4 @@ span.tb[data-ld="dot"]{background:radial-gradient(circle,var(--paper-muted) .7px
 .pgw.flat{transform:translate(-50%,-50%)}
 .pgb{position:absolute;z-index:0;box-sizing:border-box;border:1px solid var(--paper-ink);pointer-events:none}
 .pgx-bd{position:absolute;inset:32px;border:1px solid var(--paper-ink);pointer-events:none;z-index:0}
+img.mf{vertical-align:middle;display:inline-block}.b.obj{line-height:1.9}

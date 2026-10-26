@@ -32,7 +32,7 @@
   $('docBody').addEventListener('touchstart', function (e) { if (e.touches.length === 2) pinch = { d: dist(e), z: onPages() ? (Read.pz || fitScale()) : Store.prefs().size, pages: onPages() }; }, { passive: true });
   $('docBody').addEventListener('touchmove', function (e) {
     if (!pinch || e.touches.length !== 2) return; e.preventDefault();
-    if (pinch.pages) { Read.pz = Math.max(0.2, Math.min(3, pinch.z * dist(e) / pinch.d)); zoomEl().style.zoom = Read.pz; } else setSize(pinch.z * dist(e) / pinch.d);
+    if (pinch.pages) { var a = e.touches[0], c = e.touches[1], r = $('docBody').getBoundingClientRect(); zoomPages(pinch.z * dist(e) / pinch.d, (a.clientX + c.clientX) / 2 - r.left, (a.clientY + c.clientY) / 2 - r.top); } else setSize(pinch.z * dist(e) / pinch.d);   // about the point between the two fingers
   }, { passive: false });
   $('docBody').addEventListener('touchend', function () { pinch = null; }, { passive: true });
   $('docBody').addEventListener('wheel', function (e) {

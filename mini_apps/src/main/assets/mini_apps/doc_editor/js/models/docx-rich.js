@@ -64,18 +64,37 @@
     return '<div class="b lk dr" data-t="x" data-src="' + b.idx + '"' + (jc ? ' style="text-align:' + jc + '"' : '') + '>' + out + '</div>';
   }
 
+  // ---- paragraphs with a formula (an OLE object whose picture is a WMF/EMF): the text and, in its place, the picture; the picture is made when it comes into view (Mf)
+  var BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  function objectHtml(p, ctx, b) {
+    var runs = []; kids(p).forEach(function (c) { if (c.localName === 'r') runs.push(c); else if (c.localName === 'hyperlink') kids(c, 'r').forEach(function (r) { runs.push(r); }); });
+    var out = '', any = false;
+    runs.forEach(function (r) {
+      var obj = all(r, 'object')[0]; if (!obj) { out += runHtml(r); return; }
+      var shape = all(obj, 'shape')[0], st = (shape && shape.getAttribute('style')) || '', im = all(obj, 'imagedata')[0], id = im && (im.getAttribute('r:id') || im.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id')), part = id && ctx.part(id);
+      var wm = /(?:^|;)\s*width:\s*([\d.]+)pt/.exec(st), hm = /(?:^|;)\s*height:\s*([\d.]+)pt/.exec(st);
+      var w = wm ? +wm[1] * 4 / 3 : (+obj.getAttribute('w:dxaOrig') || 0) / 15, h = hm ? +hm[1] * 4 / 3 : (+obj.getAttribute('w:dyaOrig') || 0) / 15;
+      if (!part || !/\.(wmf|emf)$/i.test(part) || !w || !h) { out += '<span class="pt">' + esc(b.label || 'Object') + '</span>'; return; }
+      any = true; out += '<img class="mf" data-mf="' + esc(part) + '" src="' + BLANK + '" style="width:' + Math.round(w * 10) / 10 + 'px;height:' + Math.round(h * 10) / 10 + 'px" alt="">';
+    });
+    if (!any) return '';
+    var jc = JC[wv(kid(p, 'pPr'), 'jc')] || '';
+    return '<p class="b lk obj" data-t="x" data-src="' + b.idx + '"' + (jc ? ' style="text-align:' + jc + '"' : '') + '>' + (out || '<br>') + '</p>';
+  }
+
   window.DocRich = {
     run: runHtml, doc: null,
     // look into the file once and keep, on each block that needs it, the page HTML (b.rich); anything unexpected leaves the block as the engine described it
     load: async function (buf, blocks) {
       try {
-        var z = Zipx.open(buf), xml = await z.text('word/document.xml'); if (!xml) return;
+        var z = Zipx.open(buf); DocRich.z = z; var xml = await z.text('word/document.xml'); if (!xml) return;
         var doc = new DOMParser().parseFromString(xml, 'application/xml'), body = all(doc, 'body')[0], items = kids(body);
         var relx = await z.text('word/_rels/document.xml.rels'), rels = {};
         if (relx) all(new DOMParser().parseFromString(relx, 'application/xml'), 'Relationship').forEach(function (r) { rels[r.getAttribute('Id')] = r.getAttribute('Target'); });
         var mimes = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml' }, cache = {};
         var ctx = {
           media: async function (id) { var t = rels[id]; if (!t) return ''; var n = 'word/' + t.replace(/^\//, '').replace(/^word\//, ''); if (cache[n]) return cache[n]; var bytes = await z.bytes(n); if (!bytes) return ''; var ext = (n.split('.').pop() || '').toLowerCase(); return (cache[n] = URL.createObjectURL(new Blob([bytes], { type: mimes[ext] || 'image/png' }))); },
+          part: function (id) { var t = rels[id]; return t ? 'word/' + t.replace(/^\//, '').replace(/^word\//, '') : ''; },
           chart: async function (id) { var t = rels[id]; if (!t) return ''; var cx = await z.text('word/' + t.replace(/^\//, '').replace(/^word\//, '')); return cx ? ChartSvg.svg(cx) : ''; }
         };
         DocRich.doc = null; try { DocRich.doc = await DocSect.read(z, items, body, function (id) { var t = rels[id]; return t ? 'word/' + t.replace(/^\//, '').replace(/^word\//, '') : ''; }); } catch (e) { /* page view falls back to A4 */ }
@@ -84,6 +103,7 @@
           if (el.localName === 'p') { var ppr = kid(el, 'pPr'); b.pb = ppr && kid(ppr, 'pageBreakBefore') ? 'b' : all(el, 'br').some(function (x) { return x.getAttribute('w:type') === 'page'; }) ? 'a' : ''; }
           if (b.type === 'table' && el.localName === 'tbl') b.rich = tableHtml(el, b);
           else if (el.localName === 'p' && b.type !== 'image' && all(el, 'drawing').length) b.rich = await partsHtml(el, ctx, b);
+          else if (el.localName === 'p' && b.type !== 'image' && all(el, 'object').length) b.rich = objectHtml(el, ctx, b) || undefined;
         }
       } catch (e) { /* the page falls back to what the engine gave */ }
     }
