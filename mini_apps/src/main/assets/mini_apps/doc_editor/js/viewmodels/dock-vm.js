@@ -123,4 +123,21 @@
     }, 160);
   };
   document.addEventListener('selectionchange', function () { if (Doc.mode === 'edit' && !Wide.pc) D.sync(); });
+  // The keyboard takes half of the screen: the browser then scrolls to keep the caret in view, and on a page zoomed with CSS zoom it lands in the wrong place (the caret ends up off the screen).
+  // After the window changes height the caret is looked up again and brought into the visible part of the page, a few times, since the browser moves the page more than once.
+  function caretRect() {
+    var s = getSelection(); if (!s.rangeCount) return null; var r = s.getRangeAt(0), box = r.getClientRects()[0] || r.getBoundingClientRect();
+    if ((!box || (!box.width && !box.height)) && r.startContainer.nodeType === 1) box = r.startContainer.getBoundingClientRect();
+    return box && (box.width || box.height) ? box : null;
+  }
+  function keepCaret() {
+    if (Doc.mode !== 'edit' || Wide.pc) return; var s = getSelection(), body = $('docBody'); if (!s.rangeCount || !Doc.paper().contains(s.anchorNode)) return;
+    var c = caretRect(), v = body.getBoundingClientRect(); if (!c) return;
+    var dx = c.left < v.left + 24 ? c.left - v.left - 24 : c.right > v.right - 24 ? c.right - v.right + 24 : 0, dy = c.top < v.top + 48 ? c.top - v.top - 48 : c.bottom > v.bottom - 72 ? c.bottom - v.bottom + 72 : 0;
+    if (dx || dy) { body.scrollLeft += dx; body.scrollTop += dy; if (window.DocLog) DocLog.log('caret kept in view dx=' + Math.round(dx) + ' dy=' + Math.round(dy)); }
+  }
+  var lastH = window.innerHeight;
+  window.addEventListener('resize', function () {
+    if (window.innerHeight === lastH) return; lastH = window.innerHeight; [60, 200, 450, 800].forEach(function (ms) { setTimeout(keepCaret, ms); });
+  });
 })();

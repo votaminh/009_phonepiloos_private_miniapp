@@ -29,12 +29,30 @@
     var body = $('docBody'), old = Read.pz || fitScale(); z = Math.max(0.2, Math.min(3, z)); if (z === old) return;
     var k = z / old, cx = body.scrollLeft + mx, cy = body.scrollTop + my; Read.pz = z; zoomEl().style.zoom = z; body.scrollLeft = cx * k - mx; body.scrollTop = cy * k - my;
   }
-  $('docBody').addEventListener('touchstart', function (e) { if (e.touches.length === 2) pinch = { d: dist(e), z: onPages() ? (Read.pz || fitScale()) : Store.prefs().size, pages: onPages() }; }, { passive: true });
+  // Two fingers on the pages: while they move the whole page block is only scaled and shifted by the compositor (transform: no layout, no paint of the text), the way scrolling is smooth;
+  // when the fingers leave, the zoom is set for real once and the place in the page is put back so the point between the fingers stays where it was.
+  function mid(e) { var a = e.touches[0], c = e.touches[1], r = $('docBody').getBoundingClientRect(); return { x: (a.clientX + c.clientX) / 2 - r.left, y: (a.clientY + c.clientY) / 2 - r.top }; }
+  $('docBody').addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 2) return; var pg = onPages(); pinch = { d: dist(e), z: pg ? (Read.pz || fitScale()) : Store.prefs().size, pages: pg };
+    if (pg) {
+      var body = $('docBody'), pw = $('pw'), m = mid(e); pinch.m0 = m; pinch.m1 = m; pinch.sx = body.scrollLeft; pinch.sy = body.scrollTop; pinch.k = 1;
+      pw.style.transformOrigin = (pinch.sx + m.x - pw.offsetLeft) + 'px ' + (pinch.sy + m.y - pw.offsetTop) + 'px'; pw.style.willChange = 'transform';
+    }
+  }, { passive: true });
   $('docBody').addEventListener('touchmove', function (e) {
     if (!pinch || e.touches.length !== 2) return; e.preventDefault();
-    if (pinch.pages) { var a = e.touches[0], c = e.touches[1], r = $('docBody').getBoundingClientRect(); zoomPages(pinch.z * dist(e) / pinch.d, (a.clientX + c.clientX) / 2 - r.left, (a.clientY + c.clientY) / 2 - r.top); } else setSize(pinch.z * dist(e) / pinch.d);   // about the point between the two fingers
+    if (!pinch.pages) { setSize(pinch.z * dist(e) / pinch.d); return; }
+    var z = Math.max(0.2, Math.min(3, pinch.z * dist(e) / pinch.d)), m = mid(e); pinch.k = z / pinch.z; pinch.m1 = m;
+    $('pw').style.transform = 'translate(' + (m.x - pinch.m0.x) + 'px,' + (m.y - pinch.m0.y) + 'px) scale(' + pinch.k + ')';
   }, { passive: false });
-  $('docBody').addEventListener('touchend', function () { pinch = null; }, { passive: true });
+  $('docBody').addEventListener('touchend', function () {
+    var p = pinch; pinch = null; if (!p || !p.pages) return;
+    var body = $('docBody'), pw = $('pw'), z = p.z * p.k;
+    pw.style.transform = ''; pw.style.transformOrigin = ''; pw.style.willChange = '';
+    if (Math.abs(p.k - 1) < 0.005) return;
+    Read.pz = z; zoomEl().style.zoom = z;
+    body.scrollLeft = (p.sx + p.m0.x) * p.k - p.m1.x; body.scrollTop = (p.sy + p.m0.y) * p.k - p.m1.y;
+  }, { passive: true });
   $('docBody').addEventListener('wheel', function (e) {
     if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault();
     var f = Math.exp(-Math.max(-20, Math.min(20, e.deltaY * (e.deltaMode ? 5 : 1))) * 0.01), r = $('docBody').getBoundingClientRect();
