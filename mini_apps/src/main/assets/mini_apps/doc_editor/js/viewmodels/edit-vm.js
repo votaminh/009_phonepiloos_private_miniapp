@@ -42,7 +42,9 @@
   Edit.sync = function () {
     var inCell = !!Table.cell(), tabs = $('tlTabs');
     if (tabs && inCell !== !!Doc.inTable && Doc.mode === 'edit') { Doc.inTable = inCell; if (inCell) Edit.tab('table', true); else if (Doc.tab === 'table') { Edit.tab('text', true); return; } else tabs.innerHTML = DocView.tabs(Doc.tab, false); }
-    var b = cur(), body = $('tlBody'); if (!b || !body || Doc.mode !== 'edit') return;
+    var b = cur(), body = $('tlBody'); if (!b || Doc.mode !== 'edit') return;
+    // the phone has no tool body (its bar is the dock): the block actions and the quick bar of a selection still follow the caret, and a picked picture is let go
+    if (!body) { if (typeof Struct !== 'undefined') Struct.follow(b); return; }
     function on(act, v) { var x = body.querySelector('[data-act="' + act + '"]'); if (x) { x.classList.toggle('on', !!v); x.setAttribute('aria-pressed', !!v); } }
     var q = function (c) { try { return document.queryCommandState(c); } catch (e) { return false; } };
     on('e-bold', q('bold')); on('e-italic', q('italic')); on('e-underline', q('underline')); on('e-strike', q('strikeThrough'));
