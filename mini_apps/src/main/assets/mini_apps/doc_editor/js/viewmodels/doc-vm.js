@@ -79,10 +79,13 @@
     if (Router.getCurrent() !== 'doc') Router.navigate('doc'); else App.state.page = 'doc';
     Doc.setMode('read'); $('docBody').scrollTop = 0;
     try {
-      rec.path = rec.path || rec.url;   // a record read back from storage has the address as `url` only
-      await Files.request(rec.path);
-      var res = await fetch(rec.path); if (!res.ok) throw new Error(t('err.missing'));
-      await Doc.render(await res.arrayBuffer());
+      if (opts.buf) await Doc.render(opts.buf);   // a new document: its bytes are here, there is no file yet
+      else {
+        rec.path = rec.path || rec.url;   // a record read back from storage has the address as `url` only
+        await Files.request(rec.path);
+        var res = await fetch(rec.path); if (!res.ok) throw new Error(t('err.missing'));
+        await Doc.render(await res.arrayBuffer());
+      }
     } catch (e) { p.innerHTML = '<div class="dc-err">' + Ui.esc(t('err.open')) + '<small>' + Ui.esc(String(e && e.message || e)) + '</small></div>'; return; }
     if (opts.edit) Doc.setMode('edit');
     if (rec.draft && !opts.edit) Doc.offerDraft();
@@ -140,7 +143,7 @@
   }
   // a draft is kept every 30 seconds while there are edits (one timer, not reset by each edit), and when the app goes to the background
   Doc.draftNow = function () {
-    var rec = Doc.rec; if (!rec || !Doc.dirty || Doc.drafting || Doc.saving) return Promise.resolve(false);
+    var rec = Doc.rec; if (!rec || rec.fresh || !Doc.dirty || Doc.drafting || Doc.saving) return Promise.resolve(false);   // a new document has no record yet: no draft
     return shown(async function () {
       try {
         var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: 'draft-' + rec.name, base64: App.b64(buf), reason: 'Keep a draft of your edits' }), old = rec.draft && rec.draft.path;
@@ -148,7 +151,7 @@
       } catch (e) { return false; /* a draft is a convenience: the next round tries again */ }
     }, 'drafting', 's.draftok');
   };
-  document.addEventListener('visibilitychange', function () { if (document.hidden && Doc.dirty) { stopDraft(); Doc.draftNow(); } });
+  document.addEventListener('visibilitychange', function () { if (document.hidden && Doc.dirty) { stopDraft(); if (Doc.rec && Doc.rec.fresh) Doc.save(); else Doc.draftNow(); } });
   Doc.save = function () {
     var rec = Doc.rec; if (!rec) return Promise.resolve(false); stopDraft();
     return shown(async function () {
@@ -156,8 +159,8 @@
         var buf = await Doc.bytes(), r = await NativeTools.call('save_local_file', { fileName: rec.name, base64: App.b64(buf), reason: 'Save the edited document' }), f = r && r.data;
         if (!f || !f.path) throw new Error('no file');
         var old = rec.path, oldDraft = rec.draft && rec.draft.path;
-        rec.path = f.path; rec.url = f.path; rec.size = f.sizeBytes || buf.byteLength; rec.editedAt = Date.now(); rec.openedAt = Date.now(); rec.draft = null;
-        await Store.put(rec); Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
+        delete rec.fresh; rec.path = f.path; rec.url = f.path; rec.size = f.sizeBytes || buf.byteLength; rec.editedAt = Date.now(); rec.openedAt = Date.now(); rec.draft = null;
+        await Store.put(rec); if (old) Store.dropFile(old); if (oldDraft) Store.dropFile(oldDraft);
         await Doc.render(buf, true);   // read the saved file back: what you see is what is on disk
         return true;
       } catch (e) { App.fail('t.savefail', e); return false; }

@@ -74,10 +74,9 @@
   A['h-pick'] = async function () { Ui.closeSheet(); var rec = await pick(); if (rec) { Doc.open(rec); } };
   A['h-new'] = async function () {
     try {
+      // a new document is made here and lives in memory: the phone is asked for a file only at the first save, so an empty one that is closed leaves nothing behind
       var buf = await DocSvc.blank(), name = t('untitled') + '.docx';
-      var r = await NativeTools.call('save_local_file', { fileName: name, base64: App.b64(buf), reason: 'Create a new document' }), f = r.data;
-      var rec = { key: 'd' + Ui.nextId(), name: name, size: f.sizeBytes || buf.byteLength, url: f.path, path: f.path, openedAt: Date.now(), editedAt: Date.now() };
-      await Store.put(rec); Doc.open(rec, { edit: true });
+      Doc.open({ key: 'd' + Ui.nextId(), name: name, size: buf.byteLength, openedAt: Date.now(), editedAt: Date.now(), fresh: true }, { edit: true, buf: buf });
     } catch (e) { App.fail('err.generic', e); }
   };
   A['h-open'] = function (el) { var rec = Store.get(el.dataset.id); if (!rec) return; App.hold = { open: rec.key, ord: Store.recent(App.state.q).map(function (d) { return d.key; }), at: {} }; Store.all().forEach(function (d) { App.hold.at[d.key] = d.openedAt || 0; }); rec.openedAt = Date.now(); Store.put(rec); UiNav.open(el, $('pgDoc'), function () { Doc.open(rec); }); };

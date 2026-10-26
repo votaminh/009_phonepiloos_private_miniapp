@@ -57,7 +57,7 @@
     mem: {},   // pictures kept for this session only (a browser without a phone behind it cannot keep files)
     // make (or remake) the picture of the document in Doc.rec and keep it with the record; `force` after a save
     refresh: async function (rec, force) {
-      if (!rec || ((rec.thumb || Thumb.mem[rec.key]) && !force)) return;
+      if (!rec || rec.fresh || ((rec.thumb || Thumb.mem[rec.key]) && !force)) return;
       try {
         var b64 = await render(), old = rec.thumb; Thumb.mem[rec.key] = 'data:image/jpeg;base64,' + b64;
         var r = await NativeTools.call('save_local_file', { fileName: 'thumb.jpg', base64: b64, reason: 'A small picture of the first page' });

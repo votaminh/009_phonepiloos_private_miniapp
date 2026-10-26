@@ -7,7 +7,7 @@
     Ui.sheet('menu', SheetsView.menu({ name: r.name, size: HomeView.size(r.size || 0), words: Doc.words || 0 }));
   };
   // the document as it is now: the saved file, or what is on the page when there are unsaved edits
-  async function current() { if (Doc.dirty) return Doc.bytes(); var res = await fetch(Doc.rec.path); return res.arrayBuffer(); }
+  async function current() { if (Doc.dirty || Doc.rec.fresh) return Doc.bytes(); var res = await fetch(Doc.rec.path); return res.arrayBuffer(); }
   A['m-share'] = async function () {
     Ui.closeSheet();
     try { var buf = await current(); await NativeTools.call('share_files', { fileName: Doc.rec.name, base64: App.b64(buf), mimeType: DOCX, title: Doc.rec.name, reason: 'Share the document' }); }
@@ -27,7 +27,7 @@
   A['m-rename'] = function () { Ui.sheet('rename', SheetsView.rename(Doc.rec.name.replace(/\.docx$/i, ''))); setTimeout(function () { var i = $('rnName'); if (i) { i.focus(); i.select(); } }, 380); };
   A['n-apply'] = function () {
     var v = ($('rnName').value || '').trim().replace(/[\\/:*?"<>|]+/g, ' ').trim(); if (!v) return Ui.toast(t('rn.bad'));
-    Doc.rec.name = v + '.docx'; Store.put(Doc.rec); Ui.closeSheet(); Doc.chrome();
+    Doc.rec.name = v + '.docx'; if (!Doc.rec.fresh) Store.put(Doc.rec); Ui.closeSheet(); Doc.chrome();
   };
   A['m-remove'] = function () {
     var rec = Doc.rec, copy = JSON.parse(JSON.stringify(rec)); Ui.closeSheet(); Doc.dirty = false;

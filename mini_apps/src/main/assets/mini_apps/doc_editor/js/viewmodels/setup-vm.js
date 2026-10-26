@@ -58,6 +58,11 @@
     done(); if (colsMoved && nc > 1) Ui.toast(t('ps.colsnote'));
   };
   // Layout ▸ Columns: the number of columns of the section the caret is in
+  // the margins of one section, from the rulers (twips; only the sides given)
+  S.setMargins = function (i, m) {
+    var list = Sec.list(), sc = list[i]; if (!sc) return; ['t', 'b', 'l', 'r'].forEach(function (k) { if (m[k] !== undefined) sc[k] = m[k]; });
+    store(i, list, Sec.breaks(), fullSet(sc), null); done();
+  };
   S.setCols = function (n) {
     if (Doc.mode !== 'edit') return Ui.toast(t('ps.edit')); var i = Sec.at(), list = Sec.list(), sc = list[i]; if (!sc) return Ui.toast(t('ps.fail'));
     if ((sc.cols || 1) === n) return; sc.cols = n; store(i, list, Sec.breaks(), fullSet(sc), null); done(); if (n > 1) Ui.toast(t('ps.colsnote'));

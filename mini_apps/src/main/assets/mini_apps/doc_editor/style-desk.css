@@ -118,8 +118,13 @@ html.pc #docTop.tb{display:flex;align-items:center;gap:var(--px-8);min-height:48
 .hf-f input{flex:1;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}.hf-f{flex-wrap:wrap}
 
 /* the ruler */
-html.pc .ruler{position:sticky;top:0;z-index:6;height:22px;margin-top:6px;margin-bottom:-22px;background:var(--white);border:1px solid var(--line);border-radius:4px 4px 0 0;overflow:visible;font:500 10px var(--body);color:var(--muted)}
+html.pc .ruler{position:sticky;top:0;z-index:6;box-sizing:border-box;background:var(--stage);overflow:visible;font:500 10px var(--body);color:var(--muted)}
+.rl-track{position:relative;height:22px;box-sizing:border-box;background:var(--white);border:1px solid var(--line);border-radius:4px;overflow:visible}
 .ruler{display:none}
+.vruler{display:none;position:absolute;top:0;width:22px;z-index:5;pointer-events:none;font:500 10px var(--body);color:var(--muted)}.vr-p{position:absolute;width:22px;background:var(--white);border:1px solid var(--line);border-radius:4px;box-sizing:border-box;overflow:hidden}
+.vr-m{position:absolute;left:0;right:0;top:0;background:var(--chip)}.vr-m.b{top:auto;bottom:0}.vr-t{position:absolute;right:0;height:1px;width:6px;background:var(--muted)}.vr-t.h{width:4px;opacity:.6}.vr-n{position:absolute;left:2px;transform:translateY(-50%);pointer-events:none}
+.rl-mh{position:absolute;top:0;bottom:0;width:12px;cursor:ew-resize;z-index:1}.rl-mh[data-e=l]{margin-left:-12px}   /* on the shaded side of the boundary, so the indent markers that sit on the boundary do not cover it */.rl-mh:hover,.rl-mh.on{background:var(--accent);opacity:.35}
+.vr-h{position:absolute;left:0;right:0;height:8px;margin-top:-4px;cursor:ns-resize;pointer-events:auto;z-index:1}.vr-h:hover,.vr-h.on{background:var(--accent);opacity:.35}.rl-drag-v,.rl-drag-v *{cursor:ns-resize!important}.rl-drag-h,.rl-drag-h *{cursor:ew-resize!important}
 .rl-m{position:absolute;top:0;bottom:0;left:0;background:var(--chip)}.rl-m.r{left:auto;right:0}
 .rl-t{position:absolute;bottom:0;width:1px;height:6px;background:var(--muted)}.rl-t.h{height:4px;opacity:.6}
 .rl-n{position:absolute;top:2px;transform:translateX(-50%);pointer-events:none}
