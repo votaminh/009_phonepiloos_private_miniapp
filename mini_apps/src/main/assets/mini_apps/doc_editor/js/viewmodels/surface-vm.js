@@ -223,24 +223,4 @@
     S.normalize(); caretAt(n2, len); Doc.snap(); Edit.sync();
   };
 
-  // ---- the keyboard of a computer ---------------------------------------------------------------------------------------------------------
-  paper().addEventListener('keydown', function (e) {
-    if (Doc.mode !== 'edit') return; var c = e.ctrlKey || e.metaKey, k = e.key, b = Edit.block();
-    if (c && !e.altKey) {
-      var kk = k.toLowerCase();
-      if (kk === 'b') { e.preventDefault(); A['e-bold'](); return; } if (kk === 'i') { e.preventDefault(); A['e-italic'](); return; } if (kk === 'u') { e.preventDefault(); A['e-underline'](); return; }
-      if (kk === 'z' && !e.shiftKey) { e.preventDefault(); A['e-undo'](); return; }
-      if (kk === 'y' || (kk === 'z' && e.shiftKey)) { e.preventDefault(); A['e-redo'](); return; }
-      if (kk === 's') { e.preventDefault(); A['e-save'](); return; }
-      if (kk === 'k') { e.preventDefault(); A['e-link'](); return; }
-      if (kk === 'e') { e.preventDefault(); A['e-al-center'](); return; } if (kk === 'l' && !e.shiftKey) { e.preventDefault(); A['e-al-left'](); return; }
-      if (kk === 'r') { e.preventDefault(); A['e-al-right'](); return; } if (kk === 'j') { e.preventDefault(); A['e-al-justify'](); return; }
-      if (kk === 'l' && e.shiftKey) { e.preventDefault(); A['e-bul'](); return; }
-      if (k === 'Enter') { e.preventDefault(); A['i-brk'](); return; }
-      if (k === ']' || (k === '>' && e.shiftKey)) { e.preventDefault(); A['e-larger'](); return; } if (k === '[' || (k === '<' && e.shiftKey)) { e.preventDefault(); A['e-smaller'](); return; }
-    }
-    if (c && e.altKey && /^[1-3]$/.test(k)) { e.preventDefault(); Struct.setStyle(+k); return; }
-    if (c && e.altKey && k === '0') { e.preventDefault(); Struct.setStyle(0); return; }
-    if (k === 'Tab' && b) { e.preventDefault(); if (b.dataset.t === 'l') A[e.shiftKey ? 'e-outdent' : 'e-indent'](); else if (!e.shiftKey) document.execCommand('insertText', false, '\t'); return; }
-  });
 })();
