@@ -137,7 +137,8 @@
     if (dx || dy) { body.scrollLeft += dx; body.scrollTop += dy; if (window.DocLog) DocLog.log('caret kept in view dx=' + Math.round(dx) + ' dy=' + Math.round(dy)); }
   }
   var lastH = window.innerHeight;
-  window.addEventListener('resize', function () {
-    if (window.innerHeight === lastH) return; lastH = window.innerHeight; [60, 200, 450, 800].forEach(function (ms) { setTimeout(keepCaret, ms); });
+  var kt = [];
+  window.addEventListener('resize', function () {   // the keyboard moves the window step by step: look for the caret once the steps have stopped
+    if (window.innerHeight === lastH) return; lastH = window.innerHeight; kt.forEach(clearTimeout); kt = [160, 450].map(function (ms) { return setTimeout(keepCaret, ms); });
   });
 })();

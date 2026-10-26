@@ -18,8 +18,8 @@
   [[window.Doc, 'render', 'Doc.render'], [window.Doc, 'setMode', 'Doc.setMode'], [window.Doc, 'open', 'Doc.open'], [window.Doc, 'save', 'Doc.save'], [window.Doc, 'chrome', 'Doc.chrome'], [window.Doc, 'snap', 'Doc.snap'], [window.Read, 'apply', 'Read.apply'],
    [window.Edit, 'sync', 'Edit.sync'], [window.PageView, 'build', 'PageView.build'], [window.PageView, 'editStyle', 'PageView.editStyle'], [window.Paginate, 'run', 'Paginate.run'], [window.Struct, 'follow', 'Struct.follow'], [window.Struct, 'placeQuick', 'Struct.placeQuick']
   ].forEach(function (w) { wrap(w[0], w[1], w[2]); });
-  window.addEventListener('resize', function () { log('resize', true); });
-  if (window.visualViewport) visualViewport.addEventListener('resize', function () { log('vv-resize ' + Math.round(visualViewport.height), true); });
+  window.addEventListener('resize', function () { log('resize'); });   // light: reading the selection here would force a layout of the whole page on every step of the keyboard animation
+  if (window.visualViewport) visualViewport.addEventListener('resize', function () { log('vv-resize ' + Math.round(visualViewport.height)); });
   document.addEventListener('focusin', function (e) { log('focusin ' + (e.target.className || e.target.tagName)); });
   document.addEventListener('selectionchange', function () { log('selchange', true); });
   document.addEventListener('pointerdown', function (e) { log('pdown ' + Math.round(e.clientX) + ',' + Math.round(e.clientY) + ' ' + (e.target.className || e.target.tagName) + ' ' + (e.pointerType || '')); }, true);
