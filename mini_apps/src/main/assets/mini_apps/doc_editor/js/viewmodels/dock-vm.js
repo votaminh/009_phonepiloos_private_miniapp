@@ -32,7 +32,7 @@
   function tray() {
     return '<div class="row tray" style="padding:0 10px"><button type="button" class="chip" data-act="rb-fontmenu" aria-label="' + esc(t('f.font')) + '"><span id="tlFont">Calibri</span>' + svg('down', 14) + '</button>'
       + '<div class="step"><button type="button" data-act="e-smaller" aria-label="' + esc(t('f.smaller')) + '">−</button><button type="button" data-act="e-larger" aria-label="' + esc(t('f.larger')) + '">+</button></div>'
-      + tb('e-color', '<span style="font-weight:700;border-bottom:4px solid var(--danger);line-height:1">A</span>', t('f.color'), { cls: 'sp' }) + tb('e-hl', svg('paint'), t('f.highlight')) + '</div>'
+      + tb('e-color', '<span style="font-weight:700;border-bottom:4px solid var(--ink);line-height:1">A</span>', t('f.color'), { cls: 'sp' }) + tb('e-hl', svg('paint'), t('f.highlight')) + '</div>'
       + '<div class="row tray sc" style="padding:0 6px;gap:6px">' + tb('e-strike', '<span style="text-decoration:line-through">S</span>', t('f.strike')) + tb('e-sup', 'x<sup style="font-size:10px">2</sup>', t('fo.sup')) + tb('e-sub', 'x<sub style="font-size:10px">2</sub>', t('fo.sub'))
       + tb('e-num', svg('num'), t('p.numbers')) + tb('e-indent', svg('chev'), t('p.indent')) + tb('e-outdent', '<span style="transform:scaleX(-1);display:flex">' + svg('chev') + '</span>', t('p.outdent'))
       + tb('e-clear', t('fo.clear'), t('fo.clear'), { cls: 'txt' }) + tb('rb-painter', t('rb.painter'), t('rb.painter'), { cls: 'txt' }) + '</div>';

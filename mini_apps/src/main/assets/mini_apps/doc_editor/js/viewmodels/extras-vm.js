@@ -78,7 +78,7 @@
     if (!Wide.pc || Doc.mode !== 'edit') return hide(); var s = getSelection(); if (!s.rangeCount || s.isCollapsed || !Doc.paper().contains(s.anchorNode) || Table.cell() && Table.selection()) return hide();
     var r = s.getRangeAt(0).getBoundingClientRect(); if (!r.width && !r.height) return hide(); var b = ensure(), host = $('pgDoc').getBoundingClientRect(); b.classList.add('on');
     var w = b.offsetWidth, h = b.offsetHeight, x = Math.max(8, Math.min(host.width - w - 8, r.left - host.left + r.width / 2 - w / 2)), y = r.top - host.top - h - 8; if (y < 4) y = r.bottom - host.top + 8;
-    b.style.left = x + 'px'; b.style.top = y + 'px'; var c = b.querySelector('.tl-a i'); if (c) c.style.background = C('sw_red');
+    b.style.left = x + 'px'; b.style.top = y + 'px'; Edit.paintColor();
   }
   document.addEventListener('pointerup', function () { clearTimeout(mt); mt = setTimeout(show, 60); });
   document.addEventListener('keyup', function (e) { if (e.shiftKey || /Arrow|Home|End/.test(e.key)) { clearTimeout(mt); mt = setTimeout(show, 60); } });

@@ -24,7 +24,7 @@
         return '<button type="button" class="tl-chip" data-act="e-font" aria-label="' + esc(t('f.font')) + '"><span id="tlFont">' + esc(st.font || 'Calibri') + ' · ' + (st.size || 11) + '</span>' + Ui.ic('down', 14, 2.4) + '</button><i class="tl-sep"></i>'
           + tool('e-bold', '<b>B</b>', t('f.bold'), !!st.b) + tool('e-italic', '<i>I</i>', t('f.italic'), !!st.i) + tool('e-underline', '<u>U</u>', t('f.underline'), !!st.u) + tool('e-strike', '<s>S</s>', t('f.strike'), !!st.s) + '<i class="tl-sep"></i>'
           + tool('e-smaller', 'A−', t('f.smaller')) + tool('e-larger', 'A+', t('f.larger')) + '<i class="tl-sep"></i>'
-          + tool('e-color', '<span class="tl-a">A<i style="background:' + (st.c || C('sw_red')) + '"></i></span>', t('f.color')) + tool('e-hl', Ui.ic('marker', 22, 1.8), t('f.highlight')) + tool('e-link', Ui.ic('link', 22, 1.8), t('f.link'));
+          + tool('e-color', '<span class="tl-a">A<i style="background:' + (st.c || 'var(--ink)') + '"></i></span>', t('f.color')) + tool('e-hl', Ui.ic('marker', 22, 1.8), t('f.highlight')) + tool('e-link', Ui.ic('link', 22, 1.8), t('f.link'));
       }
       if (tab === 'para') {
         var al = st.al || 'left', ic = { left: 'alignl', center: 'alignc', right: 'alignr', justify: 'alignj' };

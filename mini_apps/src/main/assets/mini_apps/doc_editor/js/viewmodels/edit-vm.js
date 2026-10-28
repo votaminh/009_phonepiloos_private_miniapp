@@ -17,8 +17,10 @@
     var b = cur(); if (!b) { Ui.toast(t('e.tap')); return false; }
     var s = getSelection();
     if (whole && s.isCollapsed) { var r = document.createRange(); r.selectNodeContents(b); s.removeAllRanges(); s.addRange(r); }   // nothing selected: the whole paragraph
+    if (!s.isCollapsed) Edit.pend = null;   // a selection is formatted now; an older "next typed text" choice must not run over it
     document.execCommand('styleWithCSS', false, true); document.execCommand(name, false, arg);
-    mark(); Doc.touch(); Edit.sync(); return true;
+    if (!s.isCollapsed) { mark(); Doc.touch(); }   // a caret only arms the typing style: the text is unchanged, and re-paginating would put the caret back and drop that style
+    Edit.sync(); return true;
   };
 
   // ---- the bar --------------------------------------------------------------------------------------------------------------
@@ -44,12 +46,13 @@
     if (tabs && inCell !== !!Doc.inTable && Doc.mode === 'edit') { Doc.inTable = inCell; if (inCell) Edit.tab('table', true); else if (Doc.tab === 'table') { Edit.tab('text', true); return; } else tabs.innerHTML = DocView.tabs(Doc.tab, false); }
     var b = cur(), body = $('tlBody'); if (!b || Doc.mode !== 'edit') return;
     // the phone has no tool body (its bar is the dock): the block actions and the quick bar of a selection still follow the caret, and a picked picture is let go
+    Edit.paintColor();
+    var n = getSelection().anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n), f = el && el.closest('[data-f]'), sz = el && el.closest('[style*="font-size"]');
+    var live = Edit.pendLive(), chip = $('tlFont'); if (chip) chip.textContent = ((live && live.font) || (f && f.dataset.f) || t('f.default')) + ' · ' + ((live && live.size) || (sz ? Math.round(px2pt(getComputedStyle(sz).fontSize)) : 11));
     if (!body) { if (typeof Struct !== 'undefined') Struct.follow(b); return; }
     function on(act, v) { var x = body.querySelector('[data-act="' + act + '"]'); if (x) { x.classList.toggle('on', !!v); x.setAttribute('aria-pressed', !!v); } }
     var q = function (c) { try { return document.queryCommandState(c); } catch (e) { return false; } };
     on('e-bold', q('bold')); on('e-italic', q('italic')); on('e-underline', q('underline')); on('e-strike', q('strikeThrough'));
-    var n = getSelection().anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n), f = el && el.closest('[data-f]'), sz = el && el.closest('[style*="font-size"]');
-    var chip = $('tlFont'); if (chip) chip.textContent = ((f && f.dataset.f) || t('f.default')) + ' · ' + (sz ? Math.round(px2pt(getComputedStyle(sz).fontSize)) : 11);
     var al = b.dataset.al || 'left'; ['left', 'center', 'right', 'justify'].forEach(function (a) { on('e-al-' + a, al === a); });
     on('e-bul', b.dataset.t === 'l' && b.dataset.k === 'bullet'); on('e-num', b.dataset.t === 'l' && b.dataset.k === 'ordered');
     var st = $('tlStyle'); if (st) st.textContent = t(b.dataset.t === 'h' ? 'st.h' + b.dataset.lv : 'st.normal');
@@ -65,28 +68,49 @@
   // ---- text formatting -----------------------------------------------------------------------------------------------------
   A['e-bold'] = function () { Edit.cmd('bold'); }; A['e-italic'] = function () { Edit.cmd('italic'); };
   A['e-underline'] = function () { Edit.cmd('underline'); }; A['e-strike'] = function () { Edit.cmd('strikeThrough'); };
-  function resize(delta, to) {
-    var b = cur(); if (!b) return Ui.toast(t('e.tap'));
-    var s = getSelection(); if (s.isCollapsed) { var r = document.createRange(); r.selectNodeContents(b); s.removeAllRanges(); s.addRange(r); }
-    var n = s.anchorNode, el = n.nodeType === 3 ? n.parentElement : n, sz = el.closest('[style*="font-size"]');
-    var now = sz ? px2pt(getComputedStyle(sz).fontSize) : 11, next = to || Math.max(6, Math.min(72, Math.round(now) + delta));
-    document.execCommand('styleWithCSS', false, true); document.execCommand('fontSize', false, '7');
+  // Nothing selected = the next typed text (the browser keeps a "typing style" at the caret and puts it on the span it creates when the user types).
+  // The span arrives only on the first typed character, so its tidy-up is remembered in Edit.pend and runs on that input.
+  Edit.pend = null;
+  function pendAt() { var s = getSelection(); return { n: s.anchorNode, o: s.anchorOffset }; }
+  Edit.pendLive = function () { var p = Edit.pend, s = getSelection(); return p && s.isCollapsed && s.anchorNode === p.at.n && s.anchorOffset === p.at.o ? p : null; };
+  function fixSizes(next) {
     Array.prototype.forEach.call(Doc.paper().querySelectorAll('font[size="7"]'), function (f) { var sp = document.createElement('span'); sp.style.fontSize = next + 'pt'; while (f.firstChild) sp.appendChild(f.firstChild); f.parentNode.replaceChild(sp, f); });
     Array.prototype.forEach.call(Doc.paper().querySelectorAll('span[style*="xxx-large"]'), function (sp) { sp.style.fontSize = next + 'pt'; });
-    mark(); Doc.touch(); Edit.sync(); var fs = $('foSize'); if (fs) fs.textContent = next;
+  }
+  function fixFonts(name) {
+    Array.prototype.forEach.call(Doc.paper().querySelectorAll('[style*="PiloFont"],font[face="PiloFont"]'), function (n) {
+      var sp = n.tagName === 'FONT' ? document.createElement('span') : n;
+      if (sp !== n) { while (n.firstChild) sp.appendChild(n.firstChild); n.parentNode.replaceChild(sp, n); }
+      sp.removeAttribute('face'); sp.dataset.f = name; sp.style.fontFamily = Render.family(name);
+    });
+  }
+  document.addEventListener('input', function () {
+    var p = Edit.pend; if (!p || Doc.mode !== 'edit') return;
+    if (p.size) fixSizes(p.size); if (p.font) fixFonts(p.font);
+  }, true);
+  function resize(delta, to) {
+    var b = cur(); if (!b) return Ui.toast(t('e.tap'));
+    var s = getSelection(), collapsed = s.isCollapsed;
+    var n = s.anchorNode, el = n.nodeType === 3 ? n.parentElement : n, sz = el.closest('[style*="font-size"]');
+    var live = Edit.pendLive(), now = live && live.size ? live.size : sz ? px2pt(getComputedStyle(sz).fontSize) : 11, next = to || Math.max(6, Math.min(72, Math.round(now) + delta));
+    if (!collapsed) Edit.pend = null;
+    document.execCommand('styleWithCSS', false, true); document.execCommand('fontSize', false, '7');
+    fixSizes(next);
+    if (collapsed) { var keep = live && live.at ? live : { at: pendAt() }; Edit.pend = { at: pendAt(), size: next, font: keep.font }; }
+    if (!collapsed) { mark(); Doc.touch(); }
+    Edit.sync(); var fs = $('foSize'); if (fs) fs.textContent = next;
   }
   A['e-smaller'] = function () { resize(-1); }; A['e-larger'] = function () { resize(1); };
   A['e-setsize'] = function (el) { resize(0, +el.dataset.s); Array.prototype.forEach.call(document.querySelectorAll('.fo-sz'), function (b) { b.classList.toggle('on', b === el); }); };
   A['e-setfont'] = function (el) {
     var b = cur(); if (!b) return Ui.toast(t('e.tap'));
-    var s = getSelection(); if (s.isCollapsed) { var r = document.createRange(); r.selectNodeContents(b); s.removeAllRanges(); s.addRange(r); }
+    var collapsed = getSelection().isCollapsed, live = Edit.pendLive();
+    if (!collapsed) Edit.pend = null;
     document.execCommand('styleWithCSS', false, true); document.execCommand('fontName', false, 'PiloFont');
-    Array.prototype.forEach.call(Doc.paper().querySelectorAll('[style*="PiloFont"],font[face="PiloFont"]'), function (n) {
-      var sp = n.tagName === 'FONT' ? document.createElement('span') : n;
-      if (sp !== n) { while (n.firstChild) sp.appendChild(n.firstChild); n.parentNode.replaceChild(sp, n); }
-      sp.removeAttribute('face'); sp.dataset.f = el.dataset.f; sp.style.fontFamily = Render.family(el.dataset.f);
-    });
-    mark(); Doc.touch(); Edit.sync(); Array.prototype.forEach.call(document.querySelectorAll('.fo-it'), function (x) { x.classList.toggle('on', x === el); });
+    fixFonts(el.dataset.f);
+    if (collapsed) Edit.pend = { at: pendAt(), font: el.dataset.f, size: live && live.size };
+    if (!collapsed) { mark(); Doc.touch(); }
+    Edit.sync(); Array.prototype.forEach.call(document.querySelectorAll('.fo-it'), function (x) { x.classList.toggle('on', x === el); });
   };
   A['e-sup'] = function () { Edit.cmd('superscript'); }; A['e-sub'] = function () { Edit.cmd('subscript'); };
   A['e-clear'] = function () { var b = cur(); if (!b) return Ui.toast(t('e.tap')); Edit.cmd('removeFormat', null, true); Array.prototype.forEach.call(b.querySelectorAll('[data-f]'), function (n) { n.removeAttribute('data-f'); }); };
@@ -106,10 +130,21 @@
     return p;
   };
   document.addEventListener('pointerdown', function (e) { if (pop && !e.target.closest('.pop') && !e.target.closest('[data-act="e-style"],[data-act="e-color"],[data-act="e-hl"],[data-act="g-grip"]')) Edit.hidePops(); }, true);
+  // the bar under the A shows the colour of the text at the caret (or of the next typed text, once one is picked there)
+  Edit.paintColor = function (col) {
+    if (!col) {
+      var n = getSelection().anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n);
+      try { col = document.queryCommandValue('foreColor'); } catch (e) { col = ''; }
+      if (!col && el) col = getComputedStyle(el).color;
+    }
+    if (!col) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.tl-a i'), function (i) { i.style.background = col; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act="e-color"] span[style*="border-bottom"]'), function (i) { i.style.borderBottomColor = col; });
+  };
   A['e-color'] = function (el) { Edit.pop(SheetsView.colors(false), el, 'sw'); };
   A['e-hl'] = function (el) { Edit.pop(SheetsView.colors(true), el, 'sw'); };
-  A['e-setcolor'] = function (el) { Edit.hidePops(); Edit.cmd('foreColor', C(el.dataset.k), true); var a = document.querySelector('.tl-a i'); if (a) a.style.background = C(el.dataset.k); };
-  A['e-setbg'] = function (el) { Edit.hidePops(); Edit.cmd('hiliteColor', el.dataset.k ? C(el.dataset.k) : 'transparent', true); };
+  A['e-setcolor'] = function (el) { Edit.hidePops(); Edit.cmd('foreColor', C(el.dataset.k)); Edit.paintColor(C(el.dataset.k)); };
+  A['e-setbg'] = function (el) { Edit.hidePops(); Edit.cmd('hiliteColor', el.dataset.k ? C(el.dataset.k) : 'transparent'); };
 
   // ---- links ---------------------------------------------------------------------------------------------------------------------
   A['e-link'] = function () {
