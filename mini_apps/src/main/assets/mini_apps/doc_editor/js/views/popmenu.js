@@ -7,7 +7,7 @@
   function row(it, i) {
     if (it === '-') return '<i class="ctx-sep"></i>';
     return '<button type="button" role="menuitem" class="ctx-i' + (it.d ? ' has-d' : '') + (it.off ? ' off' : '') + (it.danger ? ' danger' : '') + '" data-i="' + i + '"' + (it.off ? ' disabled' : '') + '>'
-      + '<span class="ctx-ck' + (!it.on && it.ic ? ' ic' : '') + '">' + (it.on ? Ui.ic('check', 16, 2.4) : it.ic ? Ui.ic(it.ic, 16, 1.9) : '') + '</span><span class="ctx-t">' + esc(it.t) + (it.d ? '<small class="ctx-d">' + esc(it.d) + '</small>' : '') + '</span>' + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
+      + '<span class="ctx-ck' + (it.ic ? ' ic' : '') + (it.ic && it.on ? ' on' : '') + '">' + (it.ic ? Ui.ic(it.ic, 16, 1.9) : it.on ? Ui.ic('check', 16, 2.4) : '') + '</span><span class="ctx-t">' + esc(it.t) + (it.d ? '<small class="ctx-d">' + esc(it.d) + '</small>' : '') + '</span>' + (it.on && it.ic ? '<span class="ctx-on">' + Ui.ic('check', 16, 2.4) + '</span>' : '') + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
   }
   function make(items, cls) {
     var d = document.createElement('div'); d.className = 'ctxm ' + (cls || ''); d.setAttribute('role', 'menu'); d.items = items;

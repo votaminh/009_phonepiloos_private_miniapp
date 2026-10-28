@@ -71,7 +71,7 @@
     Array.prototype.forEach.call(Doc.paper().querySelectorAll('.sel'), function (e) { e.classList.remove('sel'); }); if (window.Struct) Struct.hide();
     var s = getSelection(); if (s.rangeCount) s.collapseToEnd(); if (window.Ribbon) Ribbon.follow(); D.render();
   };
-  A['dd-align'] = function (el) { var b = Edit.block(), td = !b && Table.cell(), cur = b ? (b.dataset.al || 'left') : td ? (td.style.textAlign || 'left') : ''; pop(el, ['left', 'center', 'right', 'justify'].map(function (a) { return { t: t('p.' + a), on: cur === a, go: function () { A['e-al-' + a](); } }; })); };
+  A['dd-align'] = function (el) { var b = Edit.block(), td = !b && Table.cell(), cur = b ? (b.dataset.al || 'left') : td ? (td.style.textAlign || 'left') : '', ic = { left: 'alignl', center: 'alignc', right: 'alignr', justify: 'alignj' }; pop(el, ['left', 'center', 'right', 'justify'].map(function (a) { return { t: t('p.' + a), ic: ic[a], on: cur === a, go: function () { A['e-al-' + a](); } }; })); };
   A['dd-picalign'] = function (el) { pop(el, ['left', 'center', 'right'].map(function (a) { return { t: t('p.' + a), go: function () { A['pic-al']({ dataset: { a: a } }); } }; })); };
   A['dd-rows'] = function (el) { pop(el, [{ t: t('tb.rowa'), go: function () { A['t-rowa'](); } }, { t: t('tb.rowb'), go: function () { A['t-rowb'](); } }, { t: t('tb.delrow'), go: function () { A['t-delrow'](); } }]); };
   A['dd-cols'] = function (el) { pop(el, [{ t: t('tb.cola'), go: function () { A['t-cola'](); } }, { t: t('tb.colb'), go: function () { A['t-colb'](); } }, { t: t('tb.delcol'), go: function () { A['t-delcol'](); } }]); };
@@ -94,7 +94,7 @@
       { g: 'dd.g.insert', rows: [['table', 'ft.title', 't-fromtext'], ['link', 'bm.link', 'bm-link'], ['book', 'bm.title', 'bm-open'], ['sigma', 'sy.title', 'sy-open'], ['page', 'dt.title', 'dt-open'], ['pagebreak', 'i.divider', 'i-div']] },
       { g: 'dd.g.review', rows: [['list', 'toc.title', 'rf-toc'], ['comment', 'cm.title', 'rv-comments'], ['note', 'fn.title', 'rf-fns'], ['edit', 'tc.track', 'rv-track', toggle(Doc.track)], ['edit', 'tc.title', 'rv-changes'], ['book', 'sp.title', 'rv-spell'], ['list', 'dk.words', 'd-words']] },
       { g: 'dd.g.view', rows: [['page', 'w.pages', 'r-layout:page', pg ? '✓' : ''], ['align', 'w.wrap', 'r-layout:fit', !pg ? '✓' : ''], ['zoom', 'w.zin', 'z-in'], ['zoom', 'w.zout', 'z-out'], ['zoom', 'w.fit', 'z-fit'], ['list', 'mn.contents', 'm-contents']] },
-      { g: 'dd.g.file', rows: [['share', 'mn.share', 'm-share'], ['share', 'mn.copy', 'm-copy'], ['pdf', 'mn.pdf', 'm-pdf'], ['edit', 'mn.rename', 'm-rename']] }
+      { g: 'dd.g.file', rows: [['edit', 'mn.rename', 'm-rename']] }
     ];
   }
   function row(r) { return '<button type="button" class="dd-li" data-act="dd-do" data-a="' + r[2] + '" data-q="' + esc(t(r[1]).toLowerCase()) + '">' + svg(r[0]) + '<span>' + esc(t(r[1])) + '</span>' + (r[3] ? '<small>' + esc(r[3]) + '</small>' : '') + (r[4] === 'act' ? '' : svg('chev', 18)) + '</button>'; }
