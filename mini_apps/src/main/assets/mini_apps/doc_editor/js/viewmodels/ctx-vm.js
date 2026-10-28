@@ -24,7 +24,7 @@
       it('i.link', K + 'K', act('e-link'), { off: !e1 })];
     if (a) items.push(it('cx.open', '', function () { NativeTools.call('open_url', { url: a.dataset.href, reason: 'Open a link' }).catch(function () {}); }));
     items.push('-', it('cm.new', K + 'Alt+M', act('rv-new'), { off: !e1 }), it('fn.new', K + 'Alt+F', act('rf-fn'), { off: !e1 }));
-    if (td && e1) items = items.concat(['-', it('tb.rowa', '', act('t-rowa')), it('tb.rowb', '', act('t-rowb')), it('tb.cola', '', act('t-cola')), it('tb.colb', '', act('t-colb')), it('tb.delrow', '', act('t-delrow')), it('tb.delcol', '', act('t-delcol')), it('tb.deltable', '', act('t-deltable'))]);
+    if (td && e1) items = items.concat(['-', it('tb.rowa', '', act('t-rowa')), it('tb.rowb', '', act('t-rowb')), it('tb.cola', '', act('t-cola')), it('tb.colb', '', act('t-colb')), it('tb.delrow', '', act('t-delrow')), it('tb.delcol', '', act('t-delcol')), it('tb.deltable', '', act('t-deltable')), '-', it('tb.merge', '', act('t-merge')), it('tb.split', '', act('t-split'))]);
     return items.concat(['-', it('dk.selall', K + 'A', function () { document.execCommand('selectAll'); }), it('ky.help', 'F1', act('ky-help'))]);
   }
   Doc.paper().addEventListener('contextmenu', function (e) {

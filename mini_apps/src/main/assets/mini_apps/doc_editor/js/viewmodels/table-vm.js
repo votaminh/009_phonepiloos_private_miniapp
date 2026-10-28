@@ -60,6 +60,7 @@
     if (Doc.mode !== 'edit') return; var td = tdOf(e.target);
     if (!td) { if (SEL && !e.target.closest('#dkBar, .ctxm, .pop, .sheet')) Table.clearSel(); anchor = null; return; }
     if (e.shiftKey && anchor && anchor !== td && blockOf(anchor) === blockOf(td)) { e.preventDefault(); select(anchor, td); return; }
+    if (e.button === 2 && td.classList.contains('csel') && Table.selection()) return;   // right click on the selected cells opens their menu: the selection stays
     Table.clearSel(); anchor = td; selecting = false;
   }, true);
   document.addEventListener('pointermove', function (e) {
