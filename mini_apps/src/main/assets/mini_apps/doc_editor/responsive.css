@@ -70,11 +70,14 @@ html:not([data-w="phone"]) .dc-side{display:block;flex:none;width:288px;overflow
 .sd-none{margin:var(--px-8) var(--px-10);font:400 13px/1.4 var(--body);color:var(--muted)}
 html[data-w="laptop"] .dc-side{width:248px}
 html[data-w="desktop"] #pgDoc[data-mode="edit"] .dc-side{width:240px;padding:var(--px-16) var(--px-12)}
-/* laptop, editing: the Contents shrinks to a rail of numbers so the page and the tools have room */
+/* laptop, editing: only when the window is really narrow does the Contents shrink to a rail of numbers (and then it shows nothing but those: no sentence to cut in half);
+   from 1100px up there is room for it whole */
+@media (max-width:1099px){
 html[data-w="laptop"] #pgDoc[data-mode="edit"] .dc-side{width:64px;padding:var(--px-12) var(--px-8)}
-html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-h,html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-t,html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-i em{display:none}
+html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-h,html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-t,html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-i em,html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-none{display:none}
 html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-i{justify-content:center;padding:0;min-height:44px}
 html[data-w="laptop"] #pgDoc[data-mode="edit"] .sd-n{display:flex}
+}
 /* tablet: a drawer over the page */
 html[data-w="tablet"] .dc-side{position:absolute;left:0;top:0;bottom:0;width:340px;z-index:12;transform:translateX(-104%);transition:transform .3s var(--out),box-shadow .3s;box-shadow:none}
 html[data-w="tablet"] #pgDoc.side-open .dc-side{transform:none;box-shadow:6px 0 28px var(--shadow-hi)}
