@@ -174,6 +174,8 @@
     }, 'saving', 't.saved');
   };
   A['e-save'] = function () { Doc.save(); };
+  // the tick by Back keeps a draft (autosave); a document not stored yet has nowhere to keep one, so it is saved the first time
+  A['e-autosave'] = function () { if (Doc.rec && Doc.rec.fresh) Doc.save(); else Doc.draftNow(); };
   Doc.discard = async function () {
     stopDraft(); clearTimeout(timers.snap); await Doc.dropDraft(); Doc.dirty = false; Ui.toast(t('t.discarded'));
   };

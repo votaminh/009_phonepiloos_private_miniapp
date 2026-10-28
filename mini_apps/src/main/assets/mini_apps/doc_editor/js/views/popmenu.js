@@ -6,8 +6,8 @@
 
   function row(it, i) {
     if (it === '-') return '<i class="ctx-sep"></i>';
-    return '<button type="button" role="menuitem" class="ctx-i' + (it.off ? ' off' : '') + (it.danger ? ' danger' : '') + '" data-i="' + i + '"' + (it.off ? ' disabled' : '') + '>'
-      + '<span class="ctx-ck' + (!it.on && it.ic ? ' ic' : '') + '">' + (it.on ? Ui.ic('check', 16, 2.4) : it.ic ? Ui.ic(it.ic, 16, 1.9) : '') + '</span><span class="ctx-t">' + esc(it.t) + '</span>' + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
+    return '<button type="button" role="menuitem" class="ctx-i' + (it.d ? ' has-d' : '') + (it.off ? ' off' : '') + (it.danger ? ' danger' : '') + '" data-i="' + i + '"' + (it.off ? ' disabled' : '') + '>'
+      + '<span class="ctx-ck' + (!it.on && it.ic ? ' ic' : '') + '">' + (it.on ? Ui.ic('check', 16, 2.4) : it.ic ? Ui.ic(it.ic, 16, 1.9) : '') + '</span><span class="ctx-t">' + esc(it.t) + (it.d ? '<small class="ctx-d">' + esc(it.d) + '</small>' : '') + '</span>' + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
   }
   function make(items, cls) {
     var d = document.createElement('div'); d.className = 'ctxm ' + (cls || ''); d.setAttribute('role', 'menu'); d.items = items;
@@ -50,7 +50,7 @@
   }
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.ctx-i'); if (b && b.parentNode.items) run(b.parentNode, b); });
   P.show = function (x, y, items, o) {
-    P.close(); o = o || {}; root = make(items); root.id = 'ctxm'; P.from = o.from || null; if (P.from) P.from.classList.add('open'); put(root, x, y);
+    P.close(); o = o || {}; root = make(items, o.cls); root.id = 'ctxm'; P.from = o.from || null; if (P.from) P.from.classList.add('open'); put(root, x, y);
     root.addEventListener('pointermove', function (e) { var b = e.target.closest && e.target.closest('.ctx-i'); if (!b) return; var d = b.parentNode; Array.prototype.forEach.call(d.querySelectorAll('.hot'), function (h) { h.classList.remove('hot'); }); b.classList.add('hot'); if (d.items[+b.dataset.i].sub) openSub(d, b); else closeFrom(subs.indexOf(d) + 1); });
     document.addEventListener('pointerdown', away, true); document.addEventListener('keydown', keys, true); document.addEventListener('wheel', still, HOLD); document.addEventListener('touchmove', still, HOLD); window.addEventListener('blur', P.close); window.addEventListener('resize', P.close);
     return root;
