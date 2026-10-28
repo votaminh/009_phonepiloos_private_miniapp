@@ -64,7 +64,7 @@
     Table.clearSel(); anchor = td; selecting = false;
   }, true);
   document.addEventListener('pointermove', function (e) {
-    if (!anchor || !(e.buttons & 1) || Doc.mode !== 'edit') return; var td = tdOf(document.elementFromPoint(e.clientX, e.clientY)); if (!td || td === anchor && !selecting) return;
+    if (rs || !anchor || !(e.buttons & 1) || Doc.mode !== 'edit') return; var td = tdOf(document.elementFromPoint(e.clientX, e.clientY)); if (!td || td === anchor && !selecting) return;
     if (blockOf(td) !== blockOf(anchor)) return; if (td !== anchor || selecting) { selecting = true; select(anchor, td); }
   });
   document.addEventListener('pointerup', function () { selecting = false; });
@@ -110,6 +110,28 @@
   };
   // ---- column width and row height by dragging a cell's edge; borders ----------------------------------------------------------------------------------
   var EDGE = 5, rs = null;
+  // A column is dragged by its own right edge, as in Word: the last column moves the table's outer edge (the table grows or shrinks), any other one trades width with the column
+  // next to it (the table stays as wide). So the table first keeps the pixel width of every column it has now.
+  function setCol(b, c, w) { Array.prototype.forEach.call(b.querySelectorAll('tr'), function (tr) { var x = tr.children[c]; if (x) x.style.width = w + 'px'; }); }
+  function fit(tb, w) {   // the collapsed borders make the box a pixel wider than its width: take that off, so a table as wide as the text area does not scroll
+    tb.style.width = w + 'px'; var ex = tb.offsetWidth - w; if (ex > 0.5) tb.style.width = (w - ex) + 'px';
+  }
+  function freeze(b) {
+    var tb = b.querySelector('table'), z = zoomOf(), ws = Array.prototype.map.call(tb.querySelector('tr').children, function (c) { return c.getBoundingClientRect().width / z; });
+    tb.style.tableLayout = 'fixed'; tb.style.minWidth = '0'; ws.forEach(function (w, i) { setCol(b, i, w); }); fit(tb, ws.reduce(function (a, x) { return a + x; }, 0));
+    return ws;
+  }
+  function dragCol(e, z) {
+    var d = rs, i = d.c, last = i === d.ws.length - 1, w = Math.max(24, d.ws[i] + (e.clientX - d.x0) / z);
+    if (last) {   // never wider than the text area (or than it was, if it already was): a table pulled off the page could not be reached again
+      var cap = Math.floor(d.b.clientWidth / z), room = d.W0 > cap + 2 ? d.W0 : cap; w = Math.max(24, Math.min(w, d.ws[i] + room - d.W0));
+      var tb = d.b.querySelector('table'), W = d.W0 + w - d.ws[i]; setCol(d.b, i, w); tb.style.width = W + 'px';
+      var ex = tb.offsetWidth - W; if (ex > 0.5) { w -= ex; setCol(d.b, i, w); tb.style.width = (W - ex) + 'px'; }   // the collapsed borders add a pixel or two to the box: take them off the last column
+      d.w = w; return;
+    }
+    var wn = Math.max(24, d.ws[i] + d.ws[i + 1] - w); w = d.ws[i] + d.ws[i + 1] - wn; setCol(d.b, i + 1, wn); d.wn = wn;
+    setCol(d.b, i, w); d.w = w;
+  }
   function zoomOf() { return parseFloat(Doc.paper().style.zoom) || 1; }
   function plainTable(b) { return Array.prototype.every.call(b.querySelectorAll('td'), function (x) { return !x.hidden && (x.colSpan || 1) === 1 && (x.rowSpan || 1) === 1; }); }
   function edgeAt(e) {
@@ -119,17 +141,18 @@
     return null;
   }
   document.addEventListener('pointermove', function (e) {
-    if (rs) { var z = zoomOf(); if (rs.kind === 'col') { var w = Math.max(24, rs.w0 + (e.clientX - rs.x0) / z); Array.prototype.forEach.call(rs.b.querySelectorAll('tr'), function (tr) { var c = tr.children[rs.c]; if (c) c.style.width = w + 'px'; }); rs.w = w; } else { var h = Math.max(16, rs.h0 + (e.clientY - rs.y0) / z); rs.tr.style.height = h + 'px'; Array.prototype.forEach.call(rs.tr.children, function (c) { c.style.height = h + 'px'; }); rs.h = h; } return; }
+    if (rs) { var z = zoomOf(); if (rs.kind === 'col') { dragCol(e, z); } else { var h = Math.max(16, rs.h0 + (e.clientY - rs.y0) / z); rs.tr.style.height = h + 'px'; Array.prototype.forEach.call(rs.tr.children, function (c) { c.style.height = h + 'px'; }); rs.h = h; } return; }
     if (e.buttons) return; var ed = edgeAt(e), p = Doc.paper(); p.classList.toggle('rs-col', !!ed && ed.kind === 'col'); p.classList.toggle('rs-row', !!ed && ed.kind === 'row');
   });
   document.addEventListener('pointerdown', function (e) {
     var ed = edgeAt(e); if (!ed || (e.button && e.button !== 0)) return; var b = blockOf(ed.td); if (!plainTable(b)) { Ui.toast(t('tb.complexw')); return; }
     e.preventDefault(); e.stopPropagation(); var p = pos(ed.td), r = ed.td.getBoundingClientRect(), z = zoomOf();
     rs = { kind: ed.kind, b: b, c: p.c, r: p.r, tr: ed.td.parentElement, x0: e.clientX, y0: e.clientY, w0: r.width / z, h0: r.height / z };
+    if (ed.kind === 'col') { rs.ws = freeze(b); rs.W0 = rs.ws.reduce(function (a, x) { return a + x; }, 0); }
   }, true);
   document.addEventListener('pointerup', function () {
     if (!rs) return; var d = rs; rs = null; Doc.paper().classList.remove('rs-col', 'rs-row');
-    if (d.kind === 'col' && d.w) { addOp(d.b, { op: 'colw', c: d.c, w: Math.round(d.w * 15) }); d.b.dataset.simple = ''; }
+    if (d.kind === 'col' && d.w) { addOp(d.b, { op: 'colw', c: d.c, w: Math.round(d.w * 15) }); if (d.wn) addOp(d.b, { op: 'colw', c: d.c + 1, w: Math.round(d.wn * 15) }); d.b.dataset.simple = ''; }
     else if (d.kind === 'row' && d.h) addOp(d.b, { op: 'rowh', r: d.r, h: Math.round(d.h * 15) });
     else return; d.b.dataset.m = '1'; Doc.snap(); Edit.sync();
   });
@@ -172,7 +195,7 @@
     try {
       var xml = await DocSvc.table(size.r, size.c), rows = '';
       for (var i = 0; i < size.r; i++) rows += '<tr>' + fresh(size.c).replace(/ data-new="1"/g, ' data-new="1"' + (i === 0 ? ' class="th"' : '')) + '</tr>';
-      var el = Insert.block('tbl', '<table>' + rows + '</table>', xml); el.dataset.simple = '1'; el.dataset.hdr = '1';
+      var el = Insert.block('tbl', '<table style="width:100%;table-layout:fixed">' + rows + '</table>', xml); el.dataset.simple = '1'; el.dataset.hdr = '1';
       Insert.place(el); Table.arm(true);
       var f = el.querySelector('td');
       if (f) {   // the caret goes into the first cell (Insert.place left it in the paragraph after the table): typing and the table tools work at once

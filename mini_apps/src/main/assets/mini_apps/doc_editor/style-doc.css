@@ -43,7 +43,7 @@ h1.b{font-size:1.6em;font-weight:700}h2.b{font-size:1.3em;font-weight:600}h3.b{f
 .li[data-il="1"]{margin-left:1.6em}.li[data-il="2"]{margin-left:3.2em}.li[data-il="3"]{margin-left:4.8em}
 a.lnk{color:var(--accent-text);text-decoration:underline}
 [data-th="dark"] a.lnk{color:var(--night-accent)}
-.b.tbl{overflow-x:auto}.tbl table{border-collapse:collapse;min-width:60%}.tbl td{border:1px solid var(--paper-line);padding:var(--px-6) var(--px-8);vertical-align:top;min-width:48px;white-space:pre-wrap}
+.b.tbl{overflow-x:auto;scrollbar-width:none}.b.tbl::-webkit-scrollbar{display:none}   /* a table wider than the page still scrolls, but no bar is drawn under it */.tbl table{border-collapse:collapse;min-width:60%}.tbl td{border:1px solid var(--paper-line);padding:var(--px-6) var(--px-8);vertical-align:top;min-width:48px;white-space:pre-wrap}
 .imgp img{max-width:100%;height:auto;display:block}
 .paper.pgedit.hasfloat{display:block}.paper.pgedit.hasfloat .b[data-pgp]{margin-top:0;padding-top:var(--pgp)}
 .b.wf-l{float:left;max-width:50%;margin:0 14px 8px 0!important}.b.wf-r{float:right;max-width:50%;margin:0 0 8px 14px!important}.pgx-sl .b.wf-l,.pgx-sl .b.wf-r{float:none;max-width:none}
