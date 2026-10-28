@@ -134,8 +134,9 @@
     R.t = setTimeout(R.follow, 60);
   });
   // the contextual tab follows what is picked
+  // (a table's tab appears but the tab the person is on stays: Home edits the text of the cells; the other contexts still take over)
   R.follow = function () {
-    var c = ctx(); if (c !== (R.cur || '')) { if (c) { if (!R.cur) R.back = R.tab; R.tab = c; } else if (R.tab === R.cur) R.tab = R.back || 'home'; R.cur = c; R.menu(); R.render(); } R.sync();
+    var c = ctx(); if (c !== (R.cur || '')) { if (c) { if (!R.cur) R.back = R.tab; if (c !== 'table') R.tab = c; } else if (R.tab === R.cur) R.tab = R.back || 'home'; R.cur = c; R.menu(); R.render(); } R.sync();
   };
   document.addEventListener('click', function () { if (Doc.mode === 'edit') setTimeout(R.follow, 30); });
   if (Wide.pc && Doc.rec) { R.menu(); }

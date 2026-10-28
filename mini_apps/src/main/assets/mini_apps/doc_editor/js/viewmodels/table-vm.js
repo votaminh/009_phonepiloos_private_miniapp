@@ -74,7 +74,8 @@
   function select(a, z) { if (blockOf(a) !== blockOf(z)) return; SEL = rect(a, z); paintSel(); getSelection().removeAllRanges(); if (window.Ribbon) Ribbon.follow(); }
   document.addEventListener('pointerdown', function (e) {
     if (Doc.mode !== 'edit') return; var td = tdOf(e.target);
-    if (!td) { if (SEL && !e.target.closest('#dkBar, .ctxm, .pop, .sheet')) Table.clearSel(); anchor = null; return; }
+    // the ribbon (its tabs too) works on the cells that are selected, so a press on it must not drop them
+    if (!td) { if (SEL && !e.target.closest('#dkMenu, #dkBar, .ctxm, .pop, .sheet')) Table.clearSel(); anchor = null; return; }
     if (e.shiftKey && anchor && anchor !== td && blockOf(anchor) === blockOf(td)) { e.preventDefault(); select(anchor, td); return; }
     if (e.button === 2 && td.classList.contains('csel') && Table.selection()) return;   // right click on the selected cells opens their menu: the selection stays
     Table.clearSel(); anchor = td; selecting = false;
