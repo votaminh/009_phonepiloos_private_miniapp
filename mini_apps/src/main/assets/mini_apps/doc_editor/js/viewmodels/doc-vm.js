@@ -109,9 +109,15 @@
   };
 
   // ---- history ---------------------------------------------------------------------------------------------------------------
+  // what only shows the current selection (selected cells, a picked block, a table being dragged) is not part of the document: a snapshot taken with it would bring it back, stuck, on undo
+  function plainHtml(h) {
+    h = h.replace(/ contenteditable="(?:true|false)"/g, '');   // put on and taken off again by the page itself (islands, Table.arm): a snapshot must not differ for that alone, or the next undo looks like a change
+    if (!/\b(csel|sel|moving)\b/.test(h)) return h;
+    return h.replace(/ class="([^"]*)"/g, function (m, c) { var k = c.split(/\s+/).filter(function (x) { return x && x !== 'csel' && x !== 'sel' && x !== 'moving'; }); return k.length ? ' class="' + k.join(' ') + '"' : ''; });
+  }
   Doc.snap = function () {
     clearTimeout(timers.snap);
-    var h = window.Paginate ? Paginate.strip(Doc.paper().innerHTML) : Doc.paper().innerHTML; if (h === Doc.hist[Doc.histAt]) return;
+    var h = plainHtml(window.Paginate ? Paginate.strip(Doc.paper().innerHTML) : Doc.paper().innerHTML); if (h === Doc.hist[Doc.histAt]) return;
     Doc.hist = Doc.hist.slice(0, Doc.histAt + 1); Doc.hsel = (Doc.hsel || []).slice(0, Doc.histAt + 1); Doc.hist.push(h); Doc.hsel.push(window.Surface ? Surface.sel() : null);
     if (Doc.hist.length > HIST_MAX) { Doc.hist.shift(); Doc.hsel.shift(); Doc.baseAt = Math.max(-1, Doc.baseAt - 1); } Doc.histAt = Doc.hist.length - 1;
     Doc.touch(true);
@@ -125,7 +131,7 @@
     var key = [Doc.dirty, Doc.histAt > 0, Doc.histAt < Doc.hist.length - 1, Doc.mode, Doc.statusText().text].join('|'); if (key !== Doc.ck) { Doc.ck = key; Doc.chrome(); }   // the bars only change when one of these does
   };
   function restore(i) {
-    clearTimeout(timers.snap); Doc.histAt = i; var p = Doc.paper(); p.innerHTML = Doc.hist[i];
+    clearTimeout(timers.snap); Doc.histAt = i; var p = Doc.paper(); if (window.Table) Table.clearSel(); p.innerHTML = Doc.hist[i];
     Doc.islands(true); Table.arm(true); Doc.touch(true); Edit.sync(); if (window.Paginate) Paginate.schedule(0); if (window.Surface) Surface.restore(Doc.hsel && Doc.hsel[i]);
   }
   A['e-undo'] = function () { Doc.snap(); if (Doc.histAt > 0) restore(Doc.histAt - 1); };
