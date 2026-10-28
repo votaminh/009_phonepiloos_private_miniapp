@@ -149,3 +149,10 @@ img.mf{vertical-align:middle;display:inline-block}.b.obj{line-height:1.9}
 
 .b.obj{white-space:pre-wrap}
 .gcl,.quick{transition:opacity .15s}.gcl.moving,.quick.moving{opacity:0;pointer-events:none}
+/* around a table: the handle that moves it, the + between two rows or columns, and the line where a dragged table will land */
+.tmove,.tplus,.tline,.tdrop{position:fixed}.tmove[hidden],.tplus[hidden],.tline[hidden],.tdrop[hidden]{display:none}
+.tmove{z-index:11;width:22px;height:22px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--ink);display:grid;place-items:center;cursor:grab;touch-action:none;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.tmove:active{cursor:grabbing}.tmove svg{width:14px;height:14px;display:block;pointer-events:none}
+.tplus{z-index:11;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--white);display:grid;place-items:center;font:700 16px/1 var(--body);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.tline{z-index:10;background:var(--accent);pointer-events:none;opacity:.85}
+.tdrop{z-index:11;height:3px;border-radius:2px;background:var(--accent);pointer-events:none}
