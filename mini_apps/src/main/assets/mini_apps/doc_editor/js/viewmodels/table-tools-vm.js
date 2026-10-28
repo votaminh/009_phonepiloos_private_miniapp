@@ -62,6 +62,19 @@
   window.addEventListener('resize', function () { if (!drag) refresh(null); });
   document.documentElement.addEventListener('pointerleave', function () { if (!drag && plus) { plus.hidden = line.hidden = true; hint = null; } });   // the pointer left the window (not a child: that one is the way onto the +)
 
+  // ---- Tab in a cell: on to the next cell (Shift+Tab: back); Tab in the last cell adds a row, as in Word ------------------------------------------------
+  function goCell(td) {
+    var r = document.createRange(), s = getSelection(); r.selectNodeContents(td); s.removeAllRanges(); s.addRange(r); Doc.range = r.cloneRange(); td.scrollIntoView({ block: 'nearest' }); Edit.sync();
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab' || Doc.mode !== 'edit' || e.ctrlKey || e.metaKey || e.altKey) return;
+    var td = window.Table && Table.cell(); if (!td) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    var b = H.blockOf(td), list = function () { return Array.prototype.filter.call(b.querySelectorAll('td'), function (c) { return !c.hidden; }); }, cells = list(), i = cells.indexOf(td), to = cells[e.shiftKey ? i - 1 : i + 1];
+    if (!to && !e.shiftKey && b.dataset.simple === '1') { App.acts['t-rowb'](); cells = list(); to = cells[cells.indexOf(td) + 1]; }   // the last cell: a row below, then its first cell
+    if (to) goCell(to);
+  }, true);
+
   // ---- the + : one row or column on that border ---------------------------------------------------------------------------------
   function add(h) {
     var b = h.b, ops, nw;
