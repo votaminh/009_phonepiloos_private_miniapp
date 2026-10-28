@@ -7,7 +7,7 @@
   function row(it, i) {
     if (it === '-') return '<i class="ctx-sep"></i>';
     return '<button type="button" role="menuitem" class="ctx-i' + (it.off ? ' off' : '') + (it.danger ? ' danger' : '') + '" data-i="' + i + '"' + (it.off ? ' disabled' : '') + '>'
-      + '<span class="ctx-ck">' + (it.on ? Ui.ic('check', 16, 2.4) : '') + '</span><span class="ctx-t">' + esc(it.t) + '</span>' + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
+      + '<span class="ctx-ck' + (!it.on && it.ic ? ' ic' : '') + '">' + (it.on ? Ui.ic('check', 16, 2.4) : it.ic ? Ui.ic(it.ic, 16, 1.9) : '') + '</span><span class="ctx-t">' + esc(it.t) + '</span>' + (it.k ? '<kbd>' + esc(it.k) + '</kbd>' : '') + (it.sub ? '<span class="ctx-sub">' + Ui.ic('right', 14, 2.2) + '</span>' : '') + '</button>';
   }
   function make(items, cls) {
     var d = document.createElement('div'); d.className = 'ctxm ' + (cls || ''); d.setAttribute('role', 'menu'); d.items = items;
@@ -18,9 +18,12 @@
     if (side) { x = x + side.w + 2 + w > W - 6 ? side.x - w - 2 : x + side.w + 2; y = Math.min(y, H - h - 8); } else { x = Math.min(x, W - w - 8); y = y + h > H - 8 ? Math.max(8, y - h) : y; }
     d.style.left = Math.max(8, x) + 'px'; d.style.top = Math.max(8, y) + 'px';
   }
+  // while a menu is open the page under it stays put (the wheel and a touch drag are ignored, except over the menu itself, which may scroll)
+  function still(e) { if (!(e.target.closest && e.target.closest('.ctxm'))) e.preventDefault(); }
+  var HOLD = { capture: true, passive: false };
   function closeFrom(level) { while (subs.length > level) { var d = subs.pop(); if (d.parentNode) d.parentNode.removeChild(d); } }
   P.close = function () {
-    closeFrom(0); if (root && root.parentNode) root.parentNode.removeChild(root); root = null; document.removeEventListener('pointerdown', away, true); document.removeEventListener('keydown', keys, true); window.removeEventListener('blur', P.close); window.removeEventListener('resize', P.close);
+    closeFrom(0); if (root && root.parentNode) root.parentNode.removeChild(root); root = null; document.removeEventListener('pointerdown', away, true); document.removeEventListener('keydown', keys, true); document.removeEventListener('wheel', still, HOLD); document.removeEventListener('touchmove', still, HOLD); window.removeEventListener('blur', P.close); window.removeEventListener('resize', P.close);
     if (P.from) { P.from.classList.remove('open'); P.from = null; }
   };
   P.isOpen = function () { return !!root; };
@@ -49,7 +52,7 @@
   P.show = function (x, y, items, o) {
     P.close(); o = o || {}; root = make(items); root.id = 'ctxm'; P.from = o.from || null; if (P.from) P.from.classList.add('open'); put(root, x, y);
     root.addEventListener('pointermove', function (e) { var b = e.target.closest && e.target.closest('.ctx-i'); if (!b) return; var d = b.parentNode; Array.prototype.forEach.call(d.querySelectorAll('.hot'), function (h) { h.classList.remove('hot'); }); b.classList.add('hot'); if (d.items[+b.dataset.i].sub) openSub(d, b); else closeFrom(subs.indexOf(d) + 1); });
-    document.addEventListener('pointerdown', away, true); document.addEventListener('keydown', keys, true); window.addEventListener('blur', P.close); window.addEventListener('resize', P.close);
+    document.addEventListener('pointerdown', away, true); document.addEventListener('keydown', keys, true); document.addEventListener('wheel', still, HOLD); document.addEventListener('touchmove', still, HOLD); window.addEventListener('blur', P.close); window.addEventListener('resize', P.close);
     return root;
   };
 })();
