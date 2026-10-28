@@ -75,7 +75,7 @@ html.pc #pgDoc .dk-bar.rib.on{align-items:stretch;min-height:96px;padding:var(--
 .rb:hover{background:var(--chip)}.rb.on{background:var(--accent-soft);color:var(--accent-text)}
 .rb.big{flex-direction:column;height:auto;min-width:56px;padding:var(--px-4) var(--px-8);font:500 12px var(--body);gap:var(--px-4)}.rb.big span{white-space:nowrap}
 .rb.tx{height:22px;font:500 12px var(--body)}
-.rb-font{height:30px;min-width:150px;justify-content:space-between}
+.rb-font{height:30px;width:150px;justify-content:space-between}.rb-font #tlFont{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}   /* a fixed width: a longer font name or a 2-digit size must not push the rest of the ribbon around */
 .rb-soon{align-self:center;color:var(--muted);font:500 13px var(--body);padding:0 var(--px-12)}
 html.pc .dk-bar.rib.ro .rb:not([data-act="d-find"]):not([data-act="q-copy"]):not([data-act^="z-"]):not([data-act="r-layout"]):not([data-act="sd-toggle"]):not([data-act="d-words"]){opacity:.4;pointer-events:none}
 /* the gallery */
@@ -131,7 +131,7 @@ html.pc .ruler{position:sticky;top:0;z-index:6;box-sizing:border-box;background:
 .rl-k{position:absolute;width:10px;height:9px;margin-left:-5px;background:var(--accent);cursor:ew-resize;z-index:2}
 .rl-k.first{top:0;clip-path:polygon(0 0,100% 0,50% 100%)}.rl-k.left{bottom:0;clip-path:polygon(50% 0,100% 100%,0 100%)}.rl-k.right{bottom:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
 .rl-k:hover,.rl-k.on{background:var(--accent-hi)}
-.rb-size{min-width:52px}html.painting #paper{cursor:copy}
+.rb-size{width:60px;justify-content:space-between}.rb-size #tlSize{flex:1;min-width:0;text-align:left;font-variant-numeric:tabular-nums}html.painting #paper{cursor:copy}
 
 /* review */
 .b[data-cm]{background:var(--warn-soft);box-shadow:inset 3px 0 0 var(--warn)}

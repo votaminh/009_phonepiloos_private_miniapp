@@ -67,7 +67,9 @@
   }
   S.restore = function (sel) {
     if (!sel) return; var a = setPos(paper(), sel.a), z = setPos(paper(), sel.z); if (!a || !z) return; S.focus();
-    var r = document.createRange(); try { r.setStart(a[0], a[1]); r.setEnd(z[0], z[1]); } catch (e) { return; } var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    var s = getSelection();
+    if (s.rangeCount && s.anchorNode === a[0] && s.anchorOffset === a[1] && s.focusNode === z[0] && s.focusOffset === z[1]) return;   // already there: putting it back would drop the typing style armed at a bare caret
+    var r = document.createRange(); try { r.setStart(a[0], a[1]); r.setEnd(z[0], z[1]); } catch (e) { return; } s.removeAllRanges(); s.addRange(r);
   };
 
   // ---- deleting what is selected ---------------------------------------------------------------------------------------------------

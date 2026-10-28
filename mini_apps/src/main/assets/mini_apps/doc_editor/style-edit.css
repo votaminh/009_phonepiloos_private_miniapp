@@ -64,3 +64,4 @@ html.still .tl-tile{animation:none}
 .dd-li{display:flex;align-items:center;gap:var(--px-14);min-height:52px;padding:0 var(--px-14);border:0;background:var(--surface);width:100%;text-align:left;color:var(--ink);font:500 14.5px var(--body);border-bottom:1px solid var(--line)}
 .dd-li:last-child{border-bottom:0}.dd-li svg:first-child{color:var(--accent)}.dd-li span{flex:1}.dd-li small{color:var(--muted);font:400 12.5px var(--body)}.dd-li svg:last-child{color:var(--muted);width:18px;height:18px}
 .dd-none{padding:var(--px-20);text-align:center;color:var(--muted)}
+[data-act="e-hl"]{position:relative}[data-act="e-hl"]::after{content:'';position:absolute;left:50%;bottom:4px;width:18px;height:4px;margin-left:-9px;border-radius:2px;background:var(--hl,transparent);pointer-events:none}   /* the current highlight, like the bar under the A */

@@ -64,12 +64,14 @@
   Struct.split = function (b) {
     var s = getSelection(), r = s.getRangeAt(0); if (!r.collapsed) { Surface.deleteRange(r); b = cur(); if (!b) return; r = getSelection().getRangeAt(0); }
     if (b.dataset.t === 'l' && empty(b)) { swap(b, 'p', plain); return done(); }   // Return on an empty list item leaves the list
+    var carry = window.Edit && Edit.carry ? Edit.carry() : null;
     var tail = document.createRange(); tail.selectNodeContents(b); tail.setStart(r.startContainer, r.startOffset);
     var frag = tail.extractContents(), n = fresh(b, 'p'); n.dataset.t = 'p';
     if (b.dataset.t !== 'h') { if (b.dataset.st) n.dataset.st = b.dataset.st; if (b.getAttribute('style')) n.setAttribute('style', b.getAttribute('style').replace(/margin-top:[^;]*;?/, '')); }   // the next paragraph looks like this one (a heading is followed by Normal text)
     if (b.dataset.t === 'l') { n.dataset.t = 'l'; n.dataset.k = b.dataset.k; n.dataset.il = b.dataset.il; n.className = 'b ed li ' + (b.dataset.k === 'ordered' ? 'ord' : 'bul'); }
     else if (b.dataset.t === 'p' && b.dataset.in) { n.dataset.in = b.dataset.in; n.style.marginLeft = b.style.marginLeft; }
-    n.appendChild(frag); ph(n); ph(b); b.dataset.m = '1'; b.after(n); n.focus(); putCaret(n, { a: 0, z: 0 }); done();
+    n.appendChild(frag); var atEnd = empty(n); ph(n); ph(b); b.dataset.m = '1'; b.after(n); n.focus(); putCaret(n, { a: 0, z: 0 }); done();
+    if (carry && atEnd) carry();
   };
   Struct.back = function (b) {
     if (b.dataset.t === 'l') { swap(b, 'p', plain); return done(); }
