@@ -18,9 +18,25 @@
   };
   document.addEventListener('input', function (e) { var td = e.target.closest && e.target.closest('.tbl td'); if (td) { td.dataset.m = '1'; } });
   // what Plan sends for one table block: [[ [paragraph, ...] | null ]] — null leaves a cell as it was
+  // A cell with a look of its own (formatted text or an alignment) goes back as paragraphs of runs, { runs, al }; a plain one as its text
+  function cellAlign(td) { var a = td.style.textAlign; return a === 'center' || a === 'right' || a === 'justify' ? a : undefined; }
+  function hasLook(td) { return !!cellAlign(td) || !!td.querySelector('span[style],span[data-f],b,strong,i,em,u,s,strike,font,sup,sub'); }
+  // the paragraphs of a cell: a break or a block (Enter makes a div) ends one; each is the runs of its text with their look
+  function cellParas(td) {
+    var c = td.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll('div,p'), function (d) { if (d.previousSibling) d.before(document.createElement('br')); if (d.nextSibling) d.after(document.createElement('br')); });
+    var paras = [[]];
+    Plan.extract(c).forEach(function (r) {
+      r.t.split('\n').forEach(function (piece, i) { if (i) paras.push([]); if (piece !== '') paras[paras.length - 1].push(Object.assign({}, r, { t: piece })); });
+    });
+    return paras.map(function (runs) { return { runs: runs, al: cellAlign(td) }; });
+  }
   Table.cells = function (b) {
     return Array.prototype.map.call(b.querySelectorAll('tr'), function (tr) {
-      return Array.prototype.map.call(tr.children, function (td) { return td.dataset.m || td.dataset.new ? td.innerText.replace(/ /g, ' ').replace(/\n$/, '').split('\n') : null; });
+      return Array.prototype.map.call(tr.children, function (td) {
+        if (!(td.dataset.m || td.dataset.new)) return null;
+        return hasLook(td) ? cellParas(td) : td.innerText.replace(/ /g, ' ').replace(/\n$/, '').split('\n');
+      });
     });
   };
 

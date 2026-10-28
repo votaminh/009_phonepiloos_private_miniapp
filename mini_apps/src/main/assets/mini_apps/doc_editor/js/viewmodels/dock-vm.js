@@ -42,7 +42,9 @@
     var s = function (p) { return tb('pic-size', p + '%', p + '%', { cls: 'txt', data: ' data-p="' + p + '"' }); };
     if (c === 'picture') return head('image', t('dd.pic')) + '<div class="row sc" style="gap:6px">' + s(25) + s(50) + s(75) + s(100) + sep() + tb('pic-rot', svg('rotl'), t('pic.rotl'), { data: ' data-d="-90"' }) + tb('pic-rot', svg('rotr'), t('pic.rotr'), { data: ' data-d="90"' }) + sep()
       + tb('pic-crop', svg('crop') + t('pic.crop'), t('pic.crop'), { cls: 'txt' }) + tb('pic-wrap', svg('wrap') + t('pic.wrap'), t('pic.wrap'), { cls: 'txt' }) + tb('dd-picalign', svg('align') + t('rb.picalign'), t('rb.picalign'), { cls: 'txt' }) + sep() + tb('pic-del', svg('trash') + t('g.del'), t('g.del'), { cls: 'txt danger' }) + '</div>';
-    if (c === 'table') return head('table', t('dd.cell')) + '<div class="row sc" style="gap:6px">' + tb('dd-rows', svg('rowp') + t('dd.rows'), t('dd.rows'), { cls: 'txt' }) + tb('dd-cols', svg('colp') + t('dd.cols'), t('dd.cols'), { cls: 'txt' }) + tb('t-deltable', svg('trash') + t('g.del'), t('tb.deltable'), { cls: 'txt danger' }) + sep()
+    if (c === 'table') return head('table', t('dd.cell')) + '<div class="row sc" style="gap:6px">'
+      + tb('dd-tray', 'Aa' + svg('down', 14), t('dd.text'), { cls: 'txt' + (D.tray ? ' on' : '') }) + tb('e-bold', '<b>B</b>', t('f.bold')) + tb('e-italic', '<em>I</em>', t('f.italic')) + tb('e-underline', '<span class="u">U</span>', t('f.underline')) + tb('dd-align', svg('align'), t('dk.align')) + sep()   // the text in a cell is formatted from here
+      + tb('dd-rows', svg('rowp') + t('dd.rows'), t('dd.rows'), { cls: 'txt' }) + tb('dd-cols', svg('colp') + t('dd.cols'), t('dd.cols'), { cls: 'txt' }) + tb('t-deltable', svg('trash') + t('g.del'), t('tb.deltable'), { cls: 'txt danger' }) + sep()
       + tb('t-merge', t('tb.merge'), t('tb.merge'), { cls: 'txt' }) + tb('t-split', t('tb.split'), t('tb.split'), { cls: 'txt' }) + tb('t-vmerge', t('tb.vmerge'), t('tb.vmerge'), { cls: 'txt' }) + tb('t-vsplit', t('tb.vsplit'), t('tb.vsplit'), { cls: 'txt' }) + sep()
       + tb('t-shade', svg('paint') + t('tb.shade'), t('tb.shade'), { cls: 'txt' }) + tb('t-borders', svg('border') + t('bd.title'), t('bd.title'), { cls: 'txt' }) + tb('t-sort', svg('sort') + t('so.title'), t('so.title'), { cls: 'txt' }) + '</div>';
     if (c === 'shape') return head('shape', t('dd.shp')) + '<div class="row sc" style="gap:6px">' + tb('shp-edit', svg('edit') + t('a.edit'), t('a.edit'), { cls: 'txt' }) + tb('shp-del', svg('trash') + t('g.del'), t('g.del'), { cls: 'txt danger' }) + '</div>';
@@ -52,7 +54,7 @@
     var host = $('docTools'); if (!host || Wide.pc) return;
     if (!Doc.rec || !Doc.blocks || Doc.mode !== 'edit') { host.innerHTML = ''; return; }
     var c = window.Ribbon ? Ribbon.ctx() : '', at = host.querySelector('.dd-scroll'), keep = at ? at.scrollLeft : 0;
-    host.innerHTML = '<div class="dock-in">' + (c ? strips(c) : (D.tray ? tray() : '') + basics()) + '</div>';
+    host.innerHTML = '<div class="dock-in">' + (c ? (c === 'table' && D.tray ? tray() : '') + strips(c) : (D.tray ? tray() : '') + basics()) + '</div>';
     var s = host.querySelector('.dd-scroll'); if (s) s.scrollLeft = keep;
     D.sync(); if (window.Edit && Edit.sync) Edit.sync();
   };
@@ -68,7 +70,7 @@
     Array.prototype.forEach.call(Doc.paper().querySelectorAll('.sel'), function (e) { e.classList.remove('sel'); }); if (window.Struct) Struct.hide();
     var s = getSelection(); if (s.rangeCount) s.collapseToEnd(); if (window.Ribbon) Ribbon.follow(); D.render();
   };
-  A['dd-align'] = function (el) { var b = Edit.block(); pop(el, ['left', 'center', 'right', 'justify'].map(function (a) { return { t: t('p.' + a), on: !!b && (b.dataset.al || 'left') === a, go: function () { A['e-al-' + a](); } }; })); };
+  A['dd-align'] = function (el) { var b = Edit.block(), td = !b && Table.cell(), cur = b ? (b.dataset.al || 'left') : td ? (td.style.textAlign || 'left') : ''; pop(el, ['left', 'center', 'right', 'justify'].map(function (a) { return { t: t('p.' + a), on: cur === a, go: function () { A['e-al-' + a](); } }; })); };
   A['dd-picalign'] = function (el) { pop(el, ['left', 'center', 'right'].map(function (a) { return { t: t('p.' + a), go: function () { A['pic-al']({ dataset: { a: a } }); } }; })); };
   A['dd-rows'] = function (el) { pop(el, [{ t: t('tb.rowa'), go: function () { A['t-rowa'](); } }, { t: t('tb.rowb'), go: function () { A['t-rowb'](); } }, { t: t('tb.delrow'), go: function () { A['t-delrow'](); } }]); };
   A['dd-cols'] = function (el) { pop(el, [{ t: t('tb.cola'), go: function () { A['t-cola'](); } }, { t: t('tb.colb'), go: function () { A['t-colb'](); } }, { t: t('tb.delcol'), go: function () { A['t-delcol'](); } }]); };

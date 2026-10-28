@@ -33,7 +33,13 @@
   };
   A['e-style'] = function (el) { var b = cur(); Edit.pop(SheetsView.styles(b && b.dataset.t === 'h' ? 'st.h' + b.dataset.lv : 'st.normal'), el, 'menu'); };
   A['e-setstyle'] = function (el) { Edit.hidePops(); Struct.setStyle(+el.dataset.k); };
-  function align(a) { var b = cur(); if (!b) return Ui.toast(t('e.tap')); Edit.mark(); a === 'left' ? b.removeAttribute('data-al') : b.dataset.al = a; b.dataset.m = '1'; done(); }
+  // a table cell is aligned as a whole (every paragraph in it); a block of selected cells, each of them
+  function alignCells(a) {
+    var sel = Table.selection(), td = sel ? null : Table.cell(); if (!sel && !td) return false;
+    (sel ? Table.h.cellsOf(sel).filter(function (x) { return !x.hidden; }) : [td]).forEach(function (x) { x.style.textAlign = a === 'left' ? '' : a; x.dataset.m = '1'; });
+    (sel ? sel.b : td.closest('.b.tbl')).dataset.m = '1'; done(); return true;
+  }
+  function align(a) { if (alignCells(a)) return; var b = cur(); if (!b) return Ui.toast(t('e.tap')); Edit.mark(); a === 'left' ? b.removeAttribute('data-al') : b.dataset.al = a; b.dataset.m = '1'; done(); }
   ['left', 'center', 'right', 'justify'].forEach(function (a) { A['e-al-' + a] = function () { align(a); }; });
   function list(kind) {
     var b = cur(); if (!b) return Ui.toast(t('e.tap'));

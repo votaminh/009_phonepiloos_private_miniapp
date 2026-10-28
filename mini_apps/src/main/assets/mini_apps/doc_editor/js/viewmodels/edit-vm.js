@@ -10,11 +10,24 @@
     var s = getSelection(); if (!s.rangeCount) return; var r = s.getRangeAt(0), up = function (n) { var el = n && (n.nodeType === 3 ? n.parentElement : n); return el && el.closest ? el.closest('#paper > .b') : null; };
     var a = up(r.startContainer), z = s.isCollapsed ? a : up(r.endContainer); if (!a) return;
     for (var el = a; el; el = el.nextElementSibling) { if (el.classList.contains('ed')) el.dataset.m = '1'; if (el === z) break; }
+    var td = window.Table && Table.cell(); if (td) { td.dataset.m = '1'; td.closest('.b.tbl').dataset.m = '1'; }   // the cell the caret is in, and its table (only marked cells are written back)
   }
   Edit.mark = mark;
+  // with a block of table cells selected (no text selection of the browser) the look is given to each cell in turn
+  var cellsBusy = false;
+  function onCells(fn) {
+    var sel = window.Table && Table.selection(); if (!sel || cellsBusy) return false;
+    cellsBusy = true;
+    try {
+      var s = getSelection(); Table.h.cellsOf(sel).forEach(function (td) { if (td.hidden) return; var r = document.createRange(); r.selectNodeContents(td); s.removeAllRanges(); s.addRange(r); fn(); td.dataset.m = '1'; });
+      sel.b.dataset.m = '1'; s.removeAllRanges();
+    } finally { cellsBusy = false; }
+    Doc.touch(); Edit.sync(); return true;
+  }
+  Edit.onCells = onCells;
   Edit.cmd = function (name, arg, whole) {
-    if (Table.cell()) { Ui.toast(t('tb.nofmt')); return false; }
-    var b = cur(); if (!b) { Ui.toast(t('e.tap')); return false; }
+    if (onCells(function () { Edit.cmd(name, arg); })) return true;
+    var b = cur() || Table.cell(); if (!b) { Ui.toast(t('e.tap')); return false; }
     var s = getSelection();
     if (whole && s.isCollapsed) { var r = document.createRange(); r.selectNodeContents(b); s.removeAllRanges(); s.addRange(r); }   // nothing selected: the whole paragraph
     if (!s.isCollapsed) Edit.pend = null;   // a selection is formatted now; an older "next typed text" choice must not run over it
@@ -44,16 +57,17 @@
   Edit.sync = function () {
     var inCell = !!Table.cell(), tabs = $('tlTabs');
     if (tabs && inCell !== !!Doc.inTable && Doc.mode === 'edit') { Doc.inTable = inCell; if (inCell) Edit.tab('table', true); else if (Doc.tab === 'table') { Edit.tab('text', true); return; } else tabs.innerHTML = DocView.tabs(Doc.tab, false); }
-    var b = cur(), body = $('tlBody'); if (!b || Doc.mode !== 'edit') return;
+    var b = cur(), cellB = !b && Table.cell(), body = $('tlBody'); if ((!b && !cellB) || Doc.mode !== 'edit') return;
     // the phone has no tool body (its bar is the dock): the block actions and the quick bar of a selection still follow the caret, and a picked picture is let go
     Edit.paintColor(); Edit.paintHl();
     var n = getSelection().anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n), f = el && el.closest('[data-f]'), sz = el && el.closest('[style*="font-size"]');
     var live = Edit.pendLive(), chip = $('tlFont'); if (chip) chip.textContent = ((live && live.font) || (f && f.dataset.f) || t('f.default')) + ' · ' + ((live && live.size) || (sz ? Math.round(px2pt(getComputedStyle(sz).fontSize)) : 11));
-    if (!body) { if (typeof Struct !== 'undefined') Struct.follow(b); return; }
+    if (!body) { if (b && typeof Struct !== 'undefined') Struct.follow(b); return; }
     function on(act, v) { var x = body.querySelector('[data-act="' + act + '"]'); if (x) { x.classList.toggle('on', !!v); x.setAttribute('aria-pressed', !!v); } }
     var q = function (c) { try { return document.queryCommandState(c); } catch (e) { return false; } };
     on('e-bold', q('bold')); on('e-italic', q('italic')); on('e-underline', q('underline')); on('e-strike', q('strikeThrough'));
-    var al = b.dataset.al || 'left'; ['left', 'center', 'right', 'justify'].forEach(function (a) { on('e-al-' + a, al === a); });
+    var al = b ? (b.dataset.al || 'left') : (cellB.style.textAlign || 'left'); ['left', 'center', 'right', 'justify'].forEach(function (a) { on('e-al-' + a, al === a); });
+    if (!b) return;   // in a cell: no list, style or paragraph block
     on('e-bul', b.dataset.t === 'l' && b.dataset.k === 'bullet'); on('e-num', b.dataset.t === 'l' && b.dataset.k === 'ordered');
     var st = $('tlStyle'); if (st) st.textContent = t(b.dataset.t === 'h' ? 'st.h' + b.dataset.lv : 'st.normal');
     if (typeof Struct !== 'undefined') Struct.follow(b);
@@ -93,7 +107,8 @@
     }
   }, true);
   function resize(delta, to) {
-    var b = cur(); if (!b) return Ui.toast(t('e.tap'));
+    if (onCells(function () { resize(delta, to); })) return;
+    var b = cur() || Table.cell(); if (!b) return Ui.toast(t('e.tap'));
     var s = getSelection(), collapsed = s.isCollapsed;
     var n = s.anchorNode, el = n.nodeType === 3 ? n.parentElement : n, sz = el.closest('[style*="font-size"]');
     var live = Edit.pendLive(), now = live && live.size ? live.size : sz ? px2pt(getComputedStyle(sz).fontSize) : 11, next = to || Math.max(6, Math.min(72, Math.round(now) + delta));
@@ -129,7 +144,8 @@
   A['e-smaller'] = function () { resize(-1); }; A['e-larger'] = function () { resize(1); };
   A['e-setsize'] = function (el) { resize(0, +el.dataset.s); Array.prototype.forEach.call(document.querySelectorAll('.fo-sz'), function (b) { b.classList.toggle('on', b === el); }); };
   A['e-setfont'] = function (el) {
-    var b = cur(); if (!b) return Ui.toast(t('e.tap'));
+    if (onCells(function () { A['e-setfont'](el); })) return;
+    var b = cur() || Table.cell(); if (!b) return Ui.toast(t('e.tap'));
     var collapsed = getSelection().isCollapsed, live = Edit.pendLive();
     if (!collapsed) Edit.pend = null;
     document.execCommand('styleWithCSS', false, true); document.execCommand('fontName', false, 'PiloFont');
@@ -154,7 +170,7 @@
     Edit.pend = Object.assign(Edit.pend || { at: pendAt() }, { clear: true });   // on the first typed character the stale font name is dropped (see the input listener)
     Edit.sync();
   }
-  A['e-clear'] = function () { var b = cur(); if (!b) return Ui.toast(t('e.tap')); if (getSelection().isCollapsed) return clearTyping(b); Edit.cmd('removeFormat'); Array.prototype.forEach.call(b.querySelectorAll('[data-f]'), function (n) { n.removeAttribute('data-f'); }); };
+  A['e-clear'] = function () { if (onCells(function () { A['e-clear'](); })) return; var b = cur() || Table.cell(); if (!b) return Ui.toast(t('e.tap')); if (getSelection().isCollapsed) return clearTyping(b); Edit.cmd('removeFormat'); Array.prototype.forEach.call(b.querySelectorAll('[data-f]'), function (n) { n.removeAttribute('data-f'); }); };
   A['e-font'] = function () {
     var b = cur(), n = b && getSelection().anchorNode, el = n && (n.nodeType === 3 ? n.parentElement : n), f = el && el.closest('[data-f]'), sz = el && el.closest('[style*="font-size"]');
     var name = f && f.dataset.f, shown = name ? Render.family(name).split(',')[0].replace(/'/g, '') : '';
