@@ -173,7 +173,11 @@
       for (var i = 0; i < size.r; i++) rows += '<tr>' + fresh(size.c).replace(/ data-new="1"/g, ' data-new="1"' + (i === 0 ? ' class="th"' : '')) + '</tr>';
       var el = Insert.block('tbl', '<table>' + rows + '</table>', xml); el.dataset.simple = '1'; el.dataset.hdr = '1';
       Insert.place(el); Table.arm(true);
-      var f = el.querySelector('td'); if (f) f.focus();
+      var f = el.querySelector('td');
+      if (f) {   // the caret goes into the first cell (Insert.place left it in the paragraph after the table): typing and the table tools work at once
+        f.focus(); var r = document.createRange(), sel = getSelection(); r.selectNodeContents(f); r.collapse(true); sel.removeAllRanges(); sel.addRange(r);
+        Doc.range = r.cloneRange(); Edit.sync();
+      }
     } catch (e) { App.fail('err.generic', e); }
   };
 })();
