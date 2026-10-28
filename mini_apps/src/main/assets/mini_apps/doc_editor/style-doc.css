@@ -156,3 +156,5 @@ img.mf{vertical-align:middle;display:inline-block}.b.obj{line-height:1.9}
 .tplus{z-index:11;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--white);display:grid;place-items:center;font:700 16px/1 var(--body);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .tline{z-index:10;background:var(--accent);pointer-events:none;opacity:.85}
 .tdrop{z-index:11;height:3px;border-radius:2px;background:var(--accent);pointer-events:none}
+/* the areas around the page scroll with the wheel or the trackpad, with no bar drawn: the stage the pages sit on, the outline on the left, the ribbon */
+#docBody,#docSide,#dkBar{scrollbar-width:none}#docBody::-webkit-scrollbar,#docSide::-webkit-scrollbar,#dkBar::-webkit-scrollbar{display:none}
