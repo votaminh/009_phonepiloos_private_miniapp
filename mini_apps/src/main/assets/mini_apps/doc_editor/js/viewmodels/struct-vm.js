@@ -158,14 +158,20 @@
   A['g-grip'] = function (el) { if (gripFor) Edit.pop(SheetsView.grip(gripFor.classList.contains('lk')), el, 'menu'); };
   A['g-done'] = function () { Edit.hidePops(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); getSelection().removeAllRanges(); Struct.hide(); };
   function insertAt(b, where) { var n = fresh(b, 'p'); n.dataset.t = 'p'; n.innerHTML = '<br data-ph>'; where === 'above' ? b.before(n) : b.after(n); n.focus(); putCaret(n, { a: 0, z: 0 }); done(); }
-  A['g-above'] = function () { Edit.hidePops(); if (gripFor) insertAt(gripFor, 'above'); };
-  A['g-below'] = function () { Edit.hidePops(); if (gripFor) insertAt(gripFor, 'below'); };
+  // the block the paragraph actions work on: a picked picture or table, else the paragraph the caret is in
+  function target() {
+    var g = gripFor && gripFor.isConnected ? gripFor : null;
+    if (g && g.classList.contains('lk') && g.classList.contains('sel')) return g;
+    return cur() || g;
+  }
+  A['g-above'] = function () { Edit.hidePops(); var b = target(); if (!b) return Ui.toast(t('e.tap')); insertAt(b, 'above'); };
+  A['g-below'] = function () { Edit.hidePops(); var b = target(); if (!b) return Ui.toast(t('e.tap')); insertAt(b, 'below'); };
   A['g-dup'] = function () {
-    Edit.hidePops(); var b = gripFor; if (!b) return;
+    Edit.hidePops(); var b = target(); if (!b) return Ui.toast(t('e.tap')); if (b.classList.contains('lk')) return;
     var c = b.cloneNode(true); c.removeAttribute('data-src'); c.dataset.n = Doc.nid(); c.dataset.m = '1'; b.after(c); c.focus(); putCaret(c, { a: 0, z: 0 }); done();
   };
   A['g-del'] = function () {
-    Edit.hidePops(); var b = gripFor; if (!b) return; var nx = b.nextElementSibling || b.previousElementSibling; b.remove(); Struct.hide();
+    Edit.hidePops(); var b = target(); if (!b) return Ui.toast(t('e.tap')); var nx = b.nextElementSibling || b.previousElementSibling; b.remove(); Struct.hide();
     Doc.snap(); if (nx && nx.classList.contains('ed')) { nx.focus(); putCaret(nx, { a: 0, z: 0 }); }
     Ui.toast(t('g.deleted'), function () { A['e-undo'](); });
   };

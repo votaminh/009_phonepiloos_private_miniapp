@@ -101,6 +101,7 @@ a.lnk{color:var(--accent-text);text-decoration:underline}
 #docBody.pan,#docBody.pan *{cursor:grab!important;user-select:none}#docBody.pan.panning,#docBody.pan.panning *{cursor:grabbing!important}
 
 /* the actions block (menu + Done) beside the rect in focus */
+.gcl{display:none!important}   /* the floating paragraph block is not drawn: its actions are in the More sheet (dock-vm.js) */
 .gcl{position:absolute;z-index:5;height:44px;border-radius:22px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;box-shadow:0 6px 18px var(--shadow-hi);animation:rise .24s var(--out) both}
 .gcl button{height:44px;border:0;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;gap:var(--px-6);font:600 14px var(--body)}
 .gc-m{width:44px;border-radius:22px}.gc-d{padding:0 var(--px-14) 0 var(--px-10);border-radius:0 22px 22px 0;border-left:1px solid var(--accent-hi)}

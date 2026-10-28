@@ -10,6 +10,7 @@
     pagebreak: '<path d="M4 12h16M7 5h10M7 19h10" stroke-dasharray="2 3"/>', comment: '<path d="M4 5h16v11H9l-5 4z"/>', note: '<path d="M6 4h9l3 3v13H6zM9 11h6M9 15h6"/>', list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
     num: '<path d="M10 6h10M10 12h10M10 18h10M4 5l1-1v5M4 14h2l-2 3h2"/>', align: '<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>', plus: '<path d="M12 5v14M5 12h14"/>', dots: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
     rotl: '<path d="M5 12a7 7 0 107-7H8M8 2L5 5l3 3"/>', rotr: '<path d="M19 12a7 7 0 11-7-7h4M16 2l3 3-3 3"/>', crop: '<path d="M6 2v14h14M2 6h14v14"/>', wrap: '<path d="M4 6h16M4 18h16M4 10h6v4H4zM13 10h7M13 14h7"/>', trash: '<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>',
+    addabove: '<path d="M5 20h14M12 14V4M8 8l4-4 4 4"/>', addbelow: '<path d="M5 4h14M12 10v10M8 16l4 4 4-4"/>', dup: '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
     chev: '<path d="M9 5l7 7-7 7"/>', down: '<path d="M6 9l6 6 6-6"/>', search: '<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/>', page: '<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 7h8M8 11h8"/>', cols: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/>',
     brk: '<path d="M4 8h16M4 16h16M8 4v4M8 16v4" stroke-dasharray="2 3"/>', edit: '<path d="M4 20l4-1 11-11-3-3L5 16zM14 6l3 3"/>', share: '<path d="M12 4v11M8 8l4-4 4 4M5 14v6h14v-6"/>', rowp: '<path d="M12 8v8M8 12h8M4 4h16"/>', colp: '<path d="M8 12h8M12 8v8M4 4v16"/>',
     sort: '<path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3"/>', border: '<rect x="4" y="4" width="16" height="16"/><path d="M4 12h16M12 4v16"/>', paint: '<path d="M5 19l4-1 9-9-3-3-9 9zM14 6l3 3"/>', zoom: '<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4M9 11h4M11 9v4"/>', book: '<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/>'
@@ -31,7 +32,7 @@
   }
   function tray() {
     return '<div class="row tray" style="padding:0 10px"><button type="button" class="chip" data-act="rb-fontmenu" aria-label="' + esc(t('f.font')) + '"><span id="tlFont">Calibri</span>' + svg('down', 14) + '</button>'
-      + '<div class="step"><button type="button" data-act="e-smaller" aria-label="' + esc(t('f.smaller')) + '">−</button><button type="button" data-act="e-larger" aria-label="' + esc(t('f.larger')) + '">+</button></div>'
+      + '<div class="step"><button type="button" data-act="e-smaller" aria-label="' + esc(t('f.smaller')) + '">−</button><span id="tlSize" class="num" aria-live="polite">11</span><button type="button" data-act="e-larger" aria-label="' + esc(t('f.larger')) + '">+</button></div>'
       + tb('e-color', '<span style="font-weight:700;border-bottom:4px solid var(--ink);line-height:1">A</span>', t('f.color'), { cls: 'sp' }) + tb('e-hl', svg('paint'), t('f.highlight')) + '</div>'
       + '<div class="row tray sc" style="padding:0 6px;gap:6px">' + tb('e-strike', '<span style="text-decoration:line-through">S</span>', t('f.strike')) + tb('e-sup', 'x<sup style="font-size:10px">2</sup>', t('fo.sup')) + tb('e-sub', 'x<sub style="font-size:10px">2</sub>', t('fo.sub'))
       + tb('e-num', svg('num'), t('p.numbers')) + tb('e-indent', svg('chev'), t('p.indent')) + tb('e-outdent', '<span style="transform:scaleX(-1);display:flex">' + svg('chev') + '</span>', t('p.outdent'))
@@ -88,6 +89,7 @@
   function groups() {
     var pg = Store.prefs().layout === 'page';
     return [
+      { g: 'dd.g.block', rows: [['addabove', 'g.above', 'g-above', '', 'act'], ['addbelow', 'g.below', 'g-below', '', 'act'], ['dup', 'g.dup', 'g-dup', '', 'act'], ['trash', 'g.del', 'g-del', '', 'act']] },
       { g: 'dd.g.layout', rows: [['page', 'ps.title', 'ps-open'], ['cols', 'ps.cols', 'sub:cols'], ['brk', 'sb.title', 'sub:breaks'], ['page', 'hf.title', 'hf-open'], ['page', 'wm.title', 'wm-menu'], ['paint', 'pc.title', 'pg-color'], ['align', 'pa.title', 'pa-open'], ['align', 'tb.title', 'tb-open'], ['align', 'pa.line', 'pa-line']] },
       { g: 'dd.g.insert', rows: [['table', 'ft.title', 't-fromtext'], ['link', 'bm.link', 'bm-link'], ['book', 'bm.title', 'bm-open'], ['sigma', 'sy.title', 'sy-open'], ['page', 'dt.title', 'dt-open'], ['pagebreak', 'i.divider', 'i-div']] },
       { g: 'dd.g.review', rows: [['list', 'toc.title', 'rf-toc'], ['comment', 'cm.title', 'rv-comments'], ['note', 'fn.title', 'rf-fns'], ['edit', 'tc.track', 'rv-track', toggle(Doc.track)], ['edit', 'tc.title', 'rv-changes'], ['book', 'sp.title', 'rv-spell'], ['list', 'dk.words', 'd-words']] },
@@ -95,7 +97,7 @@
       { g: 'dd.g.file', rows: [['share', 'mn.share', 'm-share'], ['share', 'mn.copy', 'm-copy'], ['pdf', 'mn.pdf', 'm-pdf'], ['edit', 'mn.rename', 'm-rename']] }
     ];
   }
-  function row(r) { return '<button type="button" class="dd-li" data-act="dd-do" data-a="' + r[2] + '" data-q="' + esc(t(r[1]).toLowerCase()) + '">' + svg(r[0]) + '<span>' + esc(t(r[1])) + '</span>' + (r[3] ? '<small>' + esc(r[3]) + '</small>' : '') + svg('chev', 18) + '</button>'; }
+  function row(r) { return '<button type="button" class="dd-li" data-act="dd-do" data-a="' + r[2] + '" data-q="' + esc(t(r[1]).toLowerCase()) + '">' + svg(r[0]) + '<span>' + esc(t(r[1])) + '</span>' + (r[3] ? '<small>' + esc(r[3]) + '</small>' : '') + (r[4] === 'act' ? '' : svg('chev', 18)) + '</button>'; }
   A['dd-more'] = function () {
     Ui.sheet('more', sheetHead(t('dd.more')) + '<label class="dd-q">' + svg('search') + '<input id="ddQ" type="text" autocomplete="off" placeholder="' + esc(t('dd.find')) + '"></label><div class="dd-body" id="ddBody">'
       + groups().map(function (g) { return '<div class="dd-grp" data-g="1"><div class="dd-gh">' + esc(t(g.g)) + '</div><div class="dd-list">' + g.rows.map(row).join('') + '</div></div>'; }).join('') + '<p class="dd-none" id="ddNone" hidden>' + esc(t('dd.nothing')) + '</p></div>');
