@@ -30,14 +30,8 @@
     try { var name = Book.rec.name.replace(/\.xlsx$/i, '') + (Wb.sheets.length > 1 ? ' - ' + Wb.sh().name : '') + '.csv', r = await NativeTools.call('export_file_device', { fileName: name, text: '﻿' + csv(), reason: 'Save this sheet as CSV' }); Ui.toast(t('t.copied', { p: (r && r.data && r.data.displayPath) || 'Downloads' })); }
     catch (e) { if (String(e && e.message) !== 'cancelled') App.fail('t.copyfail', e); }
   };
-  // PDF: Android's own print flow, with only a plain table of the sheet drawn (see @media print in style-sheets.css)
-  A['m-pdf'] = async function () {
-    Ui.closeSheet(); var sh = Wb.sh(), h = '<table>', r, c;
-    for (r = 0; r < Math.min(sh.rows, 3000); r++) { if (sh.hidR[r]) continue; h += '<tr>'; for (c = 0; c < sh.cols; c++) { if (sh.hidC[c]) continue; var f = Fmt.cell(sh, r, c), st = Wb.style(sh, r, c); h += '<td' + (f.n ? ' class="n"' : '') + (st.b ? ' style="font-weight:700"' : '') + '>' + Ui.esc(f.t) + '</td>'; } h += '</tr>'; }
-    $('printArea').innerHTML = h + '</table>'; document.documentElement.classList.add('printing');
-    try { await NativeTools.call('export_webview_pdf', { title: Book.rec.name.replace(/\.xlsx$/i, '') }); } catch (e) { if (String(e && e.message) !== 'cancelled') App.fail('err.generic', e); }
-    setTimeout(function () { document.documentElement.classList.remove('printing'); $('printArea').innerHTML = ''; }, 600);
-  };
+  // PDF is not supported for now (the tool that opened the print flow was removed)
+  A['m-pdf'] = function () { Ui.closeSheet(); Ui.toast(t('t.nopdf')); };
   A['m-rename'] = function () { Struct.startFileRename(); Ui.sheet('rename', SheetsView.rename(Book.rec.name.replace(/\.xlsx$/i, ''))); setTimeout(function () { var i = $('rnName'); if (i) { i.focus(); i.select(); } }, 380); };
   M.rename = function (v) { v = v.replace(/[\\/:*?"<>|]+/g, ' ').trim(); if (!v) return Ui.toast(t('rn.bad')); Book.rec.name = v + '.xlsx'; Store.put(Book.rec); Ui.closeSheet(); Book.chrome(); };
   A['m-remove'] = function () {
