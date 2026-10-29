@@ -7,19 +7,1649 @@
   "icon": "icon.png",
   "showInApp": true,
   "workflowSuggestions": [
-    { "title": "Soạn thảo Word", "prompt": "Mở Piloos Doc và giúp tôi mở một file Word." }
+    {
+      "title": "Soạn thảo Word",
+      "prompt": "Mở Piloos Doc và giúp tôi mở một file Word."
+    }
   ],
   "entry": "index.html",
-  "permissions": ["storage_write"],
+  "permissions": [
+    "storage_write"
+  ],
   "accepts": [
     {
       "type": "document",
       "multiple": false,
       "maxItems": 1,
-      "mimeTypes": ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+      "mimeTypes": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ]
     }
   ],
-  "tags": ["word", "docx", "documents", "editor", "reader", "office", "offline"],
+  "tags": [
+    "word",
+    "docx",
+    "documents",
+    "editor",
+    "reader",
+    "office",
+    "offline"
+  ],
   "relatedFolders": [],
-  "architecture": "{\"appName\": \"Piloos Doc\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"docs\", \"prefs\"]}"
+  "architecture": "{\"appName\": \"Piloos Doc\", \"navType\": \"router\", \"pages\": [\"home\", \"doc\"], \"dataModels\": [\"docs\", \"prefs\"]}",
+  "mcp": {
+    "groups": {
+      "core": "Always listed: read, search, insert/replace text, tables basics.",
+      "format": "Character and paragraph formatting, links.",
+      "table": "Rows, columns, merge, shade, move tables.",
+      "layout": "Blocks order, breaks, contents, pictures, header/footer, page setup.",
+      "review": "Comments, replies, track changes, undo and redo, saving a draft.",
+      "picture": "Resize, align, rotate or delete pictures.",
+      "list": "Bullet and numbering styles, restart and continue numbering.",
+      "notes": "Footnotes and bookmarks."
+    },
+    "tools": [
+      {
+        "name": "doc_read_outline",
+        "group": "core",
+        "description": "List blocks (index, type, first 120 chars). Call first; default 40 blocks, page with from/to.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_read_block",
+        "group": "core",
+        "description": "Full text of a block, or all cell texts of a table.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_get_info",
+        "group": "core",
+        "description": "Name, block/word/page counts, unsaved flag.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_find",
+        "group": "core",
+        "description": "Find text; returns block index, offset, context.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            },
+            "caseSensitive": {
+              "type": "boolean"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_insert_paragraph",
+        "group": "core",
+        "description": "Insert a paragraph after a block (default: end), optional style.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "normal",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "bullet",
+                "numbered"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_paragraph_text",
+        "group": "core",
+        "description": "Replace a paragraph's text (resets its character formatting).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_paragraph_style",
+        "group": "core",
+        "description": "Make a block a heading, normal text or list item.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "normal",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "bullet",
+                "numbered"
+              ]
+            }
+          },
+          "required": [
+            "index",
+            "style"
+          ]
+        }
+      },
+      {
+        "name": "doc_replace_text",
+        "group": "core",
+        "description": "Find and replace across the document.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "find": {
+              "type": "string"
+            },
+            "replace": {
+              "type": "string"
+            },
+            "all": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "find",
+            "replace"
+          ]
+        }
+      },
+      {
+        "name": "doc_insert_table",
+        "group": "core",
+        "description": "Insert a table after a block, optionally filled (row-major strings).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "cols": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cells": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "rows",
+            "cols"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_cell",
+        "group": "core",
+        "description": "Set one table cell's text.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "col",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_delete_block",
+        "group": "core",
+        "description": "Delete a block (user can undo).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_format_text",
+        "group": "format",
+        "description": "Format characters of a block or one table cell: bold/italic/underline/strikethrough/superscript/subscript, color and highlight (RRGGBB; highlight 'none'), font, size (pt).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "bold": {
+              "type": "boolean"
+            },
+            "italic": {
+              "type": "boolean"
+            },
+            "underline": {
+              "type": "boolean"
+            },
+            "strikethrough": {
+              "type": "boolean"
+            },
+            "superscript": {
+              "type": "boolean"
+            },
+            "subscript": {
+              "type": "boolean"
+            },
+            "color": {
+              "type": "string"
+            },
+            "highlight": {
+              "type": "string"
+            },
+            "font": {
+              "type": "string"
+            },
+            "size": {
+              "type": "number",
+              "minimum": 6,
+              "maximum": 72
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_clear_format",
+        "group": "format",
+        "description": "Remove character formatting from a range.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_align_paragraph",
+        "group": "format",
+        "description": "Align a paragraph.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right",
+                "justify"
+              ]
+            }
+          },
+          "required": [
+            "index",
+            "align"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_paragraph_format",
+        "group": "format",
+        "description": "Spacing and indents in points; lineSpacing is a multiple (1.5).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right",
+                "justify"
+              ]
+            },
+            "spaceBefore": {
+              "type": "number"
+            },
+            "spaceAfter": {
+              "type": "number"
+            },
+            "lineSpacing": {
+              "type": "number"
+            },
+            "indentLeft": {
+              "type": "number"
+            },
+            "indentRight": {
+              "type": "number"
+            },
+            "firstLine": {
+              "type": "number"
+            },
+            "keepWithNext": {
+              "type": "boolean"
+            },
+            "pageBreakBefore": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_indent_paragraph",
+        "group": "format",
+        "description": "Indent (+) or outdent (-) a paragraph or list item by levels.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "levels": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_link",
+        "group": "format",
+        "description": "Turn a range into a hyperlink.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "url"
+          ]
+        }
+      },
+      {
+        "name": "doc_remove_link",
+        "group": "format",
+        "description": "Remove links from a block.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_add_row",
+        "group": "table",
+        "description": "Add a row above/below a row.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "position": {
+              "type": "string",
+              "enum": [
+                "above",
+                "below"
+              ]
+            }
+          },
+          "required": [
+            "table",
+            "row"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_add_column",
+        "group": "table",
+        "description": "Add a column left/right of a column.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "position": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right"
+              ]
+            }
+          },
+          "required": [
+            "table",
+            "col"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_delete_row",
+        "group": "table",
+        "description": "Delete a row.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table",
+            "row"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_table_delete_column",
+        "group": "table",
+        "description": "Delete a column.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table",
+            "col"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_table_delete",
+        "group": "table",
+        "description": "Delete a whole table.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_table_merge_cells",
+        "group": "table",
+        "description": "Merge from a cell to the right (right) and down (down) by that many cells.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "right": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "down": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "col"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_split_cell",
+        "group": "table",
+        "description": "Split a merged cell.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "col"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_shade_cell",
+        "group": "table",
+        "description": "Shade a cell (RRGGBB or 'none').",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "color": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "col",
+            "color"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_align_cell",
+        "group": "table",
+        "description": "Align text in a cell.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "col",
+            "align"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_move",
+        "group": "table",
+        "description": "Move a table to another block position.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "table",
+            "to"
+          ]
+        }
+      },
+      {
+        "name": "doc_move_block",
+        "group": "layout",
+        "description": "Move a block to a new index.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index",
+            "to"
+          ]
+        }
+      },
+      {
+        "name": "doc_duplicate_block",
+        "group": "layout",
+        "description": "Duplicate a text block right after itself.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_insert_page_break",
+        "group": "layout",
+        "description": "Insert a page break after a block.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "doc_insert_divider",
+        "group": "layout",
+        "description": "Insert a horizontal line after a block.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "doc_insert_toc",
+        "group": "layout",
+        "description": "Insert or refresh the table of contents (needs headings).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "doc_insert_image",
+        "group": "layout",
+        "description": "Insert a picture from base64 (png/jpeg/gif) after a block.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "base64": {
+              "type": "string"
+            },
+            "mime": {
+              "type": "string"
+            },
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "width": {
+              "type": "integer",
+              "minimum": 10
+            }
+          },
+          "required": [
+            "base64"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_header_footer",
+        "group": "layout",
+        "description": "Set header/footer text; {PAGE} and {NUMPAGES} give page numbers.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "header": {
+              "type": "string"
+            },
+            "footer": {
+              "type": "string"
+            },
+            "headerAlign": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "footerAlign": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "doc_set_page_setup",
+        "group": "layout",
+        "description": "Paper (a4,letter,legal,a5,a3), orientation, columns (1-3), margins in cm.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "paper": {
+              "type": "string",
+              "enum": [
+                "a4",
+                "letter",
+                "legal",
+                "a5",
+                "a3"
+              ]
+            },
+            "orientation": {
+              "type": "string",
+              "enum": [
+                "portrait",
+                "landscape"
+              ]
+            },
+            "columns": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "marginTop": {
+              "type": "number"
+            },
+            "marginBottom": {
+              "type": "number"
+            },
+            "marginLeft": {
+              "type": "number"
+            },
+            "marginRight": {
+              "type": "number"
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "doc_add_comment",
+        "group": "review",
+        "description": "Add a comment to a block or range.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "to": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_track_changes",
+        "group": "review",
+        "description": "Turn track changes on or off.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "on": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "on"
+          ]
+        }
+      },
+      {
+        "name": "doc_undo",
+        "group": "review",
+        "description": "Undo the last change.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "doc_redo",
+        "group": "review",
+        "description": "Redo.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "doc_save_draft",
+        "group": "review",
+        "description": "Save the edits as a draft on the device.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "doc_insert_text",
+        "group": "core",
+        "description": "Insert text into a paragraph at a character offset (default: the end), keeping the look of the text there.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text": {
+              "type": "string"
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_picture_resize",
+        "group": "picture",
+        "description": "Set a picture's size as a percentage of its natural size.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "percent": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 300
+            }
+          },
+          "required": [
+            "index",
+            "percent"
+          ]
+        }
+      },
+      {
+        "name": "doc_picture_align",
+        "group": "picture",
+        "description": "Align a picture on the page.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          },
+          "required": [
+            "index",
+            "align"
+          ]
+        }
+      },
+      {
+        "name": "doc_picture_rotate",
+        "group": "picture",
+        "description": "Rotate a picture clockwise by 90, 180 or 270 degrees.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "degrees": {
+              "type": "integer",
+              "enum": [
+                90,
+                180,
+                270
+              ]
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_picture_delete",
+        "group": "picture",
+        "description": "Delete a picture added in this session.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_list_formats",
+        "group": "list",
+        "description": "List the numbering and bullet styles that doc_list_set_format accepts.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_list_set_format",
+        "group": "list",
+        "description": "Give a paragraph (and its list) a bullet or numbering style from doc_list_formats.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "format"
+          ]
+        }
+      },
+      {
+        "name": "doc_list_restart",
+        "group": "list",
+        "description": "Restart numbering at 1 from this list item.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_list_continue",
+        "group": "list",
+        "description": "Make this numbered list continue the numbering of the list before it.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "doc_add_footnote",
+        "group": "notes",
+        "description": "Add a footnote at the end (or at a character offset) of a paragraph.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text": {
+              "type": "string"
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "index",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_list_footnotes",
+        "group": "notes",
+        "description": "List the footnotes with their ids and texts.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_edit_footnote",
+        "group": "notes",
+        "description": "Change the text of a footnote (id from doc_list_footnotes).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_add_bookmark",
+        "group": "notes",
+        "description": "Put a named bookmark on a paragraph (letters, digits and _, starting with a letter).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "name"
+          ]
+        }
+      },
+      {
+        "name": "doc_list_bookmarks",
+        "group": "notes",
+        "description": "List bookmarks and the block each one is on.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_remove_bookmark",
+        "group": "notes",
+        "description": "Remove a bookmark by name.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      },
+      {
+        "name": "doc_list_comments",
+        "group": "review",
+        "description": "List comments with ids, authors, texts, replies and whether they are resolved.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "readOnly": true
+      },
+      {
+        "name": "doc_reply_comment",
+        "group": "review",
+        "description": "Reply to a comment (id from doc_list_comments).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_resolve_comment",
+        "group": "review",
+        "description": "Mark a comment resolved (or reopen it with resolved=false).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "resolved": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        }
+      },
+      {
+        "name": "doc_delete_comment",
+        "group": "review",
+        "description": "Delete a comment and its replies.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "destructive": true
+      },
+      {
+        "name": "doc_review_changes",
+        "group": "review",
+        "description": "Accept or reject every tracked change; it takes effect when the file is saved.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": [
+                "accept",
+                "reject"
+              ]
+            }
+          },
+          "required": [
+            "action"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_page_color",
+        "group": "layout",
+        "description": "Set the page background colour (RRGGBB) or 'none'.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "color": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "color"
+          ]
+        }
+      },
+      {
+        "name": "doc_set_watermark",
+        "group": "layout",
+        "description": "Put a text watermark (e.g. DRAFT) behind the pages, or 'none' to remove it.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "opacity": {
+              "type": "number",
+              "enum": [
+                0.25,
+                0.5,
+                0.75
+              ]
+            },
+            "layout": {
+              "type": "string",
+              "enum": [
+                "diagonal",
+                "horizontal"
+              ]
+            }
+          },
+          "required": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_sort",
+        "group": "table",
+        "description": "Sort the rows of a table by a column (the first row stays as the header unless header=false).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "order": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "header": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "table",
+            "col"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_borders",
+        "group": "table",
+        "description": "Set table borders: on all cells, the outside only, or one side; style 'none' removes them.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "where": {
+              "type": "string",
+              "enum": [
+                "all",
+                "outside",
+                "top",
+                "bottom",
+                "left",
+                "right"
+              ]
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "single",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "table"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_row_height",
+        "group": "table",
+        "description": "Set a row's height in points.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "row": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "height": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 400
+            }
+          },
+          "required": [
+            "table",
+            "row",
+            "height"
+          ]
+        }
+      },
+      {
+        "name": "doc_table_column_width",
+        "group": "table",
+        "description": "Set a column's width in points (the table can then no longer get rows or columns).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "col": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "width": {
+              "type": "number",
+              "minimum": 20,
+              "maximum": 600
+            }
+          },
+          "required": [
+            "table",
+            "col",
+            "width"
+          ]
+        }
+      }
+    ]
+  }
 }

@@ -1,5 +1,5 @@
-// PhonePilot Core SDK v2.11.0 — DO NOT EDIT. Auto-generated from core_sdk/.
-window.PILO_SDK_VERSION = '2.11.0';
+// PhonePilot Core SDK v2.12.0 — DO NOT EDIT. Auto-generated from core_sdk/.
+window.PILO_SDK_VERSION = '2.12.0';
 // Core Context — DO NOT EDIT. Ngữ cảnh đồng bộ của project, do app (hoặc server khi chạy trên web) chèn vào trang trước khi sdk.js chạy.
 // Có mặt mỗi khi project có id trên server (không phụ thuộc việc bật chia sẻ): upload file, đồng bộ dữ liệu và link guest đều dựa vào nó.
 // Tên cũ `window.__PILOOS_SHARE__` / trường `shareId` vẫn được hiểu (app và server bản cũ còn chèn tên cũ).
@@ -314,8 +314,9 @@ window.PILO_SDK_VERSION = '2.11.0';
   var inFlight = {}; // fid -> true, tránh upload trùng
 
   // Kết quả một lần thử: xong thì pill đã được báo ở progress.end; lỗi tạm thời → chờ; không thể upload → bỏ khỏi danh sách (denied → hiện "không upload được").
-  // diagnostic lines ([FILES]): only when the trace is switched on (localStorage 'pilo_trace' = '1')
-  function flog(m) { try { if (localStorage.getItem('pilo_trace') === '1') console.log(m); } catch (e) {} }
+  // diagnostic lines ([FILES]): always, unless localStorage 'pilo_trace' = '0'; the host keeps them in the session log file
+  var FT0 = Date.now(), FLINES = 0;
+  function flog(m) { try { if (localStorage.getItem('pilo_trace') !== '0' && FLINES++ < 12000) console.log(String(m).replace('[FILES]', '[FILES +' + (Date.now() - FT0) + 'ms]')); } catch (e) {} }   // ON for good (kept in the session log file); pilo_trace = '0' turns it off
 
   function uploadOutcome(fid, result) {
     flog('[FILES] upload outcome fid=' + fid + ' done=' + !!result.done + ' reason=' + result.reason);
@@ -338,17 +339,19 @@ window.PILO_SDK_VERSION = '2.11.0';
     NativeTools.call('upload_control', { action: 'skip:' + fid, reason: 'Upload files' }).then(function() {}, function() {});
   }
   function enqueueNative(fid, path, name, force) {
+    flog('[FILES] enqueue_upload call fid=' + fid + ' ext=' + extOf(path) + ' force=' + !!force);
     return NativeTools.call('enqueue_upload', {
       origin: serverOrigin(), projectId: proj.projectId, token: proj.token || '', gk: proj.gk || '', app: (document.title || ''),
       items: [{ id: fid, ext: extOf(path), name: name, force: !!force }], reason: 'Upload files'
     }).then(function(reply) {
       nativeUpload = true;
       var r = ((reply && reply.data && reply.data.results) || [])[0] || {};
-      flog('[FILES] enqueue fid=' + fid + ' status=' + r.status);
+      flog('[FILES] enqueue fid=' + fid + ' status=' + r.status + ' size=' + (r.size || 0));
       if (r.status === 'big' || r.status === 'toolarge') { reportStatus(fid, 'failed', r.status); addBig(fid, path, name, r.size || 0, r.status === 'toolarge'); }
       else if (r.status === 'lost') reportStatus(fid, 'failed', 'lost');
       return true;
     }, function(e) {
+      flog('[FILES] enqueue_upload FAILED fid=' + fid + ' err=' + String(e && e.message).slice(0, 160));
       if (/unsupported/.test(String(e && e.message))) nativeUpload = false;
       return false;
     });
@@ -356,13 +359,15 @@ window.PILO_SDK_VERSION = '2.11.0';
 
   // Upload nền một file đã lưu: fid + đường dẫn tương đối. Không có giá trị trả về cần dùng.
   function startUpload(fid, path, name, force) {
-    if (inFlight[fid] || (big[fid] && !force)) return;
+    if (inFlight[fid] || (big[fid] && !force)) { flog('[FILES] startUpload skipped fid=' + fid + ' inFlight=' + !!inFlight[fid] + ' waitingForDecision=' + !!big[fid] + ' force=' + !!force); return; }
     inFlight[fid] = true;
     isKept(fid).then(function(kept) {
-      if (kept && !force) { delete inFlight[fid]; return; }
+      if (kept && !force) { flog('[FILES] startUpload skipped fid=' + fid + ' (kept on this device)'); delete inFlight[fid]; return; }
+      flog('[FILES] startUpload fid=' + fid + ' ext=' + extOf(path) + ' force=' + !!force + ' native=' + useNativeUpload() + ' origin=' + !!serverOrigin() + ' project=' + !!(proj && proj.projectId));
       if (useNativeUpload()) {
         return enqueueNative(fid, path, name, force).then(function(handled) {
           if (handled) { delete inFlight[fid]; return; }
+          flog('[FILES] startUpload fid=' + fid + ' falls back to the page upload');
           return jsUpload(fid, path, name, force);
         });
       }
@@ -371,6 +376,7 @@ window.PILO_SDK_VERSION = '2.11.0';
   }
 
   function jsUpload(fid, path, name, force) {
+    flog('[FILES] jsUpload fid=' + fid + ' force=' + !!force);
     upNames[fid] = name;
     if (pu()) pu().queue(fid, name);
     return schedule(function() { return attemptUpload(path, fid, name, { force: force }); }).then(function(result) {
@@ -387,6 +393,7 @@ window.PILO_SDK_VERSION = '2.11.0';
 
   function retryQueue() {
     Storage.getAll(UPLOAD_QUEUE_STORE).then(function(ops) {
+      flog('[FILES] retryQueue pending=' + (ops || []).length);
       (ops || []).forEach(function(op) {
         if (inFlight[op.fid]) return; // đang gửi (do bù file thiếu hay lần nạp trước): gửi hai lần cùng lúc chỉ làm hỏng nhau
         inFlight[op.fid] = true;
@@ -416,6 +423,7 @@ window.PILO_SDK_VERSION = '2.11.0';
       if (kept) return;
       return serverHas(origin, fid + '.' + ext).then(function(has) {
         if (has === null) return;
+        flog('[FILES] backfill fid=' + fid + ' onServer=' + has);
         if (has === false) return startUpload(fid, path, name, false);
         var kind = mediaKind(name, entry.mime);
         if (!kind) return;
@@ -433,6 +441,7 @@ window.PILO_SDK_VERSION = '2.11.0';
     if (!origin || !proj.projectId || !window.NativeToolsBridge || proj.role === 'viewer') return;
     fetch('/files/index.json').then(function(r) { return r.ok ? r.json() : null; }).then(function(index) {
       var ids = Object.keys(index || {}).filter(function(k) { return STORED_RE.test((index[k] || {}).path || ''); }).slice(0, BACKFILL_MAX);
+      flog('[FILES] backfill checks ' + ids.length + ' stored file(s) against the server');
       var next = 0;
       function worker() {
         if (next >= ids.length) return Promise.resolve();
@@ -482,6 +491,7 @@ window.PILO_SDK_VERSION = '2.11.0';
   }
 
   function addBig(fid, path, name, size, tooLarge) {
+    flog('[FILES] large file waits for a decision fid=' + fid + ' size=' + (size || 0) + ' tooLarge=' + !!tooLarge + ' waiting=' + (Object.keys(big).length + 1));
     big[fid] = { fid: fid, path: path, name: name || path, size: size || 0, tooLarge: !!tooLarge };
     if (bigTimer) clearTimeout(bigTimer);
     bigTimer = setTimeout(showBigDialog, 700); // gộp nhiều file chọn cùng lúc thành 1 hộp thoại
@@ -495,6 +505,7 @@ window.PILO_SDK_VERSION = '2.11.0';
   function showBigDialog() {
     bigTimer = null;
     var entries = Object.keys(big).map(function(k) { return big[k]; });
+    flog('[FILES] showBigDialog entries=' + entries.length + ' body=' + !!document.body + ' dialogOpen=' + !!dialogEl);
     if (!entries.length || !document.body || dialogEl) return;
     var H = window.__PiloHostUi;
     if (H && H.ready()) {
@@ -502,9 +513,10 @@ window.PILO_SDK_VERSION = '2.11.0';
       var tt = dialogStrings();
       H.dialog('large', { files: entries.slice(0, 4).map(function(e) { return { name: e.name, ext: e.name.split('.').pop(), size: e.size, note: e.tooLarge ? tt.too_large : '' }; }) }).then(function(choice) {
         dialogEl = null;
+        flog('[FILES] large-file dialog choice=' + choice + ' entries=' + entries.length);
         if (choice === 'upload') entries.filter(function(e) { return !e.tooLarge; }).forEach(function(e) { delete big[e.fid]; startUpload(e.fid, e.path, e.name, true); });
         else if (choice === 'keep') entries.forEach(function(e) { delete big[e.fid]; reportStatus(e.fid, 'failed', 'kept'); dropNative(e.fid); Storage.__raw.putLocal(BIG_STORE, { key: 'kept:' + e.fid, fid: e.fid, size: e.size }); });
-      }, function() { dialogEl = null; bigTimer = setTimeout(showBigDialogDom, 0); });
+      }, function(e) { flog('[FILES] host large-file dialog failed, using the page dialog: ' + String(e && e.message).slice(0, 120)); dialogEl = null; bigTimer = setTimeout(showBigDialogDom, 0); });
       return;
     }
     showBigDialogDom();
@@ -1082,13 +1094,39 @@ window.PILO_SDK_VERSION = '2.11.0';
 
   // Copy mọi file tạm trong [item] vào app rồi sửa TẠI CHỖ: URL tạm / path tuyệt đối -> `files/<id>.<ext>`, ở field cấp 1 hoặc trong
   // mảng cấp 1. Trả Promise; reject (kể cả 'cancelled') thì item KHÔNG được ghi. Xong thì xếp upload nền theo id.
+  // The phone ran out of storage part way through a batch: the host kept the files it had stored and left the rest out (their records are refused by Storage.put).
+  var NO_SPACE_STRINGS = {
+    en: 'Not enough storage on this phone: kept {0} of {1} files. Free up space, then add the rest again.',
+    vi: 'Điện thoại hết bộ nhớ: mới lưu được {0}/{1} file. Hãy giải phóng bộ nhớ rồi thêm lại các file còn lại.'
+  };
+  function toastNoSpace(msg) { try { if (typeof window.showToast === 'function') window.showToast(msg); } catch (e) { /* the refused records already tell the app */ } }
+  var lastNoSpaceAt = 0;
+  function noSpaceNotice(done, total, free) {
+    if (Date.now() - lastNoSpaceAt < 10000) return;   // an app that stores its files one by one would ask once per file
+    lastNoSpaceAt = Date.now();
+    flog('[FILES] NO SPACE: kept ' + done + ' of ' + total + ' file(s), free=' + (free || 0));
+    var lang = (document.documentElement.lang || window.PILO_LANG || navigator.language || 'en').toLowerCase();
+    var msg = NO_SPACE_STRINGS[lang.indexOf('vi') === 0 ? 'vi' : 'en'].replace('{0}', done).replace('{1}', total);
+    var H = window.__PiloHostUi;
+    // A dialog, not a toast: the person has to know that files were left out. The host draws it; a host without it (or the web) gets a toast.
+    if (H && H.ready()) {
+      H.dialog('no_space', { done: done, total: total, free: free || 0 }).then(function() {}, function() { toastNoSpace(msg); });
+      return;
+    }
+    toastNoSpace(msg);
+  }
+
   function persistSources(item) {
     if (!item || typeof item !== 'object' || !window.NativeTools) return Promise.resolve();
     var urls = sourceUrlsIn(item);
     if (!urls.length) return Promise.resolve();
     flog('[FILES] persistSources: ' + urls.length + ' temp file(s) to copy into the app');
+    var tp = Date.now();
     return NativeTools.call('persist_file', { urls: urls }).then(function(reply) {
       var files = (reply && reply.data && reply.data.files) || [];
+      var stopped = reply && reply.data && reply.data.stopped;
+      flog('[FILES] persistSources copied ' + files.length + '/' + urls.length + ' in ' + (Date.now() - tp) + 'ms' + (files.length < urls.length ? ' MISSING ' + (urls.length - files.length) : '') + (stopped ? ' STOPPED=' + stopped + ' free=' + (reply.data.freeBytes || 0) : ''));
+      if (stopped === 'no_space') noSpaceNotice(files.length, urls.length, reply.data.freeBytes);
       var byFrom = {};
       files.forEach(function(f) {
         byFrom[f.from] = f.url;
@@ -1110,7 +1148,7 @@ window.PILO_SDK_VERSION = '2.11.0';
         });
       });
       files.forEach(function(f) { startUpload(f.id, f.path, f.fileName, false); });
-    });
+    }, function(e) { flog('[FILES] persistSources FAILED after ' + (Date.now() - tp) + 'ms: ' + String(e && e.message).slice(0, 160)); throw e; });
   }
 
   // ---- API công khai cho mini app: Files.request ----
@@ -1470,7 +1508,7 @@ window.PILO_SDK_VERSION = '2.11.0';
     XMLHttpRequest.prototype.__piloWatched = true;
   }
 
-  window.__PiloFiles = { hostDownload: function(ids) { return trayDownload(ids); }, hostTray: trayIsOpen, scanRecords: scanRecords, afterLocalSave: function(d) { startUpload(d.id, d.path, d.fileName, false); }, noteMissing: function(id, ext, why) { noteMissing({ id: id, ext: ext, path: 'files/' + id + '.' + ext }, why); }, persistSources: persistSources, ensureLocal: ensureLocal, ensureLocalMany: ensureLocalMany, onItemChanged: onItemChanged, tracksUploads: function() { return !!serverOrigin() || !!window.NativeToolsBridge; } };
+  window.__PiloFiles = { hostDownload: function(ids) { return trayDownload(ids); }, hostTray: trayIsOpen, scanRecords: scanRecords, afterLocalSave: function(d) { startUpload(d.id, d.path, d.fileName, false); }, noteMissing: function(id, ext, why) { noteMissing({ id: id, ext: ext, path: 'files/' + id + '.' + ext }, why); }, persistSources: persistSources, noSpace: function(done, total) { noSpaceNotice(done, total, 0); }, hasSources: function(v) { return sourceUrlsIn(v).length > 0; }, ensureLocal: ensureLocal, ensureLocalMany: ensureLocalMany, onItemChanged: onItemChanged, tracksUploads: function() { return !!serverOrigin() || !!window.NativeToolsBridge; } };
   // Xem trước giao diện hệ thống với dữ liệu giả (dùng để chụp so với canvas và kiểm tra bằng mắt); không có tác dụng với dữ liệu thật.
   window.__PiloFiles.preview = {
     big: function(list) { list.forEach(function(e, i) { addBig('preview' + i, 'files/preview' + i, e.name, e.size, !!e.tooLarge); }); showBigDialog(); },
@@ -1536,16 +1574,97 @@ window.PILO_SDK_VERSION = '2.11.0';
   if (bridge()) setTimeout(function() { call('ping').then(function() {}, function() {}); }, 0);
 })();
 
+// Core MCP — DO NOT EDIT. Tool cấp tác vụ của app, để agent (chat PiloOS hoặc agent ngoài qua MCP) điều khiển app.
+// Hợp đồng: manifest.json có `mcp.tools[] = { name, description, inputSchema, readOnly?, destructive? }`; app đăng ký cài đặt bằng
+//   PiloMcp.tool('doc_insert_table', function (args) { ...; return { summary: 'Đã chèn bảng 3x3', data: {...} }; });
+// Kết quả luôn là { ok, summary, data } hoặc { ok:false, error }. Host gọi PiloMcp.call(name, args) (Android: evaluateJavascript; web: postMessage 'pilo-mcp').
+(function() {
+  'use strict';
+  var handlers = {}, declared = null, declaring = null, groupInfo = {};
+
+  function typeOk(v, t) {
+    if (t === 'integer') return typeof v === 'number' && isFinite(v) && Math.floor(v) === v;
+    if (t === 'number') return typeof v === 'number' && isFinite(v);
+    if (t === 'array') return Array.isArray(v);
+    if (t === 'object') return v !== null && typeof v === 'object' && !Array.isArray(v);
+    if (t === 'null') return v === null;
+    return typeof v === t;
+  }
+  // Kiểm tham số theo inputSchema (một lớp object: type, required, enum, min/max): đủ để chặn lỗi gõ sai của agent.
+  function validate(schema, args) {
+    if (!schema || schema.type !== 'object') return null;
+    if (!typeOk(args, 'object')) return 'args must be an object';
+    var req = schema.required || [], props = schema.properties || {}, i, k;
+    for (i = 0; i < req.length; i++) if (args[req[i]] === undefined) return 'missing "' + req[i] + '"';
+    for (k in args) {
+      var p = props[k];
+      if (!p) { if (schema.additionalProperties === false) return 'unknown "' + k + '"'; continue; }
+      var v = args[k];
+      if (p.type && !typeOk(v, p.type)) return '"' + k + '" must be ' + p.type;
+      if (p.enum && p.enum.indexOf(v) < 0) return '"' + k + '" must be one of ' + p.enum.join(', ');
+      if (typeof v === 'number' && ((p.minimum !== undefined && v < p.minimum) || (p.maximum !== undefined && v > p.maximum))) return '"' + k + '" out of range';
+    }
+    return null;
+  }
+  function load() {
+    if (declared) return Promise.resolve(declared);
+    if (declaring) return declaring;
+    declaring = fetch('manifest.json', { cache: 'no-store' }).then(function(r) { return r.json(); }).then(function(m) {
+      declared = {}; groupInfo = (m && m.mcp && m.mcp.groups) || {};
+      ((m && m.mcp && m.mcp.tools) || []).forEach(function(t) { declared[t.name] = t; });
+      return declared;
+    }, function() { declared = {}; return declared; });
+    return declaring;
+  }
+  function fail(error) { return { ok: false, error: error }; }
+
+  window.PiloMcp = {
+    tool: function(name, fn) { handlers[name] = fn; },
+    // Tool khai báo trong manifest (mô tả + schema) kèm cờ `ready` = đã có cài đặt.
+    list: function() {
+      return load().then(function(d) {
+        return Object.keys(d).map(function(n) { var t = d[n]; return { name: n, group: t.group || 'core', description: t.description, inputSchema: t.inputSchema, readOnly: !!t.readOnly, destructive: !!t.destructive, ready: !!handlers[n] }; });
+      });
+    },
+    // Group name -> one line about it, from the manifest (lets a host list a few tools and describe the rest on request).
+    groups: function() { return load().then(function() { return groupInfo; }); },
+    call: function(name, args) {
+      args = args || {};
+      return load().then(function(d) {
+        var t = d[name];
+        if (!t) return fail('unknown_tool:' + name);
+        if (!handlers[name]) return fail('not_implemented:' + name);
+        var bad = validate(t.inputSchema, args);
+        if (bad) return fail('bad_args:' + bad);
+        return Promise.resolve().then(function() { return handlers[name](args); }).then(function(r) {
+          r = r || {};
+          return { ok: true, summary: r.summary || 'done', data: r.data === undefined ? null : r.data };
+        }, function(e) { return fail(String(e && e.message || e)); });
+      });
+    }
+  };
+
+  // Vỏ web (iframe) và host nhúng: {type:'pilo-mcp', id, op:'list'|'call', tool, args} → trả {type:'pilo-mcp-result', id, result}.
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('message', function(e) {
+      var m = e.data;
+      if (!m || m.type !== 'pilo-mcp' || !e.source) return;
+      var run = m.op === 'list' ? window.PiloMcp.list() : window.PiloMcp.call(m.tool, m.args);
+      run.then(function(result) { e.source.postMessage({ type: 'pilo-mcp-result', id: m.id, result: result }, e.origin || '*'); });
+    });
+  }
+})();
+
 // Core Native Tools — DO NOT EDIT. Bridge to native-capability tools (image/video/PDF/etc).
 (function() {
   'use strict';
   var pending = {};
   var seq = 0;
 
-  // TRACE (OFF by default; localStorage.setItem('pilo_trace','1') switches it on): every native call, uncaught error and page lifecycle event is written with console.log, which the host keeps in the mini app log file (files/mini_app_logs/<id>.log).
+  // TRACE (ON for good; localStorage.setItem('pilo_trace','0') switches it off): every native call, uncaught error and page lifecycle event is written with console.log, which the host keeps in the mini app log file (files/mini_app_logs/<id>.log).
   // Only tool names, parameter NAMES and timings are logged, never parameter values or file content.
-  var TRACE = (function () { try { return localStorage.getItem('pilo_trace') === '1'; } catch (e) { return false; } })(), T0 = Date.now(), lines = 0;
-  function trace(m) { if (!TRACE || lines > 1500) return; lines++; try { console.log('[TRACE +' + (Date.now() - T0) + 'ms] ' + m); } catch (e) {} }
+  var TRACE = (function () { try { return localStorage.getItem('pilo_trace') !== '0'; } catch (e) { return true; } })(), T0 = Date.now(), lines = 0;   // ON for good (the host keeps it in the session log file); only localStorage pilo_trace = '0' turns it off
+  function trace(m) { if (!TRACE || lines > 12000) return; lines++; try { console.log('[TRACE +' + (Date.now() - T0) + 'ms] ' + m); } catch (e) {} }
   if (TRACE && typeof window.addEventListener === 'function' && typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
     trace('page start ' + location.pathname + ' ua=' + navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90) + ' online=' + navigator.onLine + ' bridge=' + !!window.NativeToolsBridge);
     window.addEventListener('error', function(e) { trace('UNCAUGHT ' + (e.message || '') + ' @' + String(e.filename || '').split('/').pop() + ':' + e.lineno); });
@@ -1602,6 +1721,8 @@ window.PILO_SDK_VERSION = '2.11.0';
       }
       // Nội dung do trang tạo ra vừa được lưu thành file của app: để SDK đưa nó lên server như mọi file đã lưu khác.
       if (!reply.error && p.tool === 'save_local_file' && reply.data && reply.data.id && window.__PiloFiles && window.__PiloFiles.afterLocalSave) window.__PiloFiles.afterLocalSave(reply.data);
+      // The phone filled up while the picker copied the chosen files: say so, the app only sees fewer files.
+      if (!reply.error && p.tool === 'pick_file' && reply.data && reply.data.stopped === 'no_space' && window.__PiloFiles && window.__PiloFiles.noSpace) window.__PiloFiles.noSpace(reply.data.count || 0, (reply.data.count || 0) + (reply.data.failed || 0));
       if (reply.error) { p.reject(new Error(reply.error)); } else { p.resolve(reply); }
     };
   }
@@ -2062,11 +2183,11 @@ window.PILO_SDK_VERSION = '2.11.0';
   'use strict';
 
   var db = null;
-  // IDB_TRACE: step-by-step trace of every IndexedDB open / upgrade / transaction, written with console.log (the host stores it in the mini app log file). OFF by default;
-  // switch it on for a page with localStorage.setItem('pilo_trace','1') (used to track down a first-run hang). Every line starts with [IDB +<ms since this page loaded>].
-  function traceOn() { try { return localStorage.getItem('pilo_trace') === '1'; } catch (e) { return false; } }
+  // IDB_TRACE: step-by-step trace of every IndexedDB open / upgrade / transaction, written with console.log (the host stores it in the mini app log file). ON for good;
+  // switch it off for a page with localStorage.setItem('pilo_trace','0') (used to track down a first-run hang). Every line starts with [IDB +<ms since this page loaded>].
+  function traceOn() { try { return localStorage.getItem('pilo_trace') !== '0'; } catch (e) { return true; } }   // ON for good (kept in the session log file); pilo_trace = '0' turns it off
   var IDB_TRACE = traceOn(), T0 = Date.now(), inflight = {}, inflightN = 0, traceLines = 0;
-  function dbg(m) { if (!IDB_TRACE || traceLines > 400) return; traceLines++; try { console.log('[IDB +' + (Date.now() - T0) + 'ms] ' + m); } catch (e) {} }
+  function dbg(m) { if (!IDB_TRACE || traceLines > 6000) return; traceLines++; try { console.log('[IDB +' + (Date.now() - T0) + 'ms] ' + m); } catch (e) {} }
   function track(name) {
     var id = ++inflightN; inflight[id] = { name: name, t: Date.now() };
     return function() { delete inflight[id]; };
@@ -2400,7 +2521,12 @@ window.PILO_SDK_VERSION = '2.11.0';
     var done = track('put(' + storeName + ') persistSources'), tp = Date.now();
     dbg('put(' + storeName + ',' + (value && value.key) + ') persistSources start');
     var ready = files && files.persistSources ? files.persistSources(value) : Promise.resolve();
-    return ready.then(function() { done(); dbg('persistSources done in ' + (Date.now() - tp) + 'ms'); return put(storeName, value); }, function(e) { done(); dbg('persistSources FAILED ' + e); throw e; });
+    return ready.then(function() {
+      done(); dbg('persistSources done in ' + (Date.now() - tp) + 'ms');
+      // A temp file the host left out (the phone ran out of storage) is still in the record: refuse it rather than keep a link that will not open.
+      if (files && files.hasSources && files.hasSources(value)) throw new Error('[no_space] Not enough storage on this phone to keep this file (' + (value && value.key) + ')');
+      return put(storeName, value);
+    }, function(e) { done(); dbg('persistSources FAILED ' + e); throw e; });
   }
 
   // putMany(storeName, values): lưu NHIỀU bản ghi cùng lúc. Mọi file tạm của cả lô được copy vào app trong MỘT lượt (một danh sách tiến độ, không nháy từng file một),
@@ -2413,15 +2539,20 @@ window.PILO_SDK_VERSION = '2.11.0';
     if (denied) return denied;
     var files = window.__PiloFiles;
     var wrap = { items: values.slice() };
+    var tm = Date.now();
+    dbg('putMany(' + storeName + ') start n=' + values.length);
     var ready = files && files.persistSources ? files.persistSources(wrap) : Promise.resolve();
     return ready.then(function() {
+      dbg('putMany(' + storeName + ') sources persisted in ' + (Date.now() - tm) + 'ms, writing ' + wrap.items.length + ' record(s)');
       var ok = [], failed = [];
       return wrap.items.reduce(function(chain, v) {
         return chain.then(function() {
-          return putPersisted(storeName, v).then(function() { ok.push(v); }, function(e) { failed.push({ item: v, error: e }); });
+          // left out by the host (no storage left): refuse it here instead of asking the host again for every one of them
+          if (files && files.hasSources && files.hasSources(v)) { failed.push({ item: v, error: new Error('[no_space] Not enough storage on this phone to keep this file (' + (v && v.key) + ')') }); return; }
+          return putPersisted(storeName, v).then(function() { ok.push(v); }, function(e) { dbg('putMany(' + storeName + ') record ' + (v && v.key) + ' FAILED ' + (e && e.message || e)); failed.push({ item: v, error: e }); });
         });
-      }, Promise.resolve()).then(function() { return { ok: ok, failed: failed }; });
-    });
+      }, Promise.resolve()).then(function() { dbg('putMany(' + storeName + ') done ok=' + ok.length + ' failed=' + failed.length + ' in ' + (Date.now() - tm) + 'ms'); return { ok: ok, failed: failed }; });
+    }, function(e) { dbg('putMany(' + storeName + ') REJECTED after ' + (Date.now() - tm) + 'ms: ' + (e && e.message || e)); throw e; });
   }
 
   window.Storage = {
@@ -2813,7 +2944,7 @@ window.PILO_SDK_VERSION = '2.11.0';
       return Promise.race([work, timeout]).catch(function() {}).then(function() { clearTimeout(timer); hide(); });
     }
 
-    function slog(m) { try { if (localStorage.getItem('pilo_trace') === '1') console.log(m); } catch (e) {} }
+    function slog(m) { try { if (localStorage.getItem('pilo_trace') !== '0') console.log(m); } catch (e) {} }   // ON for good; pilo_trace = '0' turns it off
     (function startFirstLoad() {
       var base = httpBase();
       if (!base || !proj.projectId || navigator.onLine === false) return;
