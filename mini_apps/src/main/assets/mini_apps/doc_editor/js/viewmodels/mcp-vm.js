@@ -27,7 +27,7 @@
     var b = at(i); if (b.classList.contains('ed')) return caretIn(b, true);
     var r = document.createRange(); r.selectNodeContents(b); Doc.range = r;
   }
-  function ready() { if (Doc.mode !== 'edit') throw new Error('document_not_open_for_editing'); }
+  function ready() { if (Doc.mode !== 'edit') throw new Error('document_not_open_for_editing: call doc_new_document first'); }
   // "h1".."h6", "normal", "bullet", "numbered" on the block the caret is in
   function style(b, s) {
     caretIn(b, true);
@@ -98,6 +98,7 @@
 
   M.tool('doc_insert_table', async function (a) {
     ready();
+    if (a.cells && (!Array.isArray(a.cells) || a.cells.some(function (r) { return !Array.isArray(r); }))) throw new Error('cells_must_be_rows: pass cells as an array of rows, each row an array of strings, for example [["Date","Day"],["2 Nov","Mon"]]');
     if (a.after !== undefined) anchorAfter(a.after);
     var before = blocks();
     A['i-tsize']({ dataset: { r: a.rows, c: a.cols } });
@@ -119,6 +120,12 @@
   M.tool('doc_delete_block', function (a) {
     ready(); var b = at(a.index); var k = kind(b); Edit.mark(); b.remove(); done();
     return { summary: 'Deleted the ' + k + ' at index ' + a.index, data: null };
+  });
+
+  M.tool('doc_new_document', async function () {
+    if (Doc.mode !== 'edit') { await A['h-new'](); await new Promise(function (r) { setTimeout(r, 900); }); }
+    if (Doc.mode !== 'edit') throw new Error('could_not_open_new_document');
+    return { summary: 'A new empty document is open for editing', data: null };
   });
 
   M.tool('doc_save_draft', async function () {

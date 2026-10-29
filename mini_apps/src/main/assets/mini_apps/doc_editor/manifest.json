@@ -88,6 +88,16 @@
         "readOnly": true
       },
       {
+        "name": "doc_new_document",
+        "group": "core",
+        "description": "Open a new empty Word document for editing. Call this first when doc_get_info shows no document is open, or any edit says document_not_open_for_editing.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
         "name": "doc_get_info",
         "group": "core",
         "description": "Name, block/word/page counts, unsaved flag.",
