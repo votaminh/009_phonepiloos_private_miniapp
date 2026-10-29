@@ -2,7 +2,7 @@
   "name": "Piloos Doc",
   "description": "Read and edit Word (.docx) files on your phone or computer: headings, lists, fonts and sizes, tables, pictures, shapes, equations, columns, section breaks, headers and footers, page numbers, comments and footnotes, track changes, and page view. Opens files straight from other apps, keeps a draft of your edits, and works offline.",
   "category": "Productivity",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "updatedAt": "2026-10-29",
   "icon": "icon.png",
   "showInApp": true,
